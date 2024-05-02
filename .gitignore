@@ -3,6 +3,15 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml
@@ -13,15 +22,6 @@ target/
 *.iml
 *.ipr
 
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -31,6 +31,20 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
+
+### Vim ###
+[._]*.s[a-v][a-z]
+!*.svg  # comment out if you don't need vector files
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+Session.vim
+Sessionx.vim
+.netrwhist
+*~
+tags
+[._]*.un~
 
 ### VS Code ###
 .vscode/
