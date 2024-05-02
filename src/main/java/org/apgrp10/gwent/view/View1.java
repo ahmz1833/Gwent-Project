@@ -1,6 +1,5 @@
 package org.apgrp10.gwent.view;
 
-public class View1
-{
+public class View1 {
 
 }
