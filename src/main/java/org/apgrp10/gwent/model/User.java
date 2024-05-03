@@ -1,33 +1,17 @@
 package org.apgrp10.gwent.model;
 
-import java.util.*;
+import java.util.ArrayList;
 
 public class User {
-	private static final ArrayList<User> allUsers = new ArrayList<>();
 	private static User currentUser = null;
 	private String username, password, nickname, email;
+	private int highestScore;
 
 	public User(String username, String password, String nickname, String email) {
 		this.username = username;
 		this.email = email;
 		this.password = password;
 		this.nickname = nickname;
-		allUsers.add(this);
-	}
-
-	// set and get functions:
-	public static boolean haveUserWithUsername(String username) {
-		for (User user : allUsers)
-			if (user.username.equals(username))
-				return true;
-		return false;
-	}
-
-	public static User getUserByName(String username) {
-		for (User user : allUsers)
-			if (user.username.equals(username))
-				return user;
-		return null;
 	}
 
 	public static User getCurrentUser() {
@@ -69,5 +53,4 @@ public class User {
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
 	}
-	// end of set and get functions
 }
