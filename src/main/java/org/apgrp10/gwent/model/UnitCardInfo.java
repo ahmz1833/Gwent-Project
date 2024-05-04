@@ -1,11 +1,15 @@
 package org.apgrp10.gwent.model;
 
-public class UnitCardInfo
+import org.apgrp10.gwent.controller.CardInfo;
+
+public class UnitCardInfo extends CardInfo
 {
-	
 	//TODO:
 	private static final UnitCardInfo[] allCards = {
-	
+//		new UnitCardInfo(),
+//			new UnitCardInfo(),
+//			new UnitCardInfo(),
+//
 	};
 	public final String name;
 	public final int power;
@@ -15,8 +19,9 @@ public class UnitCardInfo
 	public final Action cardAction;
 	public final Faction faction;
 	
-	public UnitCardInfo(Faction faction, String name, int power, Type type, Ability ability, boolean isHero, Action cardAction)
+	private UnitCardInfo(Faction faction, String name, int power, Type type, Ability ability, boolean isHero, Action cardAction)
 	{
+		super(name, faction);
 		this.faction = faction;
 		this.name = name;
 		this.power = power;
@@ -26,15 +31,15 @@ public class UnitCardInfo
 		this.cardAction = cardAction;
 	}
 	
-	public enum Ability
+	public static CardInfo search(String cardname)
 	{
-		FOO(null),
-		BAR(null);
-		
-		Ability(Action abilityAction)
-		{
-		
-		}
+		return search(allCards, cardname);
+	}
+	
+	@Override
+	public UnitCard makeNewCard()
+	{
+		return null;
 	}
 	
 	public enum Type
@@ -42,8 +47,7 @@ public class UnitCardInfo
 		CLOSE(),
 		RANGED(),
 		SIEGE(),
-		AGILE(),
-		SPECIAL();
+		AGILE();
 		
 		Type()
 		{

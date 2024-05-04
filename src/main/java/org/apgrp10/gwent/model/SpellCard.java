@@ -1,6 +1,6 @@
 package org.apgrp10.gwent.model;
 
-public class SpecialCard
+public class SpellCard extends Card
 {
 
 }

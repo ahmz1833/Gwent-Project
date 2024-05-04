@@ -8,9 +8,7 @@ public enum Faction
 	Scoiatael,
 	Northern_Realms,
 	Nilfgaard,
-	Monsters,
-	Neutral;
-	
+	Monsters;
 	
 	public ArrayList<Leader> leadersList()
 	{

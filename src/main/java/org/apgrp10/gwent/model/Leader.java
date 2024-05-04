@@ -2,11 +2,11 @@ package org.apgrp10.gwent.model;
 
 public enum Leader
 {
-	LEADER1(null),
-	LEADER2(null);
+	LEADER1(null, null),
+	LEADER2(null, null);
 	
 	
-	Leader(Faction faction)
+	Leader(Faction faction, Action action)
 	{
 	
 	}

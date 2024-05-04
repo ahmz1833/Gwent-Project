@@ -4,7 +4,21 @@ import java.util.ArrayList;
 
 public class CombatZone
 {
-	public static enum Type { SWORD, BOW, CANON, SIZE };
-	ArrayList<UnitCard> normal;
-	Card special;
+	private final ArrayList<UnitCard> normal = new ArrayList<>();
+	
+	;
+	private SpellCard specialZone;
+	
+	public CombatZone(Row row)
+	{
+	
+	}
+	
+	public int getTotalPower()
+	{
+		return 0;
+	}
+	
+	enum Row
+	{CLOSED, RANGED, SIEGE}
 }
