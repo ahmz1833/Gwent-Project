@@ -1,12 +1,10 @@
-package org.apgrp10.gwent.model;
-
-import org.apgrp10.gwent.controller.CardInfo;
+package org.apgrp10.gwent.model.card;
 
 public abstract class Card
 {
 	private final CardInfo info;
 	
-	Card(CardInfo info)
+	protected Card(CardInfo info)
 	{
 		this.info = info;
 	}

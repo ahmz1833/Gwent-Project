@@ -1,5 +1,8 @@
 package org.apgrp10.gwent.model;
 
+import org.apgrp10.gwent.model.card.SpellCard;
+import org.apgrp10.gwent.model.card.UnitCard;
+
 import java.util.ArrayList;
 
 public class CombatZone

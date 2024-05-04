@@ -1,4 +1,4 @@
-package org.apgrp10.gwent.model;
+package org.apgrp10.gwent.model.card;
 
 import org.apgrp10.gwent.controller.GameController;
 

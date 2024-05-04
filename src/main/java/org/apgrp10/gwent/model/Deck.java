@@ -1,6 +1,7 @@
 package org.apgrp10.gwent.model;
 
-import org.apgrp10.gwent.controller.CardInfo;
+import org.apgrp10.gwent.model.card.CardInfo;
+import org.apgrp10.gwent.model.card.Card;
 
 import java.io.Serializable;
 import java.util.ArrayList;

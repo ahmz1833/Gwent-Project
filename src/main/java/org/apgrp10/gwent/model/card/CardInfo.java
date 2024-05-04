@@ -1,9 +1,6 @@
-package org.apgrp10.gwent.controller;
+package org.apgrp10.gwent.model.card;
 
-import org.apgrp10.gwent.model.Card;
 import org.apgrp10.gwent.model.Faction;
-import org.apgrp10.gwent.model.SpecialCardInfo;
-import org.apgrp10.gwent.model.UnitCardInfo;
 
 public abstract class CardInfo
 {

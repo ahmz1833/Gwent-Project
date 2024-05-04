@@ -1,6 +1,8 @@
-package org.apgrp10.gwent.model;
+package org.apgrp10.gwent.model.card;
 
-import org.apgrp10.gwent.controller.CardInfo;
+import org.apgrp10.gwent.model.Ability;
+import org.apgrp10.gwent.model.Action;
+import org.apgrp10.gwent.model.Faction;
 
 public class UnitCardInfo extends CardInfo
 {
