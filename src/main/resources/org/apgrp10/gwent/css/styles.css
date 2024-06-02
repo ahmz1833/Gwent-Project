@@ -1,0 +1,100 @@
+@import '../fonts/fonts.css';
+
+.frame {
+    -fx-background-color: #FFFFFF70;
+    -fx-background-radius: 5px;
+    -fx-border-color: #000000;
+    -fx-border-width: 2px;
+    -fx-border-radius: 5px;
+    -fx-padding: 20px;
+}
+
+.avatar-view {
+    -fx-border-color: #11111160;
+    -fx-border-width: 1px;
+    -fx-border-radius: 50%;
+}
+
+#dialog_label {
+    -fx-text-fill: #000000;
+    -fx-font-size: 18px;
+    -fx-max-width: 500px;
+    -fx-wrap-text: true;
+    -fx-padding: 5 5 5 5;
+}
+
+Label, MFXButton, MFXTextField, MFXTableView {
+    -fx-font-size: 16px;
+    -fx-text-fill: #000000;
+    -fx-font-family: 'Comfortaa SemiBold';
+}
+
+.mfx-button {
+    -fx-padding: 10px 24px;
+    -fx-text-align: center;
+    -fx-text-decoration: none;
+    -fx-display: inline-block;
+    -fx-border-radius: 5px;
+    -fx-transition-duration: 0.4s; /* Transition duration */
+}
+
+.mfx-button:hover {
+    -fx-background-color: #EEEEEE;
+}
+
+.actions-pane MFXButton {
+    -fx-background-color: #EEEEEE;
+    -fx-background-radius: 8px;
+}
+
+.actions-pane MFXButton:hover {
+    -fx-background-color: #DDDDDD;
+}
+
+.mfx-text-field {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #695181;
+    -fx-border-radius: 10px;
+    -fx-text-fill: #000000;
+    -fx-font-size: 16px;
+}
+
+.mfx-text-field .floating-text {
+    -fx-background-color: #EEEEEEEE;
+    -fx-background-radius: 10px;
+    -fx-padding: 2px 5px;
+}
+
+.mfx-text-field:focus-within .floating-text {
+    -fx-background-color: #f5c6ff;
+}
+
+.validation-label {
+    -fx-text-fill: #EE1111;
+    -fx-font-size: 12px;
+    -fx-font-family: 'Visby Round CF Demi Bold';
+}
+
+.mfx-text-field:invalid {
+    -fx-border-color: #EE1111;
+}
+
+.mfx-text-field:invalid .floating-text {
+    -fx-text-fill: #EE1111;
+}
+
+.mfx-text-field:invalid .mfx-font-icon {
+    -mfx-color: #EE1111;
+}
+
+.header {
+    -fx-font-family: 'Visby Round CF Bold';
+    -fx-font-weight: bold;
+    -fx-font-size: 24px;
+}
+
+.boldText {
+    -fx-font-family: 'Visby Round CF Bold';
+    -fx-font-weight: bold;
+    -fx-font-size: 19px;
+}

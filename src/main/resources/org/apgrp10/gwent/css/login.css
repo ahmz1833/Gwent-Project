@@ -1,0 +1,17 @@
+@import "styles.css";
+
+#login, #register {
+    -fx-background-color: #4CAF50; /* Green */
+}
+
+#login:hover, #register:hover {
+    -fx-background-color: #45a049;
+}
+
+#guestplay {
+    -fx-background-color: #008CBA; /* Blue */
+}
+
+#guestplay:hover {
+    -fx-background-color: #007B9E;
+}

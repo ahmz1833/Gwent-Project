@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import io.github.palexdev.materialfx.controls.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.Group?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.Scene?>
+
+<Scene stylesheets="@../css/login.css" xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1">
+   <StackPane>
+      <Group>
+         <VBox styleClass="frame" alignment="CENTER_LEFT" fillWidth="false" spacing="10.0"
+               StackPane.alignment="CENTER">
+            <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="22.0" prefWidth="400.0"
+                   text="Hello :) Welcome to Atomic Bomber Game :)" textAlignment="CENTER"/>
+            <MFXTextField fx:id="username" floatMode="BORDER" floatingText="Username" prefColumnCount="20"
+                          prefHeight="50.0"
+                          prefWidth="400.0" textLimit="20">
+               <VBox.margin>
+                  <Insets top="5.0"/>
+               </VBox.margin>
+            </MFXTextField>
+            <Label fx:id="usern_validation" styleClass="validation-label" visible="false" maxWidth="400"
+                   wrapText="true">
+               <VBox.margin>
+                  <Insets top="-10.0"/>
+               </VBox.margin>
+               <padding>
+                  <Insets left="10.0"/>
+               </padding>
+            </Label>
+            <MFXPasswordField fx:id="password" floatMode="BORDER" floatingText="Password" prefColumnCount="20"
+                              prefWidth="400.0"
+                              textLimit="16">
+               <VBox.margin>
+                  <Insets/>
+               </VBox.margin>
+            </MFXPasswordField>
+            <Label fx:id="pass_validation" styleClass="validation-label" visible="false" maxWidth="400"
+                   wrapText="true">
+               <padding>
+                  <Insets left="10.0"/>
+               </padding>
+               <VBox.margin>
+                  <Insets top="-10.0"/>
+               </VBox.margin>
+            </Label>
+            <HBox alignment="CENTER" prefHeight="34.0" prefWidth="400.0" spacing="10.0">
+               <MFXButton fx:id="login" defaultButton="true" depthLevel="LEVEL3" mnemonicParsing="false"
+                          prefHeight="40.0"
+                          prefWidth="200.0" text="Login"/>
+               <MFXButton fx:id="register" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="40.0"
+                          prefWidth="200.0"
+                          text="Register"/>
+               <VBox.margin>
+                  <Insets top="10.0"/>
+               </VBox.margin>
+            </HBox>
+            <MFXButton fx:id="guestplay" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false"
+                       prefHeight="43.0"
+                       prefWidth="400.0" text="Play as guest"/>
+            <padding>
+               <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+            </padding>
+         </VBox>
+      </Group>
+   </StackPane>
+</Scene>
