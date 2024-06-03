@@ -1,6 +1,5 @@
 package org.apgrp10.gwent.model;
 
-import org.apgrp10.gwent.model.card.CardInfo;
 import org.apgrp10.gwent.model.card.Card;
 
 import java.io.Serializable;
@@ -31,16 +30,10 @@ public class Deck implements Serializable
 	{
 		this.leader = leader;
 	}
-	
-	public boolean addToDeck(CardInfo identifier)
-	{
-		
-		return false;
-	}
+
 	
 	public void saveDeck(String fileAddress)
 	{
-	
+
 	}
-	
 }

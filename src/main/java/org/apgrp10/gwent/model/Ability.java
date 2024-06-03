@@ -2,10 +2,10 @@ package org.apgrp10.gwent.model;
 
 public enum Ability
 {
-	FOO("", null),
-	BAR("", null);
+	FOO(""),
+	BAR("");
 	
-	Ability(String name, Action abilityAction)
+	Ability(String name)
 	{
 	
 	}
