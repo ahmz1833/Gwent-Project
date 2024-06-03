@@ -1,6 +1,14 @@
-BorderPane{
+AnchorPane {
     -fx-background-image: url("../image/icons/boardPreGame.jpg");
     -fx-background-repeat: stretch;
     -fx-background-size: 100% 100%;
 }
+MFXScrollPane, MFXScrollPane > .viewport{
+    -fx-max-height: 600;
+    -fx-min-height: 600;
+    -fx-min-width: 280;
+    -fx-max-width: 280;
+    -fx-background-color: transparent;
+}
+
 
