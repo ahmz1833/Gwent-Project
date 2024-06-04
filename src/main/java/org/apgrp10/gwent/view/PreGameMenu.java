@@ -73,23 +73,30 @@ public class PreGameMenu extends Application {
 						new ColumnConstraints(screenWidth / (double) cardWidth));
 			}
 			MFXScrollPane scroll = new MFXScrollPane(gridPane);
-			scroll.setLayoutX(50 + 300 * i);
-			scroll.setLayoutY(50);
+			switch (i){
+				case 0: scroll.setLayoutX(10); break;
+				case 1: scroll.setLayoutX(460); break;
+				case 2: scroll.setLayoutX(750); break;
+				case 3: scroll.setLayoutX(1200);
+			}
+			scroll.setLayoutY(130);
 			pane.getChildren().add(scroll);
 			lists[i] = gridPane;
 		}
 	}
 
-	public void updateLists(ArrayList<CardImage> arrayList) {
-		int i = 0, j = 0;
-		lists[0].getChildren().clear();
-		for (CardImage cardImage : arrayList) {
-			lists[0].add(new CardImage("monsters_nekker"), i, j);
-			if (i == 2) {
-				i = 0;
-				j++;
-			} else
-				i++;
+	public void updateLists(ArrayList<ArrayList<CardImage>> arrayList) {
+		for(int k = 0; k < 4; k++) {
+			int i = 0, j = 0;
+			lists[k].getChildren().clear();
+			for (CardImage cardImage : arrayList.get(k)) {
+				lists[k].add(new CardImage("monsters_nekker"), i, j);
+				if (i == 2) {
+					i = 0;
+					j++;
+				} else
+					i++;
+			}
 		}
 	}
 

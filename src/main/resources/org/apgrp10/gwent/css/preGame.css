@@ -9,6 +9,7 @@ MFXScrollPane, MFXScrollPane > .viewport{
     -fx-min-width: 280;
     -fx-max-width: 280;
     -fx-background-color: transparent;
+    -fx-border-width: 2;
 }
 
 

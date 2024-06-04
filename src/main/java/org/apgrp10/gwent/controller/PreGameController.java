@@ -1,8 +1,6 @@
 package org.apgrp10.gwent.controller;
 
 import io.github.palexdev.materialfx.controls.MFXButton;
-import javafx.event.ActionEvent;
-import javafx.scene.layout.Pane;
 import org.apgrp10.gwent.model.card.CardImage;
 import org.apgrp10.gwent.view.PreGameMenu;
 
@@ -12,11 +10,14 @@ public class PreGameController {
 	public MFXButton updateButton;
 
 	public void update() {
-		ArrayList<CardImage> arrayList = new ArrayList<>();
-		double number = Math.random() * 100;
-		for(int i = 0; i < number; i++){
-			arrayList.add(new CardImage("neutral_ciri"));
+		ArrayList<ArrayList<CardImage>> list = new ArrayList<>(4);
+		for (int k = 0; k < 4; k++) {
+			list.add(new ArrayList<>());
+			double number = Math.random() * 30;
+			for (int i = 0; i < number; i++) {
+				list.get(k).add(new CardImage("neutral_ciri"));
+			}
 		}
-		PreGameMenu.currentMenu.updateLists(arrayList);
+		PreGameMenu.currentMenu.updateLists(list);
 	}
 }
