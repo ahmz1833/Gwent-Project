@@ -50,10 +50,7 @@ class CardLoader {
 			int id = convertToInt(card.id);
 			int count = convertToInt(card.count);
 			int strength = convertToInt(card.strength);
-			CardInfo.allCards.add(new CardInfo(card.name, card.filename, id, count, 0, Row.getEnum(card.row), Faction.getEnum(card.deck), Ability.getEnum(card.ability)));
-		}
-		for (String ss : abilities) {
-			System.out.println(ss.replaceAll(" ", "_").toUpperCase() + ",");
+			CardInfo.allCards.add(new CardInfo(card.name, card.deck + "_" + card.filename, id, count, 0, Row.getEnum(card.row), Faction.getEnum(card.deck), Ability.getEnum(card.ability)));
 		}
 	}
 

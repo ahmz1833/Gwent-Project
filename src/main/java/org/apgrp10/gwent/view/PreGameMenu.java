@@ -4,6 +4,7 @@ import io.github.palexdev.materialfx.controls.MFXScrollPane;
 import javafx.application.Application;
 import javafx.scene.ImageCursor;
 import javafx.scene.Scene;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -12,6 +13,7 @@ import org.apgrp10.gwent.model.card.CardInfo;
 import org.apgrp10.gwent.model.card.CardView;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class PreGameMenu extends Application {
 	private Stage stage;
@@ -68,18 +70,13 @@ public class PreGameMenu extends Application {
 						new ColumnConstraints(screenWidth / (double) cardWidth));
 			}
 			MFXScrollPane scroll = new MFXScrollPane(gridPane);
+			scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+			scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 			switch (i) {
-				case 0:
-					scroll.setLayoutX(10);
-					break;
-				case 1:
-					scroll.setLayoutX(460);
-					break;
-				case 2:
-					scroll.setLayoutX(750);
-					break;
-				case 3:
-					scroll.setLayoutX(1200);
+				case 0 -> scroll.setLayoutX(10);
+				case 1 -> scroll.setLayoutX(460);
+				case 2 -> scroll.setLayoutX(750);
+				case 3 -> scroll.setLayoutX(1200);
 			}
 			scroll.setLayoutY(130);
 			pane.getChildren().add(scroll);
@@ -92,7 +89,8 @@ public class PreGameMenu extends Application {
 			int i = 0, j = 0;
 			lists[k].getChildren().clear();
 			for (CardView cardImage : arrayList.get(k)) {
-				lists[k].add(new CardView("monsters_nekker"), i, j);
+				lists[k].add(new CardView(
+						CardInfo.allCards.get((int)(Math.random() * CardInfo.allCards.size())).pathAddress), i, j);
 				if (i == 2) {
 					i = 0;
 					j++;
