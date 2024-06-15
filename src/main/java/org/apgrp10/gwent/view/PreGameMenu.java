@@ -12,14 +12,16 @@ import javafx.stage.Stage;
 import org.apgrp10.gwent.*;
 import org.apgrp10.gwent.model.card.CardInfo;
 import org.apgrp10.gwent.model.card.CardViewPregame;
+import org.apgrp10.gwent.model.card.Faction;
+import org.apgrp10.gwent.model.card.Row;
 
-import java.util.ArrayList;
 
 public class PreGameMenu extends Application {
 	private Stage stage;
 	private Pane pane;
 	private Scene scene;
 	private GridPane[] deckLists = new GridPane[2];
+	private Faction faction = Faction.SCOIATAEL;
 
 	public static PreGameMenu currentMenu;
 	public static final int screenWidth = 1500, cardWidth = 18;
@@ -37,6 +39,7 @@ public class PreGameMenu extends Application {
 		setTitle();
 		addGradePane();
 		setSpoiler();
+		loadFactionDeck();
 		stage.show();
 	}
 
@@ -92,21 +95,17 @@ public class PreGameMenu extends Application {
 		}
 	}
 
-	public void updateLists(ArrayList<ArrayList<CardViewPregame>> arrayList) {
-		for (int k = 0; k < 2; k++) {
-			int i = 0, j = 0;
-			deckLists[k].getChildren().clear();
-			for (CardViewPregame cardImage : arrayList.get(k)) {
-				CardViewPregame cardView = new CardViewPregame(CardInfo.allCards.get((int) (Math.random() * CardInfo.allCards.size())).name);
-				addCardToGridPane(cardView, deckLists[k], i, j);
-
-				if (i == 2) {
-					i = 0;
-					j++;
-				} else
-					i++;
-			}
-		}
+	private void loadFactionDeck() {
+		deckLists[0].getChildren().clear();
+		deckLists[1].getChildren().clear();
+		for (CardInfo card : CardInfo.allCards)
+			if (card.faction.equals(faction) ||
+					card.faction.equals(Faction.NATURAL) ||
+					card.faction.equals(Faction.WEATHER) ||
+					card.faction.equals(Faction.SPECIAL))
+				if (card.row != Row.LEADER)
+					for (int i = 0; i < card.count; i++)
+						addCardToGridPane(card.pathAddress, false);
 	}
 
 	private void setCursor() {
@@ -114,11 +113,26 @@ public class PreGameMenu extends Application {
 		pane.setCursor(new ImageCursor(cursor));
 	}
 
-	private void addCardToGridPane(CardViewPregame card, GridPane pane, int i, int j) {
-		pane.add(new Pane(), 0,0);
-		card.setOnMouseClicked(k -> {
-			card.countMinusMinus();
-		});
-		pane.add(card, i, j);
+	//USE ADDRESS OF FILE INSTEAD OF NAME OF CARD!
+	private void addCardToGridPane(String cardName, boolean isGameDeck) {
+		int numberOfDeck = isGameDeck ? 1 : 0;
+		boolean founded = false;
+		for (int i = 0; i < deckLists[numberOfDeck].getChildren().size(); i++) {
+			CardViewPregame currentCard = (CardViewPregame) deckLists[numberOfDeck].getChildren().get(i);
+			if (currentCard.getAddress().equals(cardName)) {
+				currentCard.countPlusPlus();
+				founded = true;
+				break;
+			}
+		}
+		if (!founded) {
+			int count = deckLists[numberOfDeck].getChildren().size();
+			deckLists[numberOfDeck].add(new CardViewPregame(cardName), count % 3, count / 3);
+
+		}
 	}
+	private void deleteCardFromGridPane(String cardName, boolean isGameDeck) {
+		//TODO
+	}
+
 }

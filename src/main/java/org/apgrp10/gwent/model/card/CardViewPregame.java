@@ -11,28 +11,17 @@ import org.apgrp10.gwent.view.PreGameMenu;
 
 
 public class CardViewPregame extends Pane {
-	private final String name;
 	private String address;
 	private Text countLabel;
-	private int count;
+	private int count = 1;
 
-	public CardViewPregame(String name) {
-		this.name = name;
-		fillInfoByName();
+	public CardViewPregame(String address) {
+		this.address = address;
 		addBackground();
 		addSymbol();
 		addCountLabel();
 	}
 
-	private void fillInfoByName() {
-		for (CardInfo card : CardInfo.allCards) {
-			if (card.name.equals(name)) {
-				this.address = card.pathAddress;
-				count = card.count;
-				break;
-			}
-		}
-	}
 
 	private void addBackground() {
 		Rectangle image = new Rectangle(PreGameMenu.screenWidth / (double) PreGameMenu.cardWidth,
@@ -67,8 +56,14 @@ public class CardViewPregame extends Pane {
 		countLabel.setText(String.valueOf(--count));
 	}
 
+	public String getAddress() {
+		return address;
+	}
+
 	@Override
-	public String toString() {
-		return name;
+	public boolean equals(Object obj) {
+		if (!(obj instanceof CardViewPregame))
+			return false;
+		return ((CardViewPregame) obj).address.equals(this.address);
 	}
 }

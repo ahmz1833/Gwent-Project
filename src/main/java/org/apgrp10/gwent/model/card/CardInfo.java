@@ -4,15 +4,31 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apgrp10.gwent.R;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Scanner;
+import java.util.*;
 
 public class CardInfo {
 	public static final ArrayList<CardInfo> allCards = new ArrayList<>();
 
 	static {
 		new CardLoader();
+		String[] sortOrder = {"special", "weather", "natural"};
+		allCards.sort((o1, o2) ->
+		{
+			int index1 = 4, index2 = 4;
+			for(int i = 0; i < sortOrder.length; i++){
+				if(Faction.getEnum(sortOrder[i]).equals(o1.faction))
+					index1 = i;
+				if(Faction.getEnum(sortOrder[i]).equals(o2.faction))
+					index2 = i;
+			}
+			if(index1 < index2)
+				return -1;
+			if(index1 > index2)
+				return 1;
+			if(o1.strength == o2.strength)
+				return o1.name.compareTo(o2.name);
+			return (o1.strength > o2.strength)? -1: +1;
+		});
 	}
 
 	public final String name, pathAddress;
@@ -50,7 +66,7 @@ class CardLoader {
 			int id = convertToInt(card.id);
 			int count = convertToInt(card.count);
 			int strength = convertToInt(card.strength);
-			CardInfo.allCards.add(new CardInfo(card.name, card.deck + "_" + card.filename, id, count, 0, Row.getEnum(card.row), Faction.getEnum(card.deck), Ability.getEnum(card.ability)));
+			new CardInfo(card.name, card.deck + "_" + card.filename, id, count, strength, Row.getEnum(card.row), Faction.getEnum(card.deck), Ability.getEnum(card.ability));
 		}
 	}
 

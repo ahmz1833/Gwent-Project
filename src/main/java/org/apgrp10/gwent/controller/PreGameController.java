@@ -18,6 +18,6 @@ public class PreGameController {
 				list.get(k).add(new CardViewPregame("Schirru"));
 			}
 		}
-		PreGameMenu.currentMenu.updateLists(list);
+		//PreGameMenu.currentMenu.updateLists(list);
 	}
 }
