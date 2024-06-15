@@ -15,6 +15,8 @@ import org.apgrp10.gwent.model.card.CardViewPregame;
 import org.apgrp10.gwent.model.card.Faction;
 import org.apgrp10.gwent.model.card.Row;
 
+import java.util.ArrayList;
+
 
 public class PreGameMenu extends Application {
 	private Stage stage;
@@ -127,12 +129,73 @@ public class PreGameMenu extends Application {
 		}
 		if (!founded) {
 			int count = deckLists[numberOfDeck].getChildren().size();
-			deckLists[numberOfDeck].add(new CardViewPregame(cardName), count % 3, count / 3);
-
+			CardViewPregame card = new CardViewPregame(cardName);
+			card.setOnMouseClicked(k -> {
+				addCardToGridPane(cardName, !isGameDeck);
+				deleteCardFromGridPane(cardName, isGameDeck);
+			});
+			deckLists[numberOfDeck].add(card, count % 3, count / 3);
+			for (int i = 0; i < 100; i++) {
+				try {
+					sortDeck(deckLists[numberOfDeck]);
+					break;
+				} catch (Exception ignored) {
+				}
+			}
 		}
 	}
+
 	private void deleteCardFromGridPane(String cardName, boolean isGameDeck) {
-		//TODO
+		int numberOfDeck = isGameDeck ? 1 : 0;
+		boolean needSort = false;
+		for (int i = 0; i < deckLists[numberOfDeck].getChildren().size(); i++) {
+			CardViewPregame currentCard = (CardViewPregame) deckLists[numberOfDeck].getChildren().get(i);
+			if (currentCard.getAddress().equals(cardName)) {
+				currentCard.countMinusMinus();
+				if (currentCard.getCount() <= 0)
+					needSort = true;
+				break;
+			}
+		}
+		if (needSort) {
+			for (int i = 0; i < 100; i++) {
+				try {
+					sortDeck(deckLists[numberOfDeck]);
+					break;
+				} catch (Exception ignored) {
+				}
+			}
+		}
+
 	}
 
+	private void sortDeck(GridPane pane) {
+		ArrayList<CardViewPregame> deck = new ArrayList<>();
+		for (int i = 0; i < pane.getChildren().size(); i++) {
+			if (((CardViewPregame) pane.getChildren().get(i)).getCount() > 0)
+				deck.add((CardViewPregame) pane.getChildren().get(i));
+		}
+		String[] sortOrder = {"special", "weather", "natural"};
+		pane.getChildren().clear();
+		deck.sort((o1, o2) ->
+		{
+			int index1 = 4, index2 = 4;
+			for (int i = 0; i < sortOrder.length; i++) {
+				if (Faction.getEnum(sortOrder[i]).equals(o1.getFaction()))
+					index1 = i;
+				if (Faction.getEnum(sortOrder[i]).equals(o2.getFaction()))
+					index2 = i;
+			}
+			if (index1 < index2)
+				return -1;
+			if (index1 > index2)
+				return 1;
+			if (o1.getStrength() == o2.getStrength())
+				return o1.getName().compareTo(o2.getName());
+			return (o1.getStrength() > o2.getStrength()) ? -1 : +1;
+		});
+		for (int i = 0; i < deck.size(); i++) {
+			pane.add(deck.get(i), i % 3, i / 3);
+		}
+	}
 }

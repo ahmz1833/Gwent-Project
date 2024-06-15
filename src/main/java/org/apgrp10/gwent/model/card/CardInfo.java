@@ -11,24 +11,6 @@ public class CardInfo {
 
 	static {
 		new CardLoader();
-		String[] sortOrder = {"special", "weather", "natural"};
-		allCards.sort((o1, o2) ->
-		{
-			int index1 = 4, index2 = 4;
-			for(int i = 0; i < sortOrder.length; i++){
-				if(Faction.getEnum(sortOrder[i]).equals(o1.faction))
-					index1 = i;
-				if(Faction.getEnum(sortOrder[i]).equals(o2.faction))
-					index2 = i;
-			}
-			if(index1 < index2)
-				return -1;
-			if(index1 > index2)
-				return 1;
-			if(o1.strength == o2.strength)
-				return o1.name.compareTo(o2.name);
-			return (o1.strength > o2.strength)? -1: +1;
-		});
 	}
 
 	public final String name, pathAddress;

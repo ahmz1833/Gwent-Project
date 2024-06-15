@@ -12,16 +12,29 @@ import org.apgrp10.gwent.view.PreGameMenu;
 
 public class CardViewPregame extends Pane {
 	private String address;
+	private String name;
 	private Text countLabel;
 	private int count = 1;
+	private int strength;
+	private Faction faction;
 
 	public CardViewPregame(String address) {
 		this.address = address;
+		fillInfoByName();
 		addBackground();
 		addSymbol();
 		addCountLabel();
 	}
 
+	private void fillInfoByName() {
+		for (CardInfo cardInfo : CardInfo.allCards) {
+			if (cardInfo.pathAddress.equals(address)) {
+				faction = cardInfo.faction;
+				name = cardInfo.name;
+				strength = cardInfo.strength;
+			}
+		}
+	}
 
 	private void addBackground() {
 		Rectangle image = new Rectangle(PreGameMenu.screenWidth / (double) PreGameMenu.cardWidth,
@@ -56,6 +69,10 @@ public class CardViewPregame extends Pane {
 		countLabel.setText(String.valueOf(--count));
 	}
 
+	public int getCount() {
+		return count;
+	}
+
 	public String getAddress() {
 		return address;
 	}
@@ -66,4 +83,17 @@ public class CardViewPregame extends Pane {
 			return false;
 		return ((CardViewPregame) obj).address.equals(this.address);
 	}
+
+	public String getName() {
+		return name;
+	}
+
+	public int getStrength() {
+		return strength;
+	}
+
+	public Faction getFaction() {
+		return faction;
+	}
 }
+
