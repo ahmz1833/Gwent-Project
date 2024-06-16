@@ -2,15 +2,16 @@ package org.apgrp10.gwent.view;
 
 import io.github.palexdev.materialfx.controls.MFXScrollPane;
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.ImageCursor;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.apgrp10.gwent.*;
@@ -20,6 +21,7 @@ import org.apgrp10.gwent.model.card.Faction;
 import org.apgrp10.gwent.model.card.Row;
 
 import java.util.ArrayList;
+import java.util.Scanner;
 
 
 public class PreGameMenu extends Application {
@@ -28,7 +30,7 @@ public class PreGameMenu extends Application {
 	private Scene scene;
 	private GridPane[] deckLists = new GridPane[2];
 	private Faction faction;
-	private VBox infoVBox;
+	private VBox infoVBox, factionInfo;
 	private Text totalCardsText, totalUnitCadsText, totalSpecialCardsText, totalStrengthText, totalHeroText;
 	private FivePlacePreGame fivePlacePreGame;
 	private String leaderName;
@@ -56,14 +58,99 @@ public class PreGameMenu extends Application {
 		setSpoiler();
 		loadFactionDeck(Faction.REALMS);
 		stage.show();
+		addLinkTexts();
 	}
-	private void addLinkTexts(){
-		VBox vBox = new VBox();
-		Rectangle rectangle = new Rectangle(80, 50, Color.BLUE);
-		rectangle.setOnMouseClicked(k->{
-			fivePlacePreGame.show(false, currentFactionIndex);
-		});
-		pane.getChildren().add(rectangle);
+
+	private void addLinkTexts() {
+		pane.getChildren().remove(factionInfo);
+		factionInfo = new VBox();
+		factionInfo.setLayoutX(screenWidth / 4.0 - 200);
+		setFactionInfo(factionInfo);
+		addFactionMassageToFactionInfo(factionInfo);
+		addLinksToFactionInfo(factionInfo);
+		pane.getChildren().add(factionInfo);
+	}
+
+	private void setFactionInfo(VBox factionInfo) {
+		String text = "", address = "";
+		switch (faction) {
+			case REALMS -> {
+				text = "Northern Realms";
+				address = "deck_shield_realms";
+			}
+			case NILFGAARD -> {
+				text = "Nilfgaardian Empire";
+				address = "deck_shield_nilfgaard";
+			}
+			case MONSTERS -> {
+				text = "Monsters";
+				address = "deck_shield_monsters";
+			}
+			case SCOIATAEL -> {
+				text = "Scoia'tael";
+				address = "deck_shield_scoiatael";
+			}
+			case SKELLIGE -> {
+				text = "Skellige";
+				address = "deck_shield_skellige";
+			}
+		}
+		HBox hBox = new HBox();
+		StackPane imageStack = getStackPane(150, 50, Pos.BOTTOM_RIGHT);
+		ImageView image = new ImageView(R.getImage("icons/" + address + ".png"));
+		image.setFitWidth(40);
+		image.setFitHeight(40);
+		imageStack.getChildren().add(image);
+		hBox.getChildren().add(imageStack);
+		StackPane nameStack = getStackPane(200, 50, Pos.BOTTOM_CENTER);
+		Text name = new Text(text);
+		name.getStyleClass().add("linkedText");
+		name.setFill(Color.WHITE);
+		nameStack.getChildren().add(name);
+		hBox.getChildren().add(nameStack);
+		StackPane main = getStackPane(400, 50, Pos.BOTTOM_CENTER);
+		main.getChildren().add(hBox);
+		factionInfo.getChildren().add(main);
+	}
+
+	private void addFactionMassageToFactionInfo(VBox factionInfo) {
+		HBox hBox = new HBox();
+		String text = "";
+		switch (faction) {
+			case REALMS -> text = "Draw a card from your deck whenever you win a round.";
+			case NILFGAARD -> text = "Wins any round that ends in a draw.";
+			case MONSTERS -> text = "Keeps a random Unit Card out after each round.";
+			case SCOIATAEL -> text = "Decides who takes first turn.";
+			case SKELLIGE ->
+					text = "2 random cards from the graveyard are placed on the battlefield at the start of the third round.";
+		}
+		Text name = new Text(text);
+		name.getStyleClass().add("linkedText");
+		name.setFill(Color.GOLD);
+		StackPane main = getStackPane(400, 30, Pos.CENTER);
+		main.getChildren().add(name);
+		factionInfo.getChildren().add(main);
+	}
+
+	private void addLinksToFactionInfo(VBox factionInfo) {
+		StackPane stack2 = getStackPane(400, 20, Pos.CENTER);
+		HBox links = new HBox();
+		links.getChildren().add(addCSSLinkedText("Upload Deck", k -> uploadDeck()));
+		links.getChildren().add(addCSSLinkedText("Change Faction",
+				k -> fivePlacePreGame.show(false, currentFactionIndex)));
+		links.getChildren().add(addCSSLinkedText("Download Deck", k -> downloadDeck()));
+		stack2.getChildren().add(links);
+		factionInfo.getChildren().add(stack2);
+	}
+
+	private Pane addCSSLinkedText(String text, EventHandler<? super MouseEvent> event) {
+		StackPane stackPane = getStackPane(133, 20, Pos.CENTER);
+		Text label = new Text(text);
+		label.getStyleClass().add("linkedText");
+		label.setFill(Color.WHITE);
+		label.setOnMouseClicked(event);
+		stackPane.getChildren().add(label);
+		return stackPane;
 	}
 
 	private void setTitle() {
@@ -119,7 +206,7 @@ public class PreGameMenu extends Application {
 	}
 
 	public void loadFactionDeck(Faction faction) {
-		switch (faction){
+		switch (faction) {
 			case REALMS -> currentFactionIndex = 0;
 			case NILFGAARD -> currentFactionIndex = 1;
 			case MONSTERS -> currentFactionIndex = 2;
@@ -127,6 +214,7 @@ public class PreGameMenu extends Application {
 			case SKELLIGE -> currentFactionIndex = 4;
 		}
 		this.faction = faction;
+		addLinkTexts();
 		fivePlacePreGame.setFaction(faction);
 		deckLists[0].getChildren().clear();
 		deckLists[1].getChildren().clear();
@@ -207,6 +295,11 @@ public class PreGameMenu extends Application {
 		if (needSort)
 			sortDeck(deckLists[numberOfDeck]);
 	}
+	public void accessptingChangeFaction(Faction faction){
+		if(this.faction!= faction){
+			loadFactionDeck(faction);
+		}
+	}
 
 	private void sortDeck(GridPane pane) {
 		//This function throws an exception in the first time!
@@ -255,8 +348,8 @@ public class PreGameMenu extends Application {
 		leaderImage = new ImageView();
 		leaderImage.setFitWidth(100);
 		leaderImage.setFitHeight(180);
-		leaderImage.setOnMouseClicked(k-> fivePlacePreGame.show(true, currentIndexOfLeader));
-		StackPane stackPane = getStackPane(150,180, Pos.CENTER);
+		leaderImage.setOnMouseClicked(k -> fivePlacePreGame.show(true, currentIndexOfLeader));
+		StackPane stackPane = getStackPane(150, 180, Pos.CENTER);
 		stackPane.getChildren().add(leaderImage);
 		infoVBox.getChildren().add(stackPane);
 		textForInfo(infoVBox, "Total cards in deck:");
@@ -276,19 +369,19 @@ public class PreGameMenu extends Application {
 		Text label = new Text(text);
 		label.getStyleClass().add("textInfo");
 		label.setFill(Color.rgb(182, 142, 20));
-		StackPane stackPane = getStackPane(145,30, Pos.CENTER);
+		StackPane stackPane = getStackPane(145, 30, Pos.CENTER);
 		stackPane.getChildren().add(label);
 		infoVBox.getChildren().add(stackPane);
 	}
 
 	private Text textWithImageInfo(VBox infoVBox, String imagePath) {
 		ImageView image = new ImageView(R.getImage("icons/" + imagePath + ".png"));
-		StackPane imagePane = getStackPane(75, 30,Pos.CENTER_RIGHT);
+		StackPane imagePane = getStackPane(75, 30, Pos.CENTER_RIGHT);
 		imagePane.getChildren().add(image);
 		Text label = new Text("0");
 		label.getStyleClass().add("textInfo");
 		label.setFill(Color.rgb(182, 142, 70));
-		StackPane textPane = getStackPane(75,30, Pos.CENTER_LEFT);
+		StackPane textPane = getStackPane(75, 30, Pos.CENTER_LEFT);
 		textPane.getChildren().add(label);
 		infoVBox.getChildren().add(new HBox(imagePane, textPane));
 		return label;
@@ -336,4 +429,11 @@ public class PreGameMenu extends Application {
 		}
 	}
 
+	private void uploadDeck() {
+		//TODO
+	}
+
+	private void downloadDeck() {
+		//TODO
+	}
 }

@@ -141,23 +141,22 @@ public class FivePlacePreGame extends Pane {
 		nameList = new ArrayList<>();
 		imageList = new ArrayList<>();
 		currentIndex = index;
-		if(this.isLeaderChange) {
+		if (this.isLeaderChange) {
 			for (CardInfo card : CardInfo.allCards) {
 				if (card.faction.equals(faction) && card.row.equals(Row.LEADER)) {
 					nameList.add(card.name);
 					imageList.add(R.getImage("lg/" + card.pathAddress + ".jpg"));
 				}
 			}
-		}
-		else{
+		} else {
 			nameList.add("REALMS");
 			nameList.add("NILFGAARD");
 			nameList.add("MONSTERS");
 			nameList.add("SCOIATAEL");
 			nameList.add("SKELLIGE");
-			imageList.add(R.getImage("lg/faction_monsters.jpg"));
-			imageList.add(R.getImage("lg/faction_nilfgaard.jpg"));
 			imageList.add(R.getImage("lg/faction_realms.jpg"));
+			imageList.add(R.getImage("lg/faction_nilfgaard.jpg"));
+			imageList.add(R.getImage("lg/faction_monsters.jpg"));
 			imageList.add(R.getImage("lg/faction_scoiatael.jpg"));
 			imageList.add(R.getImage("lg/faction_skellige.jpg"));
 		}
@@ -179,16 +178,15 @@ public class FivePlacePreGame extends Pane {
 		currentIndex += index - 2;
 		setCurrentImage(currentIndex);
 		if (index == 2) {
-			if(isLeaderChange) {
+			if (isLeaderChange) {
 				preGameMenu.changeLeader(nameList.get(currentIndex), currentIndex);
-			}
-			else{
-				switch (currentIndex){
-					case 0-> preGameMenu.loadFactionDeck(Faction.REALMS);
-					case 1-> preGameMenu.loadFactionDeck(Faction.NILFGAARD);
-					case 2-> preGameMenu.loadFactionDeck(Faction.MONSTERS);
-					case 3-> preGameMenu.loadFactionDeck(Faction.SCOIATAEL);
-					case 4-> preGameMenu.loadFactionDeck(Faction.SKELLIGE);
+			} else {
+				switch (currentIndex) {
+					case 0 -> preGameMenu.accessptingChangeFaction(Faction.REALMS);
+					case 1 -> preGameMenu.accessptingChangeFaction(Faction.NILFGAARD);
+					case 2 -> preGameMenu.accessptingChangeFaction(Faction.MONSTERS);
+					case 3 -> preGameMenu.accessptingChangeFaction(Faction.SCOIATAEL);
+					case 4 -> preGameMenu.accessptingChangeFaction(Faction.SKELLIGE);
 				}
 			}
 			endShow();
@@ -250,8 +248,12 @@ public class FivePlacePreGame extends Pane {
 			case "Crach an Craite" ->
 					text = "Leader Ability\nShuffle all cards from each player's graveyard back into their decks.";
 			case "King Bran" -> text = "Leader Ability\nUnits only lose half their Strength in bad weather conditions.";
-			case "" -> text = "";
-
+			case "REALMS" -> text = "Northern Realms\nDraw a card from your deck whenever you win a round.";
+			case "NILFGAARD" -> text = "Nilfgaardian Empire\nWins any round that ends in a draw.";
+			case "MONSTERS" -> text = "Monsters\nKeeps a random Unit Card out after each round.";
+			case "SCOIATAEL" -> text = "Scoia'tael\nDecides who takes first turn.";
+			case "SKELLIGE" -> text = "Skellige\n2 random cards from the graveyard are placed on the battlefield" +
+					" at the start of the third round.";
 		}
 		textFiled.setText("\n" + text);
 	}

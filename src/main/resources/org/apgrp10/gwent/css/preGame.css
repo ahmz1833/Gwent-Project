@@ -56,3 +56,6 @@ MFXScrollPane, MFXScrollPane > .viewport {
     -fx-min-width: 145;
     -fx-max-width: 145;
 }
+.linkedText{
+    -fx-font-size: 13px;
+}
