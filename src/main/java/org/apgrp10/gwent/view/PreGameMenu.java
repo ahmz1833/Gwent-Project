@@ -297,7 +297,7 @@ public class PreGameMenu extends Application {
 	}
 	public void accessptingChangeFaction(Faction faction){
 		if(this.faction!= faction){
-			loadFactionDeck(faction);
+			new MassagePreGame(this, pane, faction);
 		}
 	}
 
