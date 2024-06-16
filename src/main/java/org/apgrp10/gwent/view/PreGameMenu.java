@@ -10,6 +10,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.apgrp10.gwent.*;
@@ -26,9 +27,13 @@ public class PreGameMenu extends Application {
 	private Pane pane;
 	private Scene scene;
 	private GridPane[] deckLists = new GridPane[2];
-	private Faction faction = Faction.REALMS;
+	private Faction faction;
 	private VBox infoVBox;
 	private Text totalCardsText, totalUnitCadsText, totalSpecialCardsText, totalStrengthText, totalHeroText;
+	private FivePlacePreGame fivePlacePreGame;
+	private String leaderName;
+	private ImageView leaderImage;
+	private int currentIndexOfLeader, currentFactionIndex;
 
 
 	public static PreGameMenu currentMenu;
@@ -45,11 +50,20 @@ public class PreGameMenu extends Application {
 		this.stage = stage;
 		load();
 		setTitle();
+		fivePlacePreGame = new FivePlacePreGame(pane, this);
 		addInfoBox();
 		addGradePane();
 		setSpoiler();
-		loadFactionDeck();
+		loadFactionDeck(Faction.REALMS);
 		stage.show();
+	}
+	private void addLinkTexts(){
+		VBox vBox = new VBox();
+		Rectangle rectangle = new Rectangle(80, 50, Color.BLUE);
+		rectangle.setOnMouseClicked(k->{
+			fivePlacePreGame.show(false, currentFactionIndex);
+		});
+		pane.getChildren().add(rectangle);
 	}
 
 	private void setTitle() {
@@ -104,10 +118,25 @@ public class PreGameMenu extends Application {
 		}
 	}
 
-	private void loadFactionDeck() {
+	public void loadFactionDeck(Faction faction) {
+		switch (faction){
+			case REALMS -> currentFactionIndex = 0;
+			case NILFGAARD -> currentFactionIndex = 1;
+			case MONSTERS -> currentFactionIndex = 2;
+			case SCOIATAEL -> currentFactionIndex = 3;
+			case SKELLIGE -> currentFactionIndex = 4;
+		}
+		this.faction = faction;
+		fivePlacePreGame.setFaction(faction);
 		deckLists[0].getChildren().clear();
 		deckLists[1].getChildren().clear();
-		for (CardInfo card : CardInfo.allCards)
+
+		boolean hasLeader = false;
+		for (CardInfo card : CardInfo.allCards) {
+			if (card.faction.equals(faction) && card.row.equals(Row.LEADER) && !hasLeader) {
+				hasLeader = true;
+				changeLeader(card.name, 0);
+			}
 			if (card.faction.equals(faction) ||
 					card.faction.equals(Faction.NATURAL) ||
 					card.faction.equals(Faction.WEATHER) ||
@@ -115,12 +144,26 @@ public class PreGameMenu extends Application {
 				if (card.row != Row.LEADER)
 					for (int i = 0; i < card.count; i++)
 						addCardToGridPane(card.pathAddress, false);
+		}
 		updateInfo();
 	}
 
 	private void setCursor() {
 		Image cursor = R.getImage("icons/cursor.png");
 		pane.setCursor(new ImageCursor(cursor));
+	}
+
+	public void changeLeader(String name, int currentIndexOfLeader) {
+		this.currentIndexOfLeader = currentIndexOfLeader;
+		leaderName = name;
+		String address = "";
+		for (CardInfo cardInfo : CardInfo.allCards) {
+			if (cardInfo.name.equals(name)) {
+				address = cardInfo.pathAddress;
+				break;
+			}
+		}
+		leaderImage.setImage(R.getImage("lg/" + address + ".jpg"));
 	}
 
 	//USE ADDRESS OF FILE INSTEAD OF NAME OF CARD!
@@ -199,14 +242,23 @@ public class PreGameMenu extends Application {
 					pane.add(deck.get(i), i % 3, i / 3);
 				}
 				break;
-			} catch (Exception ignored) {}
+			} catch (Exception ignored) {
+			}
 		}
 	}
-	private void addInfoBox(){
+
+	private void addInfoBox() {
 		infoVBox = new VBox();
 		infoVBox.setLayoutX(300);
 		infoVBox.setLayoutY(130);
 		textForInfo(infoVBox, "Leader");
+		leaderImage = new ImageView();
+		leaderImage.setFitWidth(100);
+		leaderImage.setFitHeight(180);
+		leaderImage.setOnMouseClicked(k-> fivePlacePreGame.show(true, currentIndexOfLeader));
+		StackPane stackPane = getStackPane(150,180, Pos.CENTER);
+		stackPane.getChildren().add(leaderImage);
+		infoVBox.getChildren().add(stackPane);
 		textForInfo(infoVBox, "Total cards in deck:");
 		totalCardsText = textWithImageInfo(infoVBox, "deck_stats_count");
 		textForInfo(infoVBox, "Number of Unit cards:");
@@ -219,37 +271,41 @@ public class PreGameMenu extends Application {
 		totalHeroText = textWithImageInfo(infoVBox, "deck_stats_hero");
 		pane.getChildren().add(infoVBox);
 	}
-	private void textForInfo(VBox infoVBox, String text){
+
+	private void textForInfo(VBox infoVBox, String text) {
 		Text label = new Text(text);
 		label.getStyleClass().add("textInfo");
-		label.setFill(Color.rgb(182,142,20));
-		StackPane stackPane = getStackPane(145, Pos.CENTER);
+		label.setFill(Color.rgb(182, 142, 20));
+		StackPane stackPane = getStackPane(145,30, Pos.CENTER);
 		stackPane.getChildren().add(label);
 		infoVBox.getChildren().add(stackPane);
 	}
-	private Text textWithImageInfo(VBox infoVBox, String imagePath){
+
+	private Text textWithImageInfo(VBox infoVBox, String imagePath) {
 		ImageView image = new ImageView(R.getImage("icons/" + imagePath + ".png"));
-		StackPane imagePane = getStackPane(75, Pos.CENTER_RIGHT);
+		StackPane imagePane = getStackPane(75, 30,Pos.CENTER_RIGHT);
 		imagePane.getChildren().add(image);
 		Text label = new Text("0");
 		label.getStyleClass().add("textInfo");
-		label.setFill(Color.rgb(182,142,70));
-		StackPane textPane = getStackPane(75, Pos.CENTER_LEFT);
+		label.setFill(Color.rgb(182, 142, 70));
+		StackPane textPane = getStackPane(75,30, Pos.CENTER_LEFT);
 		textPane.getChildren().add(label);
 		infoVBox.getChildren().add(new HBox(imagePane, textPane));
 		return label;
 	}
-	private StackPane getStackPane(int width, Pos pos){
+
+	private StackPane getStackPane(int width, int height, Pos pos) {
 		StackPane stackPane = new StackPane();
 		stackPane.setAlignment(pos);
 		stackPane.setMinWidth(width);
 		stackPane.setMaxWidth(width);
-		stackPane.setMinHeight(30);
+		stackPane.setMinHeight(height);
 		return stackPane;
 	}
-	private void updateInfo(){
+
+	private void updateInfo() {
 		int totalCards = 0, totalUnitCads = 0, totalSpecialCards = 0, totalStrength = 0, totalHero = 0;
-		for(int i = 0; i < deckLists[1].getChildren().size(); i++) {
+		for (int i = 0; i < deckLists[1].getChildren().size(); i++) {
 			CardViewPregame card = (CardViewPregame) deckLists[1].getChildren().get(i);
 			for (int j = 0; j < card.getCount(); j++) {
 				totalCards++;
@@ -258,7 +314,7 @@ public class PreGameMenu extends Application {
 					totalSpecialCards++;
 				else
 					totalUnitCads++;
-				if(card.isHero())
+				if (card.isHero())
 					totalHero++;
 			}
 		}
@@ -279,4 +335,5 @@ public class PreGameMenu extends Application {
 			totalSpecialCardsText.setFill(Color.rgb(182, 142, 70));
 		}
 	}
+
 }
