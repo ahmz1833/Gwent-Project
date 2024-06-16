@@ -2,12 +2,15 @@ package org.apgrp10.gwent.view;
 
 import io.github.palexdev.materialfx.controls.MFXScrollPane;
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.ImageCursor;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.apgrp10.gwent.*;
 import org.apgrp10.gwent.model.card.CardInfo;
@@ -23,7 +26,10 @@ public class PreGameMenu extends Application {
 	private Pane pane;
 	private Scene scene;
 	private GridPane[] deckLists = new GridPane[2];
-	private Faction faction = Faction.SCOIATAEL;
+	private Faction faction = Faction.REALMS;
+	private VBox infoVBox;
+	private Text totalCardsText, totalUnitCadsText, totalSpecialCardsText, totalStrengthText, totalHeroText;
+
 
 	public static PreGameMenu currentMenu;
 	public static final int screenWidth = 1500, cardWidth = 18;
@@ -39,6 +45,7 @@ public class PreGameMenu extends Application {
 		this.stage = stage;
 		load();
 		setTitle();
+		addInfoBox();
 		addGradePane();
 		setSpoiler();
 		loadFactionDeck();
@@ -108,6 +115,7 @@ public class PreGameMenu extends Application {
 				if (card.row != Row.LEADER)
 					for (int i = 0; i < card.count; i++)
 						addCardToGridPane(card.pathAddress, false);
+		updateInfo();
 	}
 
 	private void setCursor() {
@@ -133,18 +141,14 @@ public class PreGameMenu extends Application {
 			card.setOnMouseClicked(k -> {
 				addCardToGridPane(cardName, !isGameDeck);
 				deleteCardFromGridPane(cardName, isGameDeck);
+				updateInfo();
 			});
 			deckLists[numberOfDeck].add(card, count % 3, count / 3);
-			for (int i = 0; i < 100; i++) {
-				try {
-					sortDeck(deckLists[numberOfDeck]);
-					break;
-				} catch (Exception ignored) {
-				}
-			}
+			sortDeck(deckLists[numberOfDeck]);
 		}
 	}
 
+	//USE ADDRESS OF FILE INSTEAD OF NAME OF CARD!
 	private void deleteCardFromGridPane(String cardName, boolean isGameDeck) {
 		int numberOfDeck = isGameDeck ? 1 : 0;
 		boolean needSort = false;
@@ -157,45 +161,122 @@ public class PreGameMenu extends Application {
 				break;
 			}
 		}
-		if (needSort) {
-			for (int i = 0; i < 100; i++) {
-				try {
-					sortDeck(deckLists[numberOfDeck]);
-					break;
-				} catch (Exception ignored) {
-				}
-			}
-		}
-
+		if (needSort)
+			sortDeck(deckLists[numberOfDeck]);
 	}
 
 	private void sortDeck(GridPane pane) {
-		ArrayList<CardViewPregame> deck = new ArrayList<>();
-		for (int i = 0; i < pane.getChildren().size(); i++) {
-			if (((CardViewPregame) pane.getChildren().get(i)).getCount() > 0)
-				deck.add((CardViewPregame) pane.getChildren().get(i));
+		//This function throws an exception in the first time!
+		//So I have to try again! On the second try, it works correctly
+		//we have "break" at the end of scope
+		for (int tryCount = 0; tryCount < 100; tryCount++) {
+			try {
+				ArrayList<CardViewPregame> deck = new ArrayList<>();
+				for (int i = 0; i < pane.getChildren().size(); i++) {
+					if (((CardViewPregame) pane.getChildren().get(i)).getCount() > 0)
+						deck.add((CardViewPregame) pane.getChildren().get(i));
+				}
+				String[] sortOrder = {"special", "weather"};
+				pane.getChildren().clear();
+				deck.sort((o1, o2) ->
+				{
+					int index1 = 3, index2 = 3;
+					for (int i = 0; i < sortOrder.length; i++) {
+						if (Faction.getEnum(sortOrder[i]).equals(o1.getFaction()))
+							index1 = i;
+						if (Faction.getEnum(sortOrder[i]).equals(o2.getFaction()))
+							index2 = i;
+					}
+					if (index1 < index2)
+						return -1;
+					if (index1 > index2)
+						return 1;
+					if (o1.getStrength() == o2.getStrength())
+						return o1.getName().compareTo(o2.getName());
+					return (o1.getStrength() > o2.getStrength()) ? -1 : +1;
+				});
+				for (int i = 0; i < deck.size(); i++) {
+					pane.add(deck.get(i), i % 3, i / 3);
+				}
+				break;
+			} catch (Exception ignored) {}
 		}
-		String[] sortOrder = {"special", "weather", "natural"};
-		pane.getChildren().clear();
-		deck.sort((o1, o2) ->
-		{
-			int index1 = 4, index2 = 4;
-			for (int i = 0; i < sortOrder.length; i++) {
-				if (Faction.getEnum(sortOrder[i]).equals(o1.getFaction()))
-					index1 = i;
-				if (Faction.getEnum(sortOrder[i]).equals(o2.getFaction()))
-					index2 = i;
+	}
+	private void addInfoBox(){
+		infoVBox = new VBox();
+		infoVBox.setLayoutX(300);
+		infoVBox.setLayoutY(130);
+		textForInfo(infoVBox, "Leader");
+		textForInfo(infoVBox, "Total cards in deck:");
+		totalCardsText = textWithImageInfo(infoVBox, "deck_stats_count");
+		textForInfo(infoVBox, "Number of Unit cards:");
+		totalUnitCadsText = textWithImageInfo(infoVBox, "deck_stats_unit");
+		textForInfo(infoVBox, "Special cards:");
+		totalSpecialCardsText = textWithImageInfo(infoVBox, "deck_stats_special");
+		textForInfo(infoVBox, "Total unit cards strength:");
+		totalStrengthText = textWithImageInfo(infoVBox, "deck_stats_strength");
+		textForInfo(infoVBox, "Hero cards:");
+		totalHeroText = textWithImageInfo(infoVBox, "deck_stats_hero");
+		pane.getChildren().add(infoVBox);
+	}
+	private void textForInfo(VBox infoVBox, String text){
+		Text label = new Text(text);
+		label.getStyleClass().add("textInfo");
+		label.setFill(Color.rgb(182,142,20));
+		StackPane stackPane = getStackPane(145, Pos.CENTER);
+		stackPane.getChildren().add(label);
+		infoVBox.getChildren().add(stackPane);
+	}
+	private Text textWithImageInfo(VBox infoVBox, String imagePath){
+		ImageView image = new ImageView(R.getImage("icons/" + imagePath + ".png"));
+		StackPane imagePane = getStackPane(75, Pos.CENTER_RIGHT);
+		imagePane.getChildren().add(image);
+		Text label = new Text("0");
+		label.getStyleClass().add("textInfo");
+		label.setFill(Color.rgb(182,142,70));
+		StackPane textPane = getStackPane(75, Pos.CENTER_LEFT);
+		textPane.getChildren().add(label);
+		infoVBox.getChildren().add(new HBox(imagePane, textPane));
+		return label;
+	}
+	private StackPane getStackPane(int width, Pos pos){
+		StackPane stackPane = new StackPane();
+		stackPane.setAlignment(pos);
+		stackPane.setMinWidth(width);
+		stackPane.setMaxWidth(width);
+		stackPane.setMinHeight(30);
+		return stackPane;
+	}
+	private void updateInfo(){
+		int totalCards = 0, totalUnitCads = 0, totalSpecialCards = 0, totalStrength = 0, totalHero = 0;
+		for(int i = 0; i < deckLists[1].getChildren().size(); i++) {
+			CardViewPregame card = (CardViewPregame) deckLists[1].getChildren().get(i);
+			for (int j = 0; j < card.getCount(); j++) {
+				totalCards++;
+				totalStrength += card.getStrength();
+				if (card.getFaction().equals(Faction.WEATHER) || card.getFaction().equals(Faction.SPECIAL))
+					totalSpecialCards++;
+				else
+					totalUnitCads++;
+				if(card.isHero())
+					totalHero++;
 			}
-			if (index1 < index2)
-				return -1;
-			if (index1 > index2)
-				return 1;
-			if (o1.getStrength() == o2.getStrength())
-				return o1.getName().compareTo(o2.getName());
-			return (o1.getStrength() > o2.getStrength()) ? -1 : +1;
-		});
-		for (int i = 0; i < deck.size(); i++) {
-			pane.add(deck.get(i), i % 3, i / 3);
+		}
+		totalCardsText.setText(String.valueOf(totalCards));
+		totalStrengthText.setText(String.valueOf(totalStrength));
+		totalHeroText.setText(String.valueOf(totalHero));
+		if (totalUnitCads < 22) {
+			totalUnitCadsText.setText(totalUnitCads + "/22");
+			totalUnitCadsText.setFill(Color.RED);
+		} else {
+			totalUnitCadsText.setText(String.valueOf(totalUnitCads));
+			totalUnitCadsText.setFill(Color.rgb(182, 142, 70));
+		}
+		totalSpecialCardsText.setText(totalSpecialCards + "/10");
+		if (totalSpecialCards > 10) {
+			totalSpecialCardsText.setFill(Color.RED);
+		} else {
+			totalSpecialCardsText.setFill(Color.rgb(182, 142, 70));
 		}
 	}
 }

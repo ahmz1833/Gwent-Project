@@ -49,6 +49,10 @@ MFXScrollPane, MFXScrollPane > .viewport {
 .scroll-bar:vertical .track {
     -fx-background-color: #333333;
 }
-.countLabel{
-    -fx-fo: #042807;
+.textInfo{
+    -fx-font-size: 14px;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
+    -fx-min-width: 145;
+    -fx-max-width: 145;
 }

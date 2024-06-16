@@ -15,13 +15,15 @@ public class CardInfo {
 
 	public final String name, pathAddress;
 	public final int id, count, strength;
+	public final boolean isHero;
 	public final Row row;
 	public final Faction faction;
 	public final Ability ability;
 
-	CardInfo(String name, String pathAddress, int id, int count, int strength, Row row, Faction faction, Ability ability) {
+	CardInfo(String name, String pathAddress, int id, int count, int strength, Row row, Faction faction, Ability ability, boolean isHero) {
 		this.name = name;
 		this.pathAddress = pathAddress;
+		this.isHero = isHero;
 		this.id = id;
 		this.count = count;
 		this.strength = strength;
@@ -35,6 +37,7 @@ public class CardInfo {
 
 class CardLoader {
 	private String name, deck, row, strength, ability, filename, count, id;
+	private boolean hero;
 	static HashSet<String> abilities = new HashSet<>();
 
 	static {
@@ -48,7 +51,7 @@ class CardLoader {
 			int id = convertToInt(card.id);
 			int count = convertToInt(card.count);
 			int strength = convertToInt(card.strength);
-			new CardInfo(card.name, card.deck + "_" + card.filename, id, count, strength, Row.getEnum(card.row), Faction.getEnum(card.deck), Ability.getEnum(card.ability));
+			new CardInfo(card.name, card.deck + "_" + card.filename, id, count, strength, Row.getEnum(card.row), Faction.getEnum(card.deck), Ability.getEnum(card.ability), card.hero);
 		}
 	}
 

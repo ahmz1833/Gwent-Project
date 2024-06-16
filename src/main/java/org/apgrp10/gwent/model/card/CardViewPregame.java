@@ -17,6 +17,7 @@ public class CardViewPregame extends Pane {
 	private int count = 1;
 	private int strength;
 	private Faction faction;
+	private boolean hero;
 
 	public CardViewPregame(String address) {
 		this.address = address;
@@ -32,6 +33,7 @@ public class CardViewPregame extends Pane {
 				faction = cardInfo.faction;
 				name = cardInfo.name;
 				strength = cardInfo.strength;
+				hero = cardInfo.isHero;
 			}
 		}
 	}
@@ -94,6 +96,9 @@ public class CardViewPregame extends Pane {
 
 	public Faction getFaction() {
 		return faction;
+	}
+	public boolean isHero(){
+		return hero;
 	}
 }
 

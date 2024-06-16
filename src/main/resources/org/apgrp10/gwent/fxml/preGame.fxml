@@ -10,11 +10,6 @@
 
 <Scene  xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.apgrp10.gwent.controller.PreGameController">
     <AnchorPane fx:id="mainPain" stylesheets="@../css/preGame.css" maxHeight="800.0" minWidth="1500.0" >
-        <Label text="salam" AnchorPane.rightAnchor="25.0"
-               AnchorPane.topAnchor="28.0"/>
-        <MFXButton fx:id="updateButton" prefWidth="150.0" text="Update" AnchorPane.bottomAnchor="25.0"
-                   AnchorPane.leftAnchor="20.0" onAction="#update"/>
-        <Label fx:id="dragLbl" alignment="CENTER" prefWidth="310.0" text="Or, Drag and Drop Here" textAlignment="CENTER"
-               AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="50.0"/>
+
     </AnchorPane>
 </Scene>
