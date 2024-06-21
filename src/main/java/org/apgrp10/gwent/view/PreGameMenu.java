@@ -3,6 +3,7 @@ package org.apgrp10.gwent.view;
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.ImageCursor;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
@@ -14,9 +15,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apgrp10.gwent.*;
+import org.apgrp10.gwent.controller.PreGameController;
 import org.apgrp10.gwent.model.Deck;
+import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.card.*;
 
 import java.io.File;
@@ -26,7 +30,7 @@ import java.util.ArrayList;
 
 
 public class PreGameMenu extends Application {
-	private Stage stage;
+	private final Stage stage;
 	private Pane pane;
 	private final GridPane[] deckLists = new GridPane[2];
 	private Faction faction;
@@ -36,34 +40,56 @@ public class PreGameMenu extends Application {
 	private String leaderName;
 	private ImageView leaderImage;
 	private int currentIndexOfLeader, currentFactionIndex;
-	private final int primaryX = screenWidth / 2;
+	private final int primaryX;
+	private final PreGameController preGameController;
+	private final User user;
+	private final boolean isUserOne;
 
 
 	public static PreGameMenu currentMenu;
 	public static final int screenWidth = 1280, cardWidth = 18;
 	public static final int screenHeight = 720, cardHeight = 5;
 
-	public static void main(String[] args) {
-		launch(args);
+
+	public PreGameMenu(PreGameController preGameController, Stage stage, boolean isFirstOne, User user) {
+		isUserOne = isFirstOne;
+		this.user = user;
+		this.preGameController = preGameController;
+		if (isFirstOne)
+			primaryX = 0;
+		else
+			primaryX = screenWidth / 2;
+		this.stage = stage;
+		start(stage);
 	}
 
 	@Override
 	public void start(Stage stage) {
 		currentMenu = this;
-		this.stage = stage;
 		load();
 		setTitle();
 		fivePlacePreGame = new FivePlacePreGame(pane, this, primaryX);
 		addInfoBox();
+		addUserInfo();
 		addGradePane();
 		setSpoiler();
 		URL path = R.class.getResource("primaryDeck.gwent");
 		if (path == null) loadFactionDeck(Faction.REALMS);
 		else uploadDeck(path.getPath());
-		stage.show();
 		addLinkTexts();
 	}
 
+	private void addUserInfo(){
+		StackPane stackPane = getStackPane(200, 50, Pos.CENTER_LEFT);
+		Text text = new Text("Good luck \"" + user.getNickname() + "\"");
+		text.setFill(Color.GREEN);
+		text.setWrappingWidth(200);
+		text.setStyle("-fx-font-size: 13px");
+		stackPane.getChildren().add(text);
+		stackPane.setLayoutX(primaryX + 5);
+		stackPane.setLayoutY(3);
+		pane.getChildren().add(stackPane);
+	}
 	private void addLinkTexts() {
 		pane.getChildren().remove(factionInfo);
 		factionInfo = new VBox();
@@ -169,17 +195,21 @@ public class PreGameMenu extends Application {
 	}
 
 	private void load() {
-		AnchorPane anchorPane = new AnchorPane();
-		anchorPane.getStylesheets().add(R.class.getResource("css/preGame.css").toExternalForm());
-		Scene scene = new Scene(anchorPane);
+		pane = new AnchorPane();
+		pane.getStylesheets().add(R.class.getResource("css/preGame.css").toExternalForm());
+		Scene scene = new Scene(pane);
 		stage.setScene(scene);
-		pane = (Pane) scene.getRoot();
 		stage.setResizable(false);
 		stage.setMinWidth(screenWidth);
 		stage.setMaxWidth(screenWidth);
 		stage.setMinHeight(screenHeight);
 		stage.setMaxHeight(screenHeight);
 		setCursor();
+		Rectangle2D screen = Screen.getPrimary().getVisualBounds();
+		double centerX = (screen.getWidth() - screenWidth) / 2;
+		double centerY = (screen.getHeight() - screenHeight) / 2;
+		stage.setX(centerX);
+		stage.setY(centerY);
 	}
 
 	private void addGradePane() {
@@ -352,12 +382,12 @@ public class PreGameMenu extends Application {
 		totalHeroText = textWithImageInfo(infoVBox, "deck_stats_hero");
 		StackPane buttonBorder = getStackPane(150, 35, Pos.CENTER);
 		Rectangle button = new Rectangle(120, 35, Color.GRAY);
-		button.setOnMouseClicked(k -> startGame());
 		button.setStyle("-fx-border-width: 2px; -fx-border-color: white");
-
 		button.setArcWidth(20);
 		button.setArcHeight(20);
+		button.setOnMouseClicked(k -> startGame());
 		Text text = new Text("start game");
+		text.setOnMouseClicked(k -> startGame());
 		text.setFill(Color.WHITE);
 		text.setStyle("-fx-font-size: 18px");
 		buttonBorder.getChildren().add(button);
@@ -455,7 +485,7 @@ public class PreGameMenu extends Application {
 	}
 
 	private String downloadDeck() {
-		Deck deck = new Deck(currentFactionIndex, leaderName);
+		Deck deck = new Deck(currentFactionIndex, leaderName, user);
 		deck.createDeckFromPane(deckLists[1]);
 		return Deck.saveDeck(deck);
 	}
@@ -504,9 +534,24 @@ public class PreGameMenu extends Application {
 			}
 		}
 		if (totalSpecialCards <= 10 && totalUnitCads >= 22) {
-			Deck deck = new Deck(currentFactionIndex, leaderName);
+			Deck deck = new Deck(currentFactionIndex, leaderName, user);
 			deck.createDeckFromPane(deckLists[1]);
-			//TODO deck is ready
+			pane.getChildren().clear();
+			pane = null;
+			deckLists[0] = null;
+			deckLists[1] = null;
+			factionInfo = null;
+			totalCardsText = totalUnitCadsText = totalSpecialCardsText = totalStrengthText = totalHeroText = null;
+			fivePlacePreGame = null;
+			leaderName = null;
+			leaderImage = null;
+			Scene scene = new Scene(new Pane());
+			stage.setScene(scene);
+			System.gc();
+			if(isUserOne)
+				preGameController.setDeck1(deck);
+			else
+				preGameController.setDeck2(deck);
 		}
 	}
 }

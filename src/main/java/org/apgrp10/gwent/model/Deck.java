@@ -12,11 +12,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Deck {
+	private final User user;
 	private final ArrayList<Card> deck = new ArrayList<>();
 	private final Faction faction;
 	private final Card leader;
 
-	public Deck(int factionId, String leaderName) {
+	public Deck(int factionId, String leaderName, User user) {
+		this.user = user;
 		switch (factionId) {
 			case 0 -> faction = Faction.REALMS;
 			case 1 -> faction = Faction.NILFGAARD;
@@ -60,7 +62,9 @@ public class Deck {
 	public void addCard(CardInfo cardInfo) {
 		addCard(convertCortInfoToCard(cardInfo));
 	}
-
+	public User getUser(){
+		return user;
+	}
 	public static boolean isCorrectDeck(Deck deck) {
 		if (deck == null) return false;
 		if (deck.leader == null || deck.faction == null) {
@@ -184,7 +188,7 @@ class DeckToSave {
 				case "SCOIATAEL" -> factionIndex = 3;
 				case "SKELLIGE" -> factionIndex = 4;
 			}
-			Deck outputDeck = new Deck(factionIndex, deckToSave.leader);
+			Deck outputDeck = new Deck(factionIndex, deckToSave.leader, null);
 			for (String path : deckToSave.deck.keySet()) {
 				CardInfo cardInfo = convertPathToCardInfo(path);
 				if (cardInfo == null) return null;
