@@ -182,11 +182,11 @@ public class FivePlacePreGame extends Pane {
 				preGameMenu.changeLeader(nameList.get(currentIndex), currentIndex);
 			} else {
 				switch (currentIndex) {
-					case 0 -> preGameMenu.accessptingChangeFaction(Faction.REALMS);
-					case 1 -> preGameMenu.accessptingChangeFaction(Faction.NILFGAARD);
-					case 2 -> preGameMenu.accessptingChangeFaction(Faction.MONSTERS);
-					case 3 -> preGameMenu.accessptingChangeFaction(Faction.SCOIATAEL);
-					case 4 -> preGameMenu.accessptingChangeFaction(Faction.SKELLIGE);
+					case 0 -> preGameMenu.accessioningChangeFaction(Faction.REALMS);
+					case 1 -> preGameMenu.accessioningChangeFaction(Faction.NILFGAARD);
+					case 2 -> preGameMenu.accessioningChangeFaction(Faction.MONSTERS);
+					case 3 -> preGameMenu.accessioningChangeFaction(Faction.SCOIATAEL);
+					case 4 -> preGameMenu.accessioningChangeFaction(Faction.SKELLIGE);
 				}
 			}
 			endShow();

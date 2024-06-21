@@ -13,15 +13,15 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.apgrp10.gwent.*;
-import org.apgrp10.gwent.model.card.CardInfo;
-import org.apgrp10.gwent.model.card.CardViewPregame;
-import org.apgrp10.gwent.model.card.Faction;
-import org.apgrp10.gwent.model.card.Row;
+import org.apgrp10.gwent.model.Deck;
+import org.apgrp10.gwent.model.card.*;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 
 public class PreGameMenu extends Application {
@@ -114,7 +114,6 @@ public class PreGameMenu extends Application {
 	}
 
 	private void addFactionMassageToFactionInfo(VBox factionInfo) {
-		HBox hBox = new HBox();
 		String text = "";
 		switch (faction) {
 			case REALMS -> text = "Draw a card from your deck whenever you win a round.";
@@ -135,10 +134,10 @@ public class PreGameMenu extends Application {
 	private void addLinksToFactionInfo(VBox factionInfo) {
 		StackPane stack2 = getStackPane(400, 20, Pos.CENTER);
 		HBox links = new HBox();
-		links.getChildren().add(addCSSLinkedText("Upload Deck", k -> uploadDeck()));
+		links.getChildren().add(addCSSLinkedText("Upload Deck", k -> chooseFileToUpload()));
 		links.getChildren().add(addCSSLinkedText("Change Faction",
 				k -> fivePlacePreGame.show(false, currentFactionIndex)));
-		links.getChildren().add(addCSSLinkedText("Download Deck", k -> downloadDeck()));
+		links.getChildren().add(addCSSLinkedText("Download Deck", k -> choosePlaceToDownload()));
 		stack2.getChildren().add(links);
 		factionInfo.getChildren().add(stack2);
 	}
@@ -295,8 +294,9 @@ public class PreGameMenu extends Application {
 		if (needSort)
 			sortDeck(deckLists[numberOfDeck]);
 	}
-	public void accessptingChangeFaction(Faction faction){
-		if(this.faction!= faction){
+
+	public void accessioningChangeFaction(Faction faction) {
+		if (this.faction != faction) {
 			new MassagePreGame(this, pane, faction);
 		}
 	}
@@ -429,11 +429,66 @@ public class PreGameMenu extends Application {
 		}
 	}
 
-	private void uploadDeck() {
-		//TODO
+	private void uploadDeck(String path) {
+		Deck deck = Deck.loadDeck(path);
+		if (deck != null) {
+			try {
+				loadFactionDeck(deck.getFaction());
+				int index = 0;
+				for (CardInfo card : CardInfo.allCards) {
+					if (card.faction.equals(faction) && card.row.equals(Row.LEADER)) {
+						if (card.pathAddress.equals(deck.getLeader().pathAddress))
+							break;
+						index++;
+					}
+				}
+				changeLeader(deck.getLeader().name, index);
+				for (Card card : deck.getDeck()) {
+					deleteCardFromGridPane(card.pathAddress, false);
+					addCardToGridPane(card.pathAddress, true);
+				}
+			} catch (Exception ignored){
+				loadFactionDeck(Faction.REALMS);
+			}
+		} else {
+			System.out.println("ERROR");
+		}
 	}
 
-	private void downloadDeck() {
-		//TODO
+	private String downloadDeck() {
+		Deck deck = new Deck(currentFactionIndex, leaderName);
+		deck.createDeckFromPane(deckLists[1]);
+		return Deck.saveDeck(deck);
+	}
+	private void chooseFileToUpload(){
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Gwent Files", "*.gwent"));
+		String home = System.getProperty("user.home");
+		File downloadFolder = new File(home, "Downloads");
+		fileChooser.setInitialDirectory(downloadFolder);
+		File selectedFile = fileChooser.showOpenDialog(stage);
+		if(selectedFile != null){
+			uploadDeck(selectedFile.getAbsolutePath());
+		}
+	}
+	private void choosePlaceToDownload(){
+		String downloadedFileName = "deck.gwent";
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.setTitle("Save File");
+		fileChooser.setInitialFileName(downloadedFileName);
+		String home = System.getProperty("user.home");
+		File downloadFolder = new File(home, "Downloads");
+		fileChooser.setInitialDirectory(downloadFolder);
+		fileChooser.getExtensionFilters().add(
+				new FileChooser.ExtensionFilter("Gwent Files", "*.gwent"));
+		File selectedDir = fileChooser.showSaveDialog(stage);
+		if (selectedDir != null) {
+			try {
+				File myFile = new File(selectedDir.getAbsolutePath());
+				FileWriter myWriter = new FileWriter(myFile);
+				myWriter.write(downloadDeck());
+				myWriter.close();
+			} catch (Exception ignored) {}
+		}
 	}
 }

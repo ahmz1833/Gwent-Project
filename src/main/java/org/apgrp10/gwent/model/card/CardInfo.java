@@ -20,7 +20,8 @@ public class CardInfo {
 	public final Faction faction;
 	public final Ability ability;
 
-	CardInfo(String name, String pathAddress, int id, int count, int strength, Row row, Faction faction, Ability ability, boolean isHero) {
+	CardInfo(String name, String pathAddress, int id, int count, int strength, Row row, Faction faction,
+			 Ability ability, boolean isHero) {
 		this.name = name;
 		this.pathAddress = pathAddress;
 		this.isHero = isHero;
