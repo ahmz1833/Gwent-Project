@@ -39,7 +39,7 @@ public class CardViewPregame extends Pane {
 	}
 
 	private void addBackground() {
-		Rectangle image = new Rectangle(PreGameMenu.screenWidth / (double) PreGameMenu.cardWidth,
+		Rectangle image = new Rectangle(PreGameMenu.screenWidth / (double) PreGameMenu.cardWidth - 5,
 				PreGameMenu.screenHeight / (double) PreGameMenu.cardHeight);
 		image.setFill(new ImagePattern(R.getImage("lg/" + address + ".jpg")));
 		image.setX(0);

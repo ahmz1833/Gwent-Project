@@ -13,11 +13,17 @@ MFXScrollPane, MFXScrollPane > .viewport {
     -fx-border-width: 2;
 }
 
-/*MFXScrollPane:vertical .thumb{*/
-/*    -fx-background-color:derive(black,90%);*/
-/*    -fx-background-insets: 0, 0, 0;*/
-/*    -fx-background-radius: 0em;*/
-/*}*/
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
 
 .scroll-bar:vertical .thumb {
     -fx-background-color: derive(#363537, 100%);
@@ -49,13 +55,15 @@ MFXScrollPane, MFXScrollPane > .viewport {
 .scroll-bar:vertical .track {
     -fx-background-color: #333333;
 }
-.textInfo{
+
+.textInfo {
     -fx-font-size: 14px;
     -fx-alignment: center;
     -fx-text-alignment: center;
     -fx-min-width: 145;
     -fx-max-width: 145;
 }
-.linkedText{
+
+.linkedText {
     -fx-font-size: 13px;
 }

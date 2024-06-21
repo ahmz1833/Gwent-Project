@@ -15,33 +15,44 @@ import org.apgrp10.gwent.model.card.Faction;
 
 
 public class MassagePreGame extends Pane {
-	private final PreGameMenu preGameMenu;
 	private final Pane gamePane;
-	private final Faction faction;
 	private final int cornerX = PreGameMenu.screenWidth / 4 - 200;
 	private final int cornerY = PreGameMenu.screenHeight / 2 - 80;
 
-	public MassagePreGame(PreGameMenu preGameMenu, Pane gamePane, Faction faction) {
-		this.faction = faction;
+	//this constructor is for confirming new faction
+	public MassagePreGame(PreGameMenu preGameMenu, Pane gamePane, Faction faction, int primaryX) {
 		this.gamePane = gamePane;
-		this.preGameMenu = preGameMenu;
 		this.setMinWidth(PreGameMenu.screenWidth / 2.0);
 		this.setMinHeight(PreGameMenu.screenHeight);
-		this.setLayoutX(0);
+		this.setLayoutX(primaryX);
 		this.setLayoutY(0);
 		gamePane.getChildren().add(this);
 		this.setOnMouseClicked(k -> endShow());
-		addBackground();
-		addBackground();
+		addBackground(false);
 		addButton("OK", Color.GREEN, 260, k -> {
 			preGameMenu.loadFactionDeck(faction);
 			endShow();
 		});
 		addButton("Cancel", Color.RED, 330, k -> endShow());
-		addText();
+		addTextFaction();
 	}
 
-	private void addText() {
+	//this constructor is for "deck is not formatted correctly"
+	public MassagePreGame(Pane gamePane, int primaryX) {
+		this.gamePane = gamePane;
+		this.setMinWidth(PreGameMenu.screenWidth / 2.0);
+		this.setMinHeight(PreGameMenu.screenHeight);
+		this.setLayoutX(primaryX);
+		System.out.println(primaryX);
+		this.setLayoutY(0);
+		gamePane.getChildren().add(this);
+		this.setOnMouseClicked(k -> endShow());
+		addBackground(true);
+		addTextUpload();
+		addButton("OK", Color.LIGHTSKYBLUE, 300, k -> endShow());
+	}
+
+	private void addTextFaction() {
 		Text text = new Text("Changing factions will clear the current deck.\nContinue? ");
 		text.setStyle("-fx-font-size: 19px");
 		text.setTextAlignment(TextAlignment.CENTER);
@@ -51,12 +62,25 @@ public class MassagePreGame extends Pane {
 		this.getChildren().add(text);
 	}
 
-	private void addBackground() {
+	private void addTextUpload() {
+		Text text = new Text("Uploaded deck is not formatted correctly!");
+		text.setStyle("-fx-font-size: 19px");
+		text.setTextAlignment(TextAlignment.CENTER);
+		text.setFill(Color.LIGHTBLUE);
+		text.setX(cornerX + 30);
+		text.setY(cornerY + 50);
+		this.getChildren().add(text);
+	}
+
+	private void addBackground(boolean alert) {
 		DropShadow dropShadow = new DropShadow();
 		dropShadow.setOffsetX(0);
 		dropShadow.setOffsetY(0);
 		dropShadow.setRadius(60);
-		dropShadow.setColor(Color.rgb(225, 250, 0));
+		if (alert)
+			dropShadow.setColor(Color.rgb(250, 0, 0));
+		else
+			dropShadow.setColor(Color.rgb(225, 250, 0));
 		Rectangle background = new Rectangle(400, 160, Color.GRAY);
 		background.setArcWidth(50);
 		background.setArcHeight(50);

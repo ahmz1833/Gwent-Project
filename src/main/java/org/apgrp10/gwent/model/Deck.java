@@ -1,6 +1,5 @@
 package org.apgrp10.gwent.model;
 
-import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.scene.layout.GridPane;
@@ -9,7 +8,6 @@ import org.apgrp10.gwent.model.card.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -52,8 +50,7 @@ public class Deck {
 	}
 
 	private Card convertCortInfoToCard(CardInfo cardInfo) {
-		return new Card(cardInfo.name, cardInfo.pathAddress, cardInfo.strength, cardInfo.row, cardInfo.faction,
-				cardInfo.ability, cardInfo.isHero);
+		return new Card(cardInfo.name, cardInfo.pathAddress, cardInfo.strength, cardInfo.row, cardInfo.faction, cardInfo.ability, cardInfo.isHero);
 	}
 
 	public void addCard(Card card) {
@@ -65,8 +62,7 @@ public class Deck {
 	}
 
 	public static boolean isCorrectDeck(Deck deck) {
-		if (deck == null)
-			return false;
+		if (deck == null) return false;
 		if (deck.leader == null || deck.faction == null) {
 			return false;
 		}
@@ -85,36 +81,34 @@ public class Deck {
 		}
 		//check that cards are in correct faction
 		for (Card card : deck.deck) {
-			if ((!card.faction.equals(deck.faction) &&
-					!card.faction.equals(Faction.NATURAL) &&
-					!card.faction.equals(Faction.WEATHER) &&
-					!card.faction.equals(Faction.SPECIAL)) || card.row.equals(Row.LEADER))
+			if ((!card.faction.equals(deck.faction) && !card.faction.equals(Faction.NATURAL) && !card.faction.equals(Faction.WEATHER) && !card.faction.equals(Faction.SPECIAL)) || card.row.equals(Row.LEADER))
 				return false;
 		}
 		//check count of cards
 		for (Card card : deck.deck)
 			for (CardInfo cardInfo : CardInfo.allCards)
 				if (cardInfo.pathAddress.equals(card.pathAddress))
-					if (getSimilarCountInDeck(deck, card.pathAddress) > cardInfo.count)
-						return false;
+					if (getSimilarCountInDeck(deck, card.pathAddress) > cardInfo.count) return false;
 		return true;
 	}
 
 	private static int getSimilarCountInDeck(Deck deck, String path) {
 		int count = 0;
 		for (Card card : deck.deck) {
-			if (card.pathAddress.equals(path))
-				count++;
+			if (card.pathAddress.equals(path)) count++;
 		}
 		return count;
 	}
-	public Card getLeader(){
+
+	public Card getLeader() {
 		return leader;
 	}
-	public ArrayList<Card> getDeck(){
+
+	public ArrayList<Card> getDeck() {
 		return deck;
 	}
-	public Faction getFaction(){
+
+	public Faction getFaction() {
 		return faction;
 	}
 
@@ -134,7 +128,7 @@ public class Deck {
 		}
 	}
 
-	public static String  saveDeck(Deck deck) {
+	public static String saveDeck(Deck deck) {
 		DeckToSave deckToSave = new DeckToSave();
 		deckToSave.changeFaction(deck.faction);
 		deckToSave.changeLeader(deck.leader);
@@ -193,16 +187,13 @@ class DeckToSave {
 			Deck outputDeck = new Deck(factionIndex, deckToSave.leader);
 			for (String path : deckToSave.deck.keySet()) {
 				CardInfo cardInfo = convertPathToCardInfo(path);
-				if (cardInfo == null)
-					return null;
-				if (deckToSave.deck.get(path) < 0)
-					return null;
+				if (cardInfo == null) return null;
+				if (deckToSave.deck.get(path) < 0) return null;
 				for (int i = 0; i < deckToSave.deck.get(path); i++) {
 					outputDeck.addCard(cardInfo);
 				}
 			}
-			if (!Deck.isCorrectDeck(outputDeck))
-				return null;
+			if (!Deck.isCorrectDeck(outputDeck)) return null;
 			return outputDeck;
 		} catch (Exception ignored) {
 			return null;

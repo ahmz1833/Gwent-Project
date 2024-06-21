@@ -26,8 +26,10 @@ public class FivePlacePreGame extends Pane {
 	private ArrayList<Image> imageList = new ArrayList<>();
 	private int currentIndex = 0;
 	private boolean isLeaderChange;
+	private final int primaryX;
 
-	public FivePlacePreGame(Pane pane, PreGameMenu preGameMenu) {
+	public FivePlacePreGame(Pane pane, PreGameMenu preGameMenu, int primaryX) {
+		this.primaryX = primaryX;
 		gamePane = pane;
 		this.preGameMenu = preGameMenu;
 		HBox[] places = addPlaces();
@@ -40,18 +42,14 @@ public class FivePlacePreGame extends Pane {
 		for (int i = 0; i < 5; i++) {
 			StackPane stackPane = new StackPane();
 			switch (i) {
-				case 0 -> stackPane = getStackPane(PreGameMenu.screenWidth / 10.0,
-						PreGameMenu.screenHeight / 10.0 * 6,
-						Pos.TOP_RIGHT);
-				case 1, 3 -> stackPane = getStackPane(PreGameMenu.screenWidth / 10.0,
-						PreGameMenu.screenHeight / 10.0 * 6,
-						Pos.CENTER);
-				case 2 -> stackPane = getStackPane(PreGameMenu.screenWidth / 10.0,
-						PreGameMenu.screenHeight / 10.0 * 6,
-						Pos.BOTTOM_CENTER);
-				case 4 -> stackPane = getStackPane(PreGameMenu.screenWidth / 10.0,
-						PreGameMenu.screenHeight / 10.0 * 6,
-						Pos.TOP_LEFT);
+				case 0 ->
+						stackPane = getStackPane(PreGameMenu.screenWidth / 10.0, PreGameMenu.screenHeight / 10.0 * 6, Pos.TOP_RIGHT);
+				case 1, 3 ->
+						stackPane = getStackPane(PreGameMenu.screenWidth / 10.0, PreGameMenu.screenHeight / 10.0 * 6, Pos.CENTER);
+				case 2 ->
+						stackPane = getStackPane(PreGameMenu.screenWidth / 10.0, PreGameMenu.screenHeight / 10.0 * 6, Pos.BOTTOM_CENTER);
+				case 4 ->
+						stackPane = getStackPane(PreGameMenu.screenWidth / 10.0, PreGameMenu.screenHeight / 10.0 * 6, Pos.TOP_LEFT);
 			}
 
 			images[i] = new ImageView(R.getImage("lg/faction_monsters.jpg"));
@@ -86,7 +84,7 @@ public class FivePlacePreGame extends Pane {
 		box.setOnMouseClicked(k -> endShow());
 		box.setPrefWidth(PreGameMenu.screenWidth / 2.0);
 		box.setPrefHeight(PreGameMenu.screenHeight);
-		box.setLayoutX(0);
+		box.setLayoutX(primaryX);
 		box.setLayoutY(0);
 		DropShadow dropShadow = new DropShadow();
 		dropShadow.setOffsetX(0);
@@ -199,17 +197,13 @@ public class FivePlacePreGame extends Pane {
 			case "Foltest - King of Temeria" ->
 					text = "Leader Ability\nPick an Impenetrable Fog card from your deck and play it instantly.";
 			case "Foltest - Lord Commander of the North" ->
-					text = "Leader Ability\nClear any weather effects (resulting from Biting Frost, Torrential " +
-							"Rain or Impenetrable Fog cards) in play.";
+					text = "Leader Ability\nClear any weather effects (resulting from Biting Frost, Torrential " + "Rain or Impenetrable Fog cards) in play.";
 			case "Foltest - The Siegemaster" ->
-					text = "Leader Ability\nDoubles the strength of all your Siege units (unless a Commander's " +
-							"Horn is also present on that row).";
+					text = "Leader Ability\nDoubles the strength of all your Siege units (unless a Commander's " + "Horn is also present on that row).";
 			case "Foltest - The Steel-Forged" ->
-					text = "Leader Ability\nDestroy your enemy's strongest Siege unit(s) if the combined strength " +
-							"of all his or her Siege units is 10 or more.";
+					text = "Leader Ability\nDestroy your enemy's strongest Siege unit(s) if the combined strength " + "of all his or her Siege units is 10 or more.";
 			case "Foltest - Son of Medell" ->
-					text = "Leader Ability\nDestroy your enemy's strongest Ranged Combat unit(s) if the combined " +
-							"strength of all his or her Ranged Combat units is 10 or more.";
+					text = "Leader Ability\nDestroy your enemy's strongest Ranged Combat unit(s) if the combined " + "strength of all his or her Ranged Combat units is 10 or more.";
 			case "Emhyr var Emreis - His Imperial Majesty" ->
 					text = "Leader Ability\nPick a Torrential Rain card from your deck and play it instantly.";
 			case "Emhyr var Emreis - Emperor of Nilfgaard" ->
@@ -219,11 +213,9 @@ public class FivePlacePreGame extends Pane {
 			case "Emhyr var Emreis - The Relentless" ->
 					text = "Leader Ability\nDraw a card from your opponent's discard pile.";
 			case "Emhyr var Emreis - Invader of the North" ->
-					text = "Leader Ability\nAbilities that restore a unit to the battlefield restore a randomly-chosen" +
-							" unit. Affects both players.";
+					text = "Leader Ability\nAbilities that restore a unit to the battlefield restore a randomly-chosen" + " unit. Affects both players.";
 			case "Eredin - Commander of the Red Riders" ->
-					text = "Leader Ability\nDouble the strength of all your Close Combat units (unless a Commander's" +
-							" horn is also present on that row).";
+					text = "Leader Ability\nDouble the strength of all your Close Combat units (unless a Commander's" + " horn is also present on that row).";
 			case "Eredin - Bringer of Death" ->
 					text = "Leader Ability\nRestore a card from your discard pile to your hand.";
 			case "Eredin - Destroyer of Worlds" ->
@@ -233,18 +225,15 @@ public class FivePlacePreGame extends Pane {
 			case "Eredin Bréacc Glas - The Treacherous" ->
 					text = "Leader Ability\nDoubles the strength of all spy cards (affects both players).";
 			case "Francesca Findabair - Queen of Dol Blathanna" ->
-					text = "Leader Ability\nDestroy your enemy's strongest Close Combat unit(s) if the combined " +
-							"strength of all his or her Close Combat units is 10 or more.";
+					text = "Leader Ability\nDestroy your enemy's strongest Close Combat unit(s) if the combined " + "strength of all his or her Close Combat units is 10 or more.";
 			case "Francesca Findabair - the Beautiful" ->
-					text = "Leader Ability\nDoubles the strength of all your Ranged Combat units (unless a" +
-							" Commander's Horn is also present on that row).";
+					text = "Leader Ability\nDoubles the strength of all your Ranged Combat units (unless a" + " Commander's Horn is also present on that row).";
 			case "Francesca Findabair - Daisy of the Valley" ->
 					text = "Leader Ability\nDraw an extra card at the beginning of the battle.";
 			case "Francesca Findabair - Pureblood Elf" ->
 					text = "Leader Ability\nPick a Biting Frost card from your deck and play it instantly.";
 			case "Francesca Findabair - Hope of the Aen Seidhe" ->
-					text = "Leader Ability\nMove agile units to whichever valid row maximizes their strength " +
-							"(don't move units already in optimal row).";
+					text = "Leader Ability\nMove agile units to whichever valid row maximizes their strength " + "(don't move units already in optimal row).";
 			case "Crach an Craite" ->
 					text = "Leader Ability\nShuffle all cards from each player's graveyard back into their decks.";
 			case "King Bran" -> text = "Leader Ability\nUnits only lose half their Strength in bad weather conditions.";
@@ -252,8 +241,8 @@ public class FivePlacePreGame extends Pane {
 			case "NILFGAARD" -> text = "Nilfgaardian Empire\nWins any round that ends in a draw.";
 			case "MONSTERS" -> text = "Monsters\nKeeps a random Unit Card out after each round.";
 			case "SCOIATAEL" -> text = "Scoia'tael\nDecides who takes first turn.";
-			case "SKELLIGE" -> text = "Skellige\n2 random cards from the graveyard are placed on the battlefield" +
-					" at the start of the third round.";
+			case "SKELLIGE" ->
+					text = "Skellige\n2 random cards from the graveyard are placed on the battlefield" + " at the start of the third round.";
 		}
 		textFiled.setText("\n" + text);
 	}

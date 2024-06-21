@@ -1,6 +1,5 @@
 package org.apgrp10.gwent.view;
 
-import io.github.palexdev.materialfx.controls.MFXScrollPane;
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -12,6 +11,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -21,42 +21,45 @@ import org.apgrp10.gwent.model.card.*;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.net.URL;
 import java.util.ArrayList;
 
 
 public class PreGameMenu extends Application {
 	private Stage stage;
 	private Pane pane;
-	private Scene scene;
-	private GridPane[] deckLists = new GridPane[2];
+	private final GridPane[] deckLists = new GridPane[2];
 	private Faction faction;
-	private VBox infoVBox, factionInfo;
+	private VBox factionInfo;
 	private Text totalCardsText, totalUnitCadsText, totalSpecialCardsText, totalStrengthText, totalHeroText;
 	private FivePlacePreGame fivePlacePreGame;
 	private String leaderName;
 	private ImageView leaderImage;
 	private int currentIndexOfLeader, currentFactionIndex;
+	private final int primaryX = screenWidth / 2;
 
 
 	public static PreGameMenu currentMenu;
-	public static final int screenWidth = 1500, cardWidth = 18;
-	public static final int screenHeight = 800, cardHeight = 5;
+	public static final int screenWidth = 1280, cardWidth = 18;
+	public static final int screenHeight = 720, cardHeight = 5;
 
 	public static void main(String[] args) {
 		launch(args);
 	}
 
 	@Override
-	public void start(Stage stage) throws Exception {
+	public void start(Stage stage) {
 		currentMenu = this;
 		this.stage = stage;
 		load();
 		setTitle();
-		fivePlacePreGame = new FivePlacePreGame(pane, this);
+		fivePlacePreGame = new FivePlacePreGame(pane, this, primaryX);
 		addInfoBox();
 		addGradePane();
 		setSpoiler();
-		loadFactionDeck(Faction.REALMS);
+		URL path = R.class.getResource("primaryDeck.gwent");
+		if (path == null) loadFactionDeck(Faction.REALMS);
+		else uploadDeck(path.getPath());
 		stage.show();
 		addLinkTexts();
 	}
@@ -64,7 +67,7 @@ public class PreGameMenu extends Application {
 	private void addLinkTexts() {
 		pane.getChildren().remove(factionInfo);
 		factionInfo = new VBox();
-		factionInfo.setLayoutX(screenWidth / 4.0 - 200);
+		factionInfo.setLayoutX(primaryX + screenWidth / 4.0 - 200);
 		setFactionInfo(factionInfo);
 		addFactionMassageToFactionInfo(factionInfo);
 		addLinksToFactionInfo(factionInfo);
@@ -135,8 +138,7 @@ public class PreGameMenu extends Application {
 		StackPane stack2 = getStackPane(400, 20, Pos.CENTER);
 		HBox links = new HBox();
 		links.getChildren().add(addCSSLinkedText("Upload Deck", k -> chooseFileToUpload()));
-		links.getChildren().add(addCSSLinkedText("Change Faction",
-				k -> fivePlacePreGame.show(false, currentFactionIndex)));
+		links.getChildren().add(addCSSLinkedText("Change Faction", k -> fivePlacePreGame.show(false, currentFactionIndex)));
 		links.getChildren().add(addCSSLinkedText("Download Deck", k -> choosePlaceToDownload()));
 		stack2.getChildren().add(links);
 		factionInfo.getChildren().add(stack2);
@@ -159,7 +161,7 @@ public class PreGameMenu extends Application {
 
 	private void setSpoiler() {
 		ImageView imageView = new ImageView(R.getImage("icons/preGame_selectImage.png"));
-		imageView.setX(screenWidth / 2.0);
+		imageView.setX(screenWidth / 2.0 - primaryX);
 		imageView.setY(0);
 		imageView.setFitWidth(screenWidth / 2.0);
 		imageView.setFitHeight(screenHeight);
@@ -167,7 +169,9 @@ public class PreGameMenu extends Application {
 	}
 
 	private void load() {
-		this.scene = R.getFXML("preGame.fxml");
+		AnchorPane anchorPane = new AnchorPane();
+		anchorPane.getStylesheets().add(R.class.getResource("css/preGame.css").toExternalForm());
+		Scene scene = new Scene(anchorPane);
 		stage.setScene(scene);
 		pane = (Pane) scene.getRoot();
 		stage.setResizable(false);
@@ -181,24 +185,20 @@ public class PreGameMenu extends Application {
 	private void addGradePane() {
 		for (int i = 0; i < 2; i++) {
 			GridPane gridPane = new GridPane();
-			gridPane.setMinWidth(3 * screenWidth / (double) cardWidth + 0);
-			gridPane.setMaxWidth(gridPane.getMinWidth());
-			gridPane.setMaxHeight(3 * (double) screenHeight / cardHeight + 30);
-			gridPane.setMaxHeight(gridPane.getMinHeight());
 			gridPane.setVgap(5);
 			gridPane.setHgap(5);
-			for (int j = 0; j < 2; j++) {
-				gridPane.getColumnConstraints().add(
-						new ColumnConstraints(screenWidth / (double) cardWidth));
+			for (int j = 0; j < 3; j++) {
+				gridPane.getColumnConstraints().add(new ColumnConstraints(screenWidth / (double) cardWidth - 5));
 			}
-			MFXScrollPane scroll = new MFXScrollPane(gridPane);
+			ScrollPane scroll = new ScrollPane(gridPane);
 			scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
 			scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+			scroll.setPrefSize(3 * screenWidth / (double) cardWidth + 12, 550);
 			switch (i) {
-				case 0 -> scroll.setLayoutX(10);
-				case 1 -> scroll.setLayoutX(460);
+				case 0 -> scroll.setLayoutX(primaryX + 9);
+				case 1 -> scroll.setLayoutX(primaryX + 398);
 			}
-			scroll.setLayoutY(130);
+			scroll.setLayoutY(117);
 			pane.getChildren().add(scroll);
 			deckLists[i] = gridPane;
 		}
@@ -224,13 +224,9 @@ public class PreGameMenu extends Application {
 				hasLeader = true;
 				changeLeader(card.name, 0);
 			}
-			if (card.faction.equals(faction) ||
-					card.faction.equals(Faction.NATURAL) ||
-					card.faction.equals(Faction.WEATHER) ||
-					card.faction.equals(Faction.SPECIAL))
-				if (card.row != Row.LEADER)
-					for (int i = 0; i < card.count; i++)
-						addCardToGridPane(card.pathAddress, false);
+			if (card.faction.equals(faction) || card.faction.equals(Faction.NATURAL) || card.faction.equals(Faction.WEATHER) || card.faction.equals(Faction.SPECIAL))
+				if (card.row != Row.LEADER) for (int i = 0; i < card.count; i++)
+					addCardToGridPane(card.pathAddress, false);
 		}
 		updateInfo();
 	}
@@ -286,18 +282,16 @@ public class PreGameMenu extends Application {
 			CardViewPregame currentCard = (CardViewPregame) deckLists[numberOfDeck].getChildren().get(i);
 			if (currentCard.getAddress().equals(cardName)) {
 				currentCard.countMinusMinus();
-				if (currentCard.getCount() <= 0)
-					needSort = true;
+				if (currentCard.getCount() <= 0) needSort = true;
 				break;
 			}
 		}
-		if (needSort)
-			sortDeck(deckLists[numberOfDeck]);
+		if (needSort) sortDeck(deckLists[numberOfDeck]);
 	}
 
 	public void accessioningChangeFaction(Faction faction) {
 		if (this.faction != faction) {
-			new MassagePreGame(this, pane, faction);
+			new MassagePreGame(this, pane, faction, primaryX);
 		}
 	}
 
@@ -314,21 +308,15 @@ public class PreGameMenu extends Application {
 				}
 				String[] sortOrder = {"special", "weather"};
 				pane.getChildren().clear();
-				deck.sort((o1, o2) ->
-				{
+				deck.sort((o1, o2) -> {
 					int index1 = 3, index2 = 3;
 					for (int i = 0; i < sortOrder.length; i++) {
-						if (Faction.getEnum(sortOrder[i]).equals(o1.getFaction()))
-							index1 = i;
-						if (Faction.getEnum(sortOrder[i]).equals(o2.getFaction()))
-							index2 = i;
+						if (Faction.getEnum(sortOrder[i]).equals(o1.getFaction())) index1 = i;
+						if (Faction.getEnum(sortOrder[i]).equals(o2.getFaction())) index2 = i;
 					}
-					if (index1 < index2)
-						return -1;
-					if (index1 > index2)
-						return 1;
-					if (o1.getStrength() == o2.getStrength())
-						return o1.getName().compareTo(o2.getName());
+					if (index1 < index2) return -1;
+					if (index1 > index2) return 1;
+					if (o1.getStrength() == o2.getStrength()) return o1.getName().compareTo(o2.getName());
 					return (o1.getStrength() > o2.getStrength()) ? -1 : +1;
 				});
 				for (int i = 0; i < deck.size(); i++) {
@@ -341,15 +329,15 @@ public class PreGameMenu extends Application {
 	}
 
 	private void addInfoBox() {
-		infoVBox = new VBox();
-		infoVBox.setLayoutX(300);
-		infoVBox.setLayoutY(130);
+		VBox infoVBox = new VBox();
+		infoVBox.setLayoutX(primaryX + 245);
+		infoVBox.setLayoutY(117);
 		textForInfo(infoVBox, "Leader");
 		leaderImage = new ImageView();
-		leaderImage.setFitWidth(100);
-		leaderImage.setFitHeight(180);
+		leaderImage.setFitWidth(85);
+		leaderImage.setFitHeight(172);
 		leaderImage.setOnMouseClicked(k -> fivePlacePreGame.show(true, currentIndexOfLeader));
-		StackPane stackPane = getStackPane(150, 180, Pos.CENTER);
+		StackPane stackPane = getStackPane(142, 172, Pos.CENTER);
 		stackPane.getChildren().add(leaderImage);
 		infoVBox.getChildren().add(stackPane);
 		textForInfo(infoVBox, "Total cards in deck:");
@@ -362,6 +350,19 @@ public class PreGameMenu extends Application {
 		totalStrengthText = textWithImageInfo(infoVBox, "deck_stats_strength");
 		textForInfo(infoVBox, "Hero cards:");
 		totalHeroText = textWithImageInfo(infoVBox, "deck_stats_hero");
+		StackPane buttonBorder = getStackPane(150, 35, Pos.CENTER);
+		Rectangle button = new Rectangle(120, 35, Color.GRAY);
+		button.setOnMouseClicked(k -> startGame());
+		button.setStyle("-fx-border-width: 2px; -fx-border-color: white");
+
+		button.setArcWidth(20);
+		button.setArcHeight(20);
+		Text text = new Text("start game");
+		text.setFill(Color.WHITE);
+		text.setStyle("-fx-font-size: 18px");
+		buttonBorder.getChildren().add(button);
+		buttonBorder.getChildren().add(text);
+		infoVBox.getChildren().add(buttonBorder);
 		pane.getChildren().add(infoVBox);
 	}
 
@@ -405,10 +406,8 @@ public class PreGameMenu extends Application {
 				totalStrength += card.getStrength();
 				if (card.getFaction().equals(Faction.WEATHER) || card.getFaction().equals(Faction.SPECIAL))
 					totalSpecialCards++;
-				else
-					totalUnitCads++;
-				if (card.isHero())
-					totalHero++;
+				else totalUnitCads++;
+				if (card.isHero()) totalHero++;
 			}
 		}
 		totalCardsText.setText(String.valueOf(totalCards));
@@ -437,8 +436,7 @@ public class PreGameMenu extends Application {
 				int index = 0;
 				for (CardInfo card : CardInfo.allCards) {
 					if (card.faction.equals(faction) && card.row.equals(Row.LEADER)) {
-						if (card.pathAddress.equals(deck.getLeader().pathAddress))
-							break;
+						if (card.pathAddress.equals(deck.getLeader().pathAddress)) break;
 						index++;
 					}
 				}
@@ -447,11 +445,12 @@ public class PreGameMenu extends Application {
 					deleteCardFromGridPane(card.pathAddress, false);
 					addCardToGridPane(card.pathAddress, true);
 				}
-			} catch (Exception ignored){
+			} catch (Exception ignored) {
 				loadFactionDeck(Faction.REALMS);
 			}
+			updateInfo();
 		} else {
-			System.out.println("ERROR");
+			new MassagePreGame(pane, primaryX);
 		}
 	}
 
@@ -460,18 +459,20 @@ public class PreGameMenu extends Application {
 		deck.createDeckFromPane(deckLists[1]);
 		return Deck.saveDeck(deck);
 	}
-	private void chooseFileToUpload(){
+
+	private void chooseFileToUpload() {
 		FileChooser fileChooser = new FileChooser();
 		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Gwent Files", "*.gwent"));
 		String home = System.getProperty("user.home");
 		File downloadFolder = new File(home, "Downloads");
 		fileChooser.setInitialDirectory(downloadFolder);
 		File selectedFile = fileChooser.showOpenDialog(stage);
-		if(selectedFile != null){
+		if (selectedFile != null) {
 			uploadDeck(selectedFile.getAbsolutePath());
 		}
 	}
-	private void choosePlaceToDownload(){
+
+	private void choosePlaceToDownload() {
 		String downloadedFileName = "deck.gwent";
 		FileChooser fileChooser = new FileChooser();
 		fileChooser.setTitle("Save File");
@@ -479,8 +480,7 @@ public class PreGameMenu extends Application {
 		String home = System.getProperty("user.home");
 		File downloadFolder = new File(home, "Downloads");
 		fileChooser.setInitialDirectory(downloadFolder);
-		fileChooser.getExtensionFilters().add(
-				new FileChooser.ExtensionFilter("Gwent Files", "*.gwent"));
+		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Gwent Files", "*.gwent"));
 		File selectedDir = fileChooser.showSaveDialog(stage);
 		if (selectedDir != null) {
 			try {
@@ -488,7 +488,25 @@ public class PreGameMenu extends Application {
 				FileWriter myWriter = new FileWriter(myFile);
 				myWriter.write(downloadDeck());
 				myWriter.close();
-			} catch (Exception ignored) {}
+			} catch (Exception ignored) {
+			}
+		}
+	}
+
+	private void startGame() {
+		int totalUnitCads = 0, totalSpecialCards = 0;
+		for (int i = 0; i < deckLists[1].getChildren().size(); i++) {
+			CardViewPregame card = (CardViewPregame) deckLists[1].getChildren().get(i);
+			for (int j = 0; j < card.getCount(); j++) {
+				if (card.getFaction().equals(Faction.WEATHER) || card.getFaction().equals(Faction.SPECIAL))
+					totalSpecialCards++;
+				else totalUnitCads++;
+			}
+		}
+		if (totalSpecialCards <= 10 && totalUnitCads >= 22) {
+			Deck deck = new Deck(currentFactionIndex, leaderName);
+			deck.createDeckFromPane(deckLists[1]);
+			//TODO deck is ready
 		}
 	}
 }
