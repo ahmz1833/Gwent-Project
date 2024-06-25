@@ -1,7 +1,8 @@
 package org.apgrp10.gwent.controller;
 
+import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
+import org.apgrp10.gwent.R;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.view.ChatMenu;
 
@@ -10,7 +11,8 @@ public class ChatMenuController {
 	private final User user;
 	private final Pane pane;
 
-	public ChatMenuController(Pane pane, User user, double screenWidth) {
+	public ChatMenuController(Pane pane, User user, double screenWidth, Scene scene) {
+		scene.getStylesheets().add(R.class.getResource("css/chat.css").toExternalForm());
 		this.chatMenu = new ChatMenu(screenWidth);
 		this.user = user;
 		this.pane = pane;

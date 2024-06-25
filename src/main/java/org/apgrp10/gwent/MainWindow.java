@@ -21,9 +21,10 @@ public class MainWindow extends Application {
 		pane.setPrefWidth(1024);
 		pane.setPrefHeight(720);
 		stage.setResizable(false);
-		stage.setScene(new Scene(pane));
+		Scene scene = new Scene(pane);
+		stage.setScene(scene);
 		ChatMenuController controller = new ChatMenuController(pane,
-				new User("a", "a", "a", "a"), 1024);
+				new User("a", "a", "a", "a"), 1024, scene);
 		controller.show();
 		stage.show();
 	}
