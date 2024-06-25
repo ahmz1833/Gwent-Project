@@ -2,6 +2,7 @@ package org.apgrp10.gwent.model.card;
 
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
@@ -9,7 +10,7 @@ import javafx.scene.text.Text;
 import org.apgrp10.gwent.*;
 
 
-public class CardView extends Pane {
+public class CardView extends StackPane {
 	private String address;
 	private String name;
 	private Text countLabel;
@@ -40,6 +41,9 @@ public class CardView extends Pane {
 	public static CardView newHand(String address, double width, double height) {
 		return new CardView(address, false, false, -1, width, height);
 	}
+	public static CardView newInfo(String address, double width, double height) {
+		return new CardView(address, true, false, -1, width, height);
+	}
 
 	private void fillInfoByName() {
 		for (CardInfo cardInfo : CardInfo.allCards) {
@@ -54,7 +58,7 @@ public class CardView extends Pane {
 	}
 
 	private void addBackground() {
-		Rectangle image = new Rectangle(width - 5, height);
+		Rectangle image = new Rectangle(width, height);
 		image.setFill(new ImagePattern(R.getImage(rootPath + address + ".jpg")));
 		image.setX(0);
 		image.setY(0);

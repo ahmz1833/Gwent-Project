@@ -28,6 +28,7 @@ public class GameController {
 	private final Stage stage;
 	private final GameMenu gameMenu;
 	private final PlayerData playerData[] = new PlayerData[2];
+	private final List<List<Card>> row;
 	private int turn = 0;
 	private int activePlayer = 0;
 	private Card activeCard;
@@ -37,6 +38,10 @@ public class GameController {
 		playerData[1] = new PlayerData(d1, c1);
 		this.stage = stage;
 		turn = 0;
+
+		row = new ArrayList<>();
+		for (int i = 0; i < 6; i++)
+			row.add(new ArrayList<>());
 
 		// must be last so GameController initialization is complete
 		gameMenu = new GameMenu(this, stage);
@@ -52,20 +57,38 @@ public class GameController {
 	public PlayerData getPlayer(int player) { return playerData[player]; }
 
 	private void playCard(Command.PlayCard cmd) {
-		// TODO
+		gameMenu.animationToRow(cmd.card(), cmd.row());
+		playerData[cmd.player()].handCards.remove(cmd.card());
+		row.get(cmd.row()).add(cmd.card());
 	}
 
 	private void moveToHand(Command.MoveToHand cmd) {
+		gameMenu.animationToHand(cmd.card());
 		playerData[cmd.player()].deck.removeCard(cmd.card());
 		playerData[cmd.player()].handCards.add(cmd.card());
 	}
 
+	public static interface CommandListener { public void call(Command cmd); }
+	private final List<CommandListener> commandListeners = new ArrayList<>();
+	public void addCommandListener(CommandListener cb) { commandListeners.add(cb); }
+
 	public void sendCommand(Command cmd) {
 		if (cmd instanceof Command.PlayCard) playCard((Command.PlayCard)cmd);
 		if (cmd instanceof Command.MoveToHand) moveToHand((Command.MoveToHand)cmd);
+		if (cmd instanceof Command.SetActiveCard) activeCard = ((Command.SetActiveCard)cmd).card();
+		System.out.println(cmd);
+
+		for (CommandListener cb : commandListeners)
+			cb.call(cmd);
+
 		gameMenu.redraw();
 	}
 
-	public void setActivePlayer(int player) { activePlayer = player; }
+	public void setActivePlayer(int player) { activePlayer = player; gameMenu.redraw(); }
 	public int getActivePlayer() { return activePlayer; }
+	public Card getActiveCard() { return activeCard; }
+
+	public List<Card> getRow(int i) { return row.get(i); }
+	
+	// public boolean canPlace(int row, Ca
 }
