@@ -30,6 +30,9 @@ public class MessageView extends HBox {
 		addBorder();
 
 	}
+	public Message getMessage(){
+		return message;
+	}
 
 	private void addBorder(){
 		ImageView image =new ImageView();

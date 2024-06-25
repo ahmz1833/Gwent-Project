@@ -2,13 +2,13 @@ package org.apgrp10.gwent.view;
 
 import io.github.palexdev.materialfx.controls.MFXScrollPane;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import org.apgrp10.gwent.R;
 import org.apgrp10.gwent.controller.ChatMenuController;
@@ -16,17 +16,23 @@ import org.apgrp10.gwent.model.Massage.Message;
 import org.apgrp10.gwent.model.Massage.MessageView;
 import org.apgrp10.gwent.model.User;
 
+import java.util.HashMap;
+
 public class ChatMenu extends Pane {
 	private final Text replyBox = new Text();
 	private final TextArea textInput = new TextArea();
 	private final VBox messagesBox = new VBox();
 	private MFXScrollPane messagesScroll;
 	public final static int width = 250, height = 720;
+	private final int screenWidth;
 	private final ChatMenuController controller;
+	private final HashMap<Integer, Integer> reactionList = new HashMap<>();
+	//this is a map from each message id to reaction number
 	private final User user;
 
 	public ChatMenu(double screenWidth, ChatMenuController controller, User user) {
 		this.user = user;
+		this.screenWidth = (int) screenWidth;
 		this.controller = controller;
 		setSize(screenWidth);
 		addTextInput();
@@ -69,7 +75,7 @@ public class ChatMenu extends Pane {
 			if (newValue.length() > 35) {
 				textInput.setText(oldValue);
 			}
-			if(newValue.contains("\n")){
+			if (newValue.contains("\n")) {
 				textInput.setText(oldValue);
 			}
 		});
@@ -107,7 +113,8 @@ public class ChatMenu extends Pane {
 		return container;
 	}
 
-	private StackPane setupTextFiled(TextArea textField, int width, int height, Pos pos, String styleClass) {
+	private StackPane setupTextFiled(TextArea textField, int width, int height,
+									 Pos pos, String styleClass) {
 		StackPane container = getStackPane(width, pos);
 		container.getChildren().add(textField);
 		textField.setPrefWidth(width);
@@ -128,7 +135,10 @@ public class ChatMenu extends Pane {
 		ImageView image = new ImageView(R.getImage("chat/send.png"));
 		image.setFitHeight(40);
 		image.setFitWidth(40);
-		container.setOnMouseClicked(k -> {messagesScroll.requestFocus(); k.consume();});
+		container.setOnMouseClicked(k -> {
+			messagesScroll.requestFocus();
+			k.consume();
+		});
 		image.setOnMouseClicked(k -> sendMessage());
 		container.getChildren().add(image);
 		return container;
@@ -138,7 +148,7 @@ public class ChatMenu extends Pane {
 		if (textInput.getText().trim().equals(""))
 			return;
 		//TODO
-		User user1 = Math.random() > 0.5? user : new User("user", "b", "c", "d");
+		User user1 = Math.random() > 0.5 ? user : new User("user", "b", "c", "d");
 		controller.sendMessage(Message.newTextMessage(controller.getId(), textInput.getText(), user1));
 		textInput.setText("");
 		scrollToEnd();
@@ -152,11 +162,37 @@ public class ChatMenu extends Pane {
 	public void addMessage(Message message) {
 		if (message.getType() == (byte) 0) {
 			MessageView messageView = new MessageView(message, user);
-			StackPane stackPane = new StackPane(messageView);
-			messagesBox.getChildren().add(stackPane);
+			messageView.setOnMouseClicked(k -> {
+				if (k.getButton() == MouseButton.SECONDARY)
+					openNewWindow(k.getSceneX(), k.getSceneY(), messageView.getMessage().getId());
+			});
+			reactionList.put(message.getId(), -1);
+			messagesBox.getChildren().add(messageView);
 			if (messagesScroll.getVvalue() > 0.9)
 				scrollToEnd();
 		}
 
+	}
+
+	private User getUserById(int id) {
+		for (Node node : messagesBox.getChildren()) {
+			if (id == ((MessageView) (node)).getMessage().getId()) {
+				return ((MessageView) node).getMessage().getOwner();
+			}
+		}
+		return null;
+	}
+
+	private void openNewWindow(double X, double Y, int id) {
+		new ReactionChat((int) (X - screenWidth + width), (int) Y, id, this,
+				user.equals(getUserById(id)), reactionList.get(id));
+	}
+	public void sendDeleteReaction(int id, int index){
+		reactionList.put(id, -1);
+		controller.sendMessage(Message.deleteReactionMessage(id, index, user));
+	}
+	public void sendNewReaction(int id, int index){
+		reactionList.put(id, index);
+		controller.sendMessage(Message.newReactionMessage(id, index, user));
 	}
 }

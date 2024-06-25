@@ -2,6 +2,7 @@ package org.apgrp10.gwent.controller;
 
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 import org.apgrp10.gwent.R;
 import org.apgrp10.gwent.model.Massage.Message;
 import org.apgrp10.gwent.model.User;
