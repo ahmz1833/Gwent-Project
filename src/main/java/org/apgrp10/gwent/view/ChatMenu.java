@@ -10,35 +10,47 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import org.apgrp10.gwent.R;
+import org.apgrp10.gwent.controller.ChatMenuController;
+import org.apgrp10.gwent.model.Massage.Message;
+import org.apgrp10.gwent.model.Massage.MessageView;
+import org.apgrp10.gwent.model.User;
 
 public class ChatMenu extends Pane {
 	private final Text replyBox = new Text();
 	private final TextArea textInput = new TextArea();
-	private final VBox massagesBox = new VBox();
-	private ScrollPane massagesScroll;
+	private final VBox messagesBox = new VBox();
+	private ScrollPane messagesScroll;
 	public final static int width = 250, height = 720;
+	private final ChatMenuController controller;
+	private final User user;
 
-	public ChatMenu(double screenWidth) {
+	public ChatMenu(double screenWidth, ChatMenuController controller, User user) {
+		this.user = user;
+		this.controller = controller;
 		setSize(screenWidth);
 		addTextInput();
-		addMassagesBox();
+		addMessagesBox();
 	}
 
-	private void addMassagesBox() {
-		massagesBox.setLayoutX(0);
-		massagesBox.setLayoutY(0);
-		massagesBox.setPrefWidth(width - 10);
-		massagesBox.setPrefHeight(height - 140);
-		massagesScroll = new ScrollPane(massagesBox);
-		massagesScroll.setOnMouseClicked(k -> {
-			massagesScroll.requestFocus();
+	private void addMessagesBox() {
+		messagesBox.setLayoutX(0);
+		messagesBox.setLayoutY(0);
+		messagesBox.setSpacing(20);
+		messagesBox.setPrefWidth(width - 10);
+		messagesBox.setPrefHeight(height - 140);
+		messagesScroll = new ScrollPane();
+		messagesScroll.setContent(messagesBox);
+		messagesScroll.setOnMouseClicked(k -> {
+			messagesScroll.requestFocus();
 			k.consume();
 		});
-		massagesScroll.getStyleClass().add("massagesBox");
-		massagesScroll.setFitToWidth(true);
-		massagesScroll.setLayoutY(5);
-		massagesScroll.setLayoutX(5);
-		getChildren().add(massagesScroll);
+		messagesScroll.getStyleClass().add("messagesBox");
+		messagesScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+		messagesScroll.setFitToWidth(true);
+		messagesScroll.setFitToHeight(true);
+		messagesScroll.setLayoutY(5);
+		messagesScroll.setLayoutX(5);
+		getChildren().add(messagesScroll);
 	}
 
 	private void setSize(double screenWidth) {
@@ -51,7 +63,7 @@ public class ChatMenu extends Pane {
 	}
 
 	private void addTextInput() {
-		textInput.setPromptText("send massage");
+		textInput.setPromptText("send message");
 		VBox container = new VBox();
 		container.getChildren().add(setupText(replyBox, 240, Pos.CENTER, "replyText"));
 		HBox hBox = new HBox();
@@ -73,7 +85,8 @@ public class ChatMenu extends Pane {
 	private StackPane getStackPane(int width, Pos pos) {
 		StackPane stackPane = new StackPane();
 		stackPane.setAlignment(pos);
-		stackPane.setPrefWidth(width);
+		stackPane.setMinWidth(width);
+		stackPane.setMaxWidth(width);
 		return stackPane;
 	}
 
@@ -95,7 +108,7 @@ public class ChatMenu extends Pane {
 			if (event.getCode() == KeyCode.ENTER) {
 				event.consume();
 				if (event.isShiftDown())
-					sendMassage();
+					sendMessage();
 			}
 		});
 		textField.getStyleClass().add(styleClass);
@@ -107,31 +120,35 @@ public class ChatMenu extends Pane {
 		ImageView image = new ImageView(R.getImage("chat/send.png"));
 		image.setFitHeight(40);
 		image.setFitWidth(40);
-		image.setOnMouseClicked(k -> {
-			sendMassage();
-			massagesScroll.requestFocus();
-		});
+		container.setOnMouseClicked(k -> {messagesScroll.requestFocus(); k.consume();});
+		image.setOnMouseClicked(k -> sendMessage());
 		container.getChildren().add(image);
 		return container;
 	}
 
-	private void sendMassage() {
+	private void sendMessage() {
 		if (textInput.getText().trim().equals(""))
 			return;
-		textInput.setText("");
 		//TODO
-		massagesBox.getChildren().add(new Rectangle(200, 50, Color.BLUE));
+		User user1 = Math.random() > 0.5? user : new User("user", "b", "c", "d");
+		controller.sendMessage(Message.newTextMessage(controller.getId(), textInput.getText(), user1));
+		textInput.setText("");
 		scrollToEnd();
 	}
 
 	private void scrollToEnd() {
-		massagesScroll.layout();
-		massagesScroll.setVvalue(1.0);
+		messagesScroll.layout();
+		messagesScroll.setVvalue(1.0);
 	}
 
-	private void addMassage() {
-		//TODO
-		if (massagesScroll.getVvalue() > 0.9)
-			scrollToEnd();
+	public void addMessage(Message message) {
+		if (message.getType() == (byte) 0) {
+			MessageView messageView = new MessageView(message, user);
+			StackPane stackPane = new StackPane(messageView);
+			messagesBox.getChildren().add(stackPane);
+			if (messagesScroll.getVvalue() > 0.9)
+				scrollToEnd();
+		}
+
 	}
 }
