@@ -200,10 +200,8 @@ public class PreGameMenu extends Application {
 		Scene scene = new Scene(pane);
 		stage.setScene(scene);
 		stage.setResizable(false);
-		stage.setMinWidth(screenWidth);
-		stage.setMaxWidth(screenWidth);
-		stage.setMinHeight(screenHeight);
-		stage.setMaxHeight(screenHeight);
+		stage.setWidth(screenWidth);
+		stage.setHeight(screenHeight);
 		setCursor();
 		Rectangle2D screen = Screen.getPrimary().getVisualBounds();
 		double centerX = (screen.getWidth() - screenWidth) / 2;
@@ -284,7 +282,7 @@ public class PreGameMenu extends Application {
 		int numberOfDeck = isGameDeck ? 1 : 0;
 		boolean founded = false;
 		for (int i = 0; i < deckLists[numberOfDeck].getChildren().size(); i++) {
-			CardViewPregame currentCard = (CardViewPregame) deckLists[numberOfDeck].getChildren().get(i);
+			CardView currentCard = (CardView) deckLists[numberOfDeck].getChildren().get(i);
 			if (currentCard.getAddress().equals(cardName)) {
 				currentCard.countPlusPlus();
 				founded = true;
@@ -293,7 +291,8 @@ public class PreGameMenu extends Application {
 		}
 		if (!founded) {
 			int count = deckLists[numberOfDeck].getChildren().size();
-			CardViewPregame card = new CardViewPregame(cardName);
+			CardView card = CardView.newSelection(cardName,
+					(double)screenWidth / cardWidth, (double)screenHeight / cardHeight);
 			card.setOnMouseClicked(k -> {
 				addCardToGridPane(cardName, !isGameDeck);
 				deleteCardFromGridPane(cardName, isGameDeck);
@@ -309,7 +308,7 @@ public class PreGameMenu extends Application {
 		int numberOfDeck = isGameDeck ? 1 : 0;
 		boolean needSort = false;
 		for (int i = 0; i < deckLists[numberOfDeck].getChildren().size(); i++) {
-			CardViewPregame currentCard = (CardViewPregame) deckLists[numberOfDeck].getChildren().get(i);
+			CardView currentCard = (CardView) deckLists[numberOfDeck].getChildren().get(i);
 			if (currentCard.getAddress().equals(cardName)) {
 				currentCard.countMinusMinus();
 				if (currentCard.getCount() <= 0) needSort = true;
@@ -331,10 +330,10 @@ public class PreGameMenu extends Application {
 		//we have "break" at the end of scope
 		for (int tryCount = 0; tryCount < 100; tryCount++) {
 			try {
-				ArrayList<CardViewPregame> deck = new ArrayList<>();
+				ArrayList<CardView> deck = new ArrayList<>();
 				for (int i = 0; i < pane.getChildren().size(); i++) {
-					if (((CardViewPregame) pane.getChildren().get(i)).getCount() > 0)
-						deck.add((CardViewPregame) pane.getChildren().get(i));
+					if (((CardView) pane.getChildren().get(i)).getCount() > 0)
+						deck.add((CardView) pane.getChildren().get(i));
 				}
 				String[] sortOrder = {"special", "weather"};
 				pane.getChildren().clear();
@@ -430,7 +429,7 @@ public class PreGameMenu extends Application {
 	private void updateInfo() {
 		int totalCards = 0, totalUnitCads = 0, totalSpecialCards = 0, totalStrength = 0, totalHero = 0;
 		for (int i = 0; i < deckLists[1].getChildren().size(); i++) {
-			CardViewPregame card = (CardViewPregame) deckLists[1].getChildren().get(i);
+			CardView card = (CardView) deckLists[1].getChildren().get(i);
 			for (int j = 0; j < card.getCount(); j++) {
 				totalCards++;
 				totalStrength += card.getStrength();
@@ -526,7 +525,7 @@ public class PreGameMenu extends Application {
 	private void startGame() {
 		int totalUnitCads = 0, totalSpecialCards = 0;
 		for (int i = 0; i < deckLists[1].getChildren().size(); i++) {
-			CardViewPregame card = (CardViewPregame) deckLists[1].getChildren().get(i);
+			CardView card = (CardView) deckLists[1].getChildren().get(i);
 			for (int j = 0; j < card.getCount(); j++) {
 				if (card.getFaction().equals(Faction.WEATHER) || card.getFaction().equals(Faction.SPECIAL))
 					totalSpecialCards++;

@@ -40,7 +40,7 @@ public class Deck {
 	public void createDeckFromPane(GridPane gridPane) {
 		for (int i = 0; i < gridPane.getChildren().size(); i++) {
 			try {
-				CardViewPregame cardView = (CardViewPregame) gridPane.getChildren().get(i);
+				CardView cardView = (CardView) gridPane.getChildren().get(i);
 				for (CardInfo cardInfo : CardInfo.allCards)
 					if (cardInfo.pathAddress.equals(cardView.getAddress())) {
 						for (int j = 0; j < cardView.getCount(); j++)
@@ -57,6 +57,10 @@ public class Deck {
 
 	public void addCard(Card card) {
 		deck.add(card);
+	}
+
+	public void removeCard(Card card) {
+		deck.remove(card);
 	}
 
 	public void addCard(CardInfo cardInfo) {

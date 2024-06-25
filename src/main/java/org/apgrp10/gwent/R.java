@@ -75,7 +75,7 @@ public class R
 	
 	public static class image
 	{
-	
+		public static final Image board = getImage("board.jpg");
 	}
 	
 	public static class icon
