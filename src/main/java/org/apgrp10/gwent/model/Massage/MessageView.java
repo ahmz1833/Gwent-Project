@@ -27,7 +27,14 @@ public class MessageView extends HBox {
 		addMessage();
 		addUserName();
 		addText();
-		messageBox.setMinHeight(50);
+		addBorder();
+
+	}
+
+	private void addBorder(){
+		ImageView image =new ImageView();
+		image.setFitHeight(80);
+		this.getChildren().add(image);
 	}
 	private Node getImage(){
 		//TODO set avatar image of message.getOwner in here instead of sample image
@@ -38,7 +45,7 @@ public class MessageView extends HBox {
 	}
 	private void addImage(){
 		StackPane stackPane = new StackPane();
-		stackPane.setAlignment(Pos.BOTTOM_CENTER);
+		stackPane.setAlignment(Pos.CENTER);
 		stackPane.getChildren().add(getImage());
 		this.getChildren().add(stackPane);
 		this.setSpacing(5);

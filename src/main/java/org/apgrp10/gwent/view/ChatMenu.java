@@ -1,5 +1,6 @@
 package org.apgrp10.gwent.view;
 
+import io.github.palexdev.materialfx.controls.MFXScrollPane;
 import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -19,7 +20,7 @@ public class ChatMenu extends Pane {
 	private final Text replyBox = new Text();
 	private final TextArea textInput = new TextArea();
 	private final VBox messagesBox = new VBox();
-	private ScrollPane messagesScroll;
+	private MFXScrollPane messagesScroll;
 	public final static int width = 250, height = 720;
 	private final ChatMenuController controller;
 	private final User user;
@@ -35,10 +36,10 @@ public class ChatMenu extends Pane {
 	private void addMessagesBox() {
 		messagesBox.setLayoutX(0);
 		messagesBox.setLayoutY(0);
-		messagesBox.setSpacing(20);
+		messagesBox.setSpacing(10);
 		messagesBox.setPrefWidth(width - 10);
 		messagesBox.setPrefHeight(height - 140);
-		messagesScroll = new ScrollPane();
+		messagesScroll = new MFXScrollPane();
 		messagesScroll.setContent(messagesBox);
 		messagesScroll.setOnMouseClicked(k -> {
 			messagesScroll.requestFocus();
@@ -64,6 +65,14 @@ public class ChatMenu extends Pane {
 
 	private void addTextInput() {
 		textInput.setPromptText("send message");
+		textInput.textProperty().addListener((observable, oldValue, newValue) -> {
+			if (newValue.length() > 35) {
+				textInput.setText(oldValue);
+			}
+			if(newValue.contains("\n")){
+				textInput.setText(oldValue);
+			}
+		});
 		VBox container = new VBox();
 		container.getChildren().add(setupText(replyBox, 240, Pos.CENTER, "replyText"));
 		HBox hBox = new HBox();
@@ -106,7 +115,6 @@ public class ChatMenu extends Pane {
 		textField.setWrapText(true);
 		textField.setOnKeyPressed(event -> {
 			if (event.getCode() == KeyCode.ENTER) {
-				event.consume();
 				if (event.isShiftDown())
 					sendMessage();
 			}
