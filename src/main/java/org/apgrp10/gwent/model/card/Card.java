@@ -16,5 +16,8 @@ public class Card {
 		this.row = row;
 		this.faction = faction;
 		this.ability = ability;
+		this.score = strength;
 	}
+	public int getScore() { return score; }
+	public void setScore(int score) { this.score = score; }
 }

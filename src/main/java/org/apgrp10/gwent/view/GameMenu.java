@@ -23,6 +23,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -50,6 +51,9 @@ public class GameMenu extends Application {
 				region.setMinSize(w(), h());
 				region.setMaxSize(w(), h());
 			}
+			public static RectPos bySize(double x, double y, double w, double h) {
+				return new RectPos(x, y, x+w, y+h);
+			}
 		}
 
 		public static final RectPos hand = new RectPos(0.3010, 0.7796, 0.7875, 0.8953);
@@ -62,6 +66,18 @@ public class GameMenu extends Application {
 			new RectPos(0.3697, 0.4074, 0.7906, 0.5111),
 			new RectPos(0.3697, 0.5296, 0.7906, 0.6342),
 			new RectPos(0.3697, 0.6555, 0.7906, 0.7611),
+		};
+		public static final RectPos rowScore[] = {
+			RectPos.bySize(0.2651, 0.0425, 0.0270, 0.0500),
+			RectPos.bySize(0.2651, 0.1638, 0.0270, 0.0500),
+			RectPos.bySize(0.2651, 0.2925, 0.0270, 0.0500),
+			RectPos.bySize(0.2651, 0.4296, 0.0270, 0.0500),
+			RectPos.bySize(0.2651, 0.5527, 0.0270, 0.0500),
+			RectPos.bySize(0.2651, 0.6805, 0.0270, 0.0500),
+		};
+		public static final RectPos totalScore[] = {
+			RectPos.bySize(0.2218, 0.2824, 0.0270, 0.0500),
+			RectPos.bySize(0.2218, 0.6546, 0.0270, 0.0500),
 		};
 	}
 
@@ -86,6 +102,15 @@ public class GameMenu extends Application {
 	}
 
 	private final Map<Card, CardView> cardMap = new HashMap<>();
+
+	private void addText(String str, Position.RectPos pos) {
+		// TODO: better way to adjust text position and size
+		Text text = new Text(str);
+		text.setFont(Font.font(24));
+		text.setLayoutX(pos.x() + pos.w() * (0.5 - 0.2 * str.length()));
+		text.setLayoutY(pos.y() + pos.h() * 0.75);
+		rootPane.getChildren().add(text);
+	}
 
 	public void redraw() {
 		for (Card card : controller.getPlayer(0).handCards) {
@@ -135,10 +160,27 @@ public class GameMenu extends Application {
 			}
 			rootPane.getChildren().add(hbox);
 
+			int score = controller.calcRowScore(actualRow);
+			addText(String.valueOf(score), Position.rowScore[i]);
+		}
+
+		addText(String.valueOf(controller.calcPlayerScore(1 - player)), Position.totalScore[0]);
+		addText(String.valueOf(controller.calcPlayerScore(player)), Position.totalScore[1]);
+
+		for (int i = 0; i < 6; i++) {
+			int actualRow = player == 1? 5 - i: i;
+
 			Position.RectPos pos = Position.row[i];
 			Rectangle rect = new Rectangle(pos.x(), pos.y(), pos.w(), pos.h());
 			rect.setOnMouseClicked(e -> notifyListeners(rowListeners, actualRow));
-			rect.setFill(Color.color(0, 0, 0, 0));
+			Color col;
+			if (player == controller.getTurn()
+					&& controller.getPlayer(player).handCards.contains(controller.getActiveCard())
+					&& controller.canPlace(player, actualRow, controller.getActiveCard()))
+				col = Color.color(0.5, 0.5, 0, 0.3);
+			else
+				col = Color.color(0, 0, 0, 0);
+			rect.setFill(col);
 			rootPane.getChildren().add(rect);
 		}
 

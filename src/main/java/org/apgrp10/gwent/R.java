@@ -10,6 +10,8 @@ import javafx.scene.text.Font;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class R
 {
@@ -32,9 +34,17 @@ public class R
 		}
 	}
 	
+	// this is used for loading cards each time a new card is made which is sloooow!
+	// so we cache the results
+	private static Map<String, Image> imageCache = new HashMap<>();
 	public static Image getImage(String name)
 	{
-		return new Image(getAsStream("image/" + name));
+		Image ans = imageCache.get(name);
+		if (ans == null) {
+			ans = new Image(getAsStream("image/" + name));
+			imageCache.put(name, ans);
+		}
+		return ans;
 	}
 	
 	public static AudioClip getAudio(String name)

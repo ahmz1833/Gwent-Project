@@ -48,6 +48,8 @@ public class MouseInputController implements InputController {
 		Card card = controller.getActiveCard();
 		if (card == null || !controller.getPlayer(player).handCards.contains(card))
 			return;
+		if (!controller.canPlace(player, row, card))
+			return;
 		controller.sendCommand(new Command.PlayCard(player, card, row));
 		controller.sendCommand(new Command.SetActiveCard(player, null));
 	}

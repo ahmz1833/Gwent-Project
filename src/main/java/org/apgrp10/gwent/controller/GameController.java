@@ -6,6 +6,7 @@ import java.util.List;
 import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.User;
+import org.apgrp10.gwent.model.card.Ability;
 import org.apgrp10.gwent.model.card.Card;
 import org.apgrp10.gwent.view.GameMenu;
 
@@ -86,9 +87,38 @@ public class GameController {
 
 	public void setActivePlayer(int player) { activePlayer = player; gameMenu.redraw(); }
 	public int getActivePlayer() { return activePlayer; }
+	public int getTurn() { return turn; }
 	public Card getActiveCard() { return activeCard; }
 
 	public List<Card> getRow(int i) { return row.get(i); }
 	
-	// public boolean canPlace(int row, Ca
+	public boolean canPlace(int player, int row, Card card) {
+		if (player == 1)
+			row = 5 - row;
+		if (card.ability == Ability.SPY || card.ability == Ability.HERO_SPY)
+			row = 5 - row;
+		if (row < 3)
+			return false;
+		return switch (card.row) {
+			case CLOSED -> row == 3;
+			case SIEGE -> row == 5;
+			case RANGED -> row == 4;
+			case AGILE -> row == 3 || row == 4;
+			default -> false;
+		};
+	}
+
+	public int calcRowScore(int i) {
+		int ans = 0;
+		for (Card card : row.get(i))
+			ans += card.getScore();
+		return ans;
+	}
+
+	public int calcPlayerScore(int player) {
+		int ans = 0;
+		for (int i = (player == 1? 0: 3); i < (player == 1? 3: 6); i++)
+			ans += calcRowScore(i);
+		return ans;
+	}
 }
