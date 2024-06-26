@@ -87,14 +87,6 @@ public class ChatMenu extends Pane {
 
 	private void addTextInput() {
 		textInput.setPromptText("send message");
-		textInput.textProperty().addListener((observable, oldValue, newValue) -> {
-			if (newValue.length() > 35) {
-				textInput.setText(oldValue);
-			}
-			if (newValue.contains("\n")) {
-				textInput.setText(oldValue);
-			}
-		});
 		VBox container = new VBox();
 		container.getChildren().add(setupText(replyBox, 240, Pos.CENTER, "replyText"));
 		HBox hBox = new HBox();

@@ -3,10 +3,7 @@ package org.apgrp10.gwent.model.Massage;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
@@ -37,7 +34,7 @@ public class MessageView extends HBox {
 		addUserName();
 		addReply();
 		addText();
-		addBorder();
+		//addBorder();
 		fillReactions();
 		updateReactions();
 		messageBox.getChildren().add(allReactions);
@@ -114,7 +111,7 @@ public class MessageView extends HBox {
 
 	private void addBorder() {
 		ImageView image = new ImageView();
-		image.setFitHeight(80);
+		image.setFitHeight(135);
 		this.getChildren().add(image);
 	}
 
@@ -135,7 +132,6 @@ public class MessageView extends HBox {
 	}
 
 	private void addMessage() {
-		Pane pane = new Pane();
 		messageBox = new VBox();
 		Rectangle background = new Rectangle();
 		if (!user.equals(message.getOwner()))
@@ -149,11 +145,12 @@ public class MessageView extends HBox {
 		stackPane.getChildren().add(background);
 		stackPane.getChildren().add(messageBox);
 		background.heightProperty().bind(stackPane.heightProperty());
-		pane.getChildren().add(stackPane);
 		messageBox.setStyle("-fx-padding: 5 5 5 5;");
-		this.getChildren().add(pane);
+		StackPane container = new StackPane();
+		container.setAlignment(Pos.BOTTOM_CENTER);
+		container.getChildren().add(stackPane);
+		this.getChildren().add(container);
 	}
-
 	private void addUserName() {
 		Text username;
 		if (user.equals(message.getOwner())) {
