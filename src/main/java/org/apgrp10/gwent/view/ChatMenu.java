@@ -88,9 +88,9 @@ public class ChatMenu extends Pane {
 	private void addTextInput() {
 		textInput.setPromptText("send message");
 		VBox container = new VBox();
-		container.getChildren().add(setupText(replyBox, 240, Pos.CENTER, "replyText"));
+		container.getChildren().add(setupText(replyBox));
 		HBox hBox = new HBox();
-		hBox.getChildren().add(setupTextFiled(textInput, 200, 60, Pos.CENTER, "input"));
+		hBox.getChildren().add(setupTextFiled(textInput));
 		hBox.getChildren().add(getImageToSend());
 		container.getChildren().add(hBox);
 		container.setLayoutX(5);
@@ -99,9 +99,9 @@ public class ChatMenu extends Pane {
 
 	}
 
-	private StackPane getStackPane(int width, int height, Pos pos) {
-		StackPane stackPane = getStackPane(width, pos);
-		stackPane.setPrefHeight(height);
+	private StackPane getStackPane() {
+		StackPane stackPane = getStackPane(40, Pos.BOTTOM_CENTER);
+		stackPane.setPrefHeight(60);
 		return stackPane;
 	}
 
@@ -113,33 +113,31 @@ public class ChatMenu extends Pane {
 		return stackPane;
 	}
 
-	private StackPane setupText(Text text, int width, Pos pos, String styleClass) {
-		StackPane container = getStackPane(width, pos);
+	private StackPane setupText(Text text) {
+		StackPane container = getStackPane(240, Pos.CENTER);
 		container.getChildren().add(text);
-		text.setWrappingWidth(width);
-		text.getStyleClass().add(styleClass);
+		text.setWrappingWidth(240);
+		text.getStyleClass().add("replyText");
 		return container;
 	}
 
-	private StackPane setupTextFiled(TextArea textField, int width, int height,
-									 Pos pos, String styleClass) {
-		StackPane container = getStackPane(width, pos);
+	private StackPane setupTextFiled(TextArea textField) {
+		StackPane container = getStackPane(200, Pos.CENTER);
 		container.getChildren().add(textField);
-		textField.setPrefWidth(width);
-		textField.setMaxHeight(height);
+		textField.setPrefWidth(200);
+		textField.setMaxHeight(60);
 		textField.setWrapText(true);
 		textField.setOnKeyPressed(event -> {
 			if (event.getCode() == KeyCode.ENTER) {
-				if (event.isShiftDown())
-					sendMessage();
+				if (event.isShiftDown()) sendMessage();
 			}
 		});
-		textField.getStyleClass().add(styleClass);
+		textField.getStyleClass().add("input");
 		return container;
 	}
 
 	private StackPane getImageToSend() {
-		StackPane container = getStackPane(40, 60, Pos.BOTTOM_CENTER);
+		StackPane container = getStackPane();
 		ImageView image = new ImageView(R.getImage("chat/send.png"));
 		image.setFitHeight(40);
 		image.setFitWidth(40);
@@ -153,12 +151,9 @@ public class ChatMenu extends Pane {
 	}
 
 	private void sendMessage() {
-		if (textInput.getText().trim().equals(""))
-			return;
-		//TODO
+		if (textInput.getText().trim().equals("")) return;
 		if (editID == 0) {
-			User user1 = Math.random() > 0.5 ? user : new User("user", "b", "c", "d");
-			controller.sendMessage(Message.newTextMessage(controller.getId(), textInput.getText(), user1, replyId));
+			controller.sendMessage(Message.newTextMessage(controller.getId(), textInput.getText(), user, replyId));
 		} else {
 			controller.sendMessage(Message.editMessage(editID, textInput.getText(), user));
 		}
@@ -177,8 +172,7 @@ public class ChatMenu extends Pane {
 			if (message.getType() == (byte) 0) {
 				MessageView messageView;
 				try {
-					messageView = new MessageView(message, user,
-							Objects.requireNonNull(getMessageById(message.getReplyOn())).getMessage());
+					messageView = new MessageView(message, user, Objects.requireNonNull(getMessageById(message.getReplyOn())).getMessage());
 				} catch (NullPointerException ignored) {
 					messageView = new MessageView(message, user, null);
 				}
@@ -189,8 +183,7 @@ public class ChatMenu extends Pane {
 				});
 				reactionList.put(message.getId(), -1);
 				messagesBox.getChildren().add(messageView);
-				if (messagesScroll.getVvalue() > 0.9)
-					scrollToEnd();
+				if (messagesScroll.getVvalue() > 0.9) scrollToEnd();
 			} else if (message.getType() == (byte) 1) {
 				MessageView target = getMessageById(message.getId());
 				Objects.requireNonNull(target).increaseReaction(message.getNumberOfReaction());
@@ -212,10 +205,8 @@ public class ChatMenu extends Pane {
 			} else if (message.getType() == (byte) 4) {
 				MessageView target = getMessageById(message.getId());
 				Objects.requireNonNull(target).changeText(message.getText());
-				if(replyId == message.getId())
-					changeReplyNumber(replyId);
-				if(editID == message.getId())
-					changeEditNumber(editID);
+				if (replyId == message.getId()) changeReplyNumber(replyId);
+				if (editID == message.getId()) changeEditNumber(editID);
 				for (Node node : messagesBox.getChildren()) {
 					((MessageView) node).editReply(message.getId(), message.getText());
 				}
@@ -243,8 +234,7 @@ public class ChatMenu extends Pane {
 	}
 
 	private void openNewWindow(double X, double Y, int id) {
-		new ReactionChat((int) (X - screenWidth + width), (int) Y, id, this,
-				user.equals(getUserById(id)), reactionList.get(id));
+		new ReactionChat((int) (X - screenWidth + width), (int) Y, id, this, user.equals(getUserById(id)), reactionList.get(id));
 	}
 
 	public void sendDeleteReaction(int id, int index) {
@@ -273,8 +263,7 @@ public class ChatMenu extends Pane {
 		try {
 			this.getChildren().remove(massageReplyViw);
 			this.getChildren().remove(deleteReply);
-			if (id == 0)
-				return;
+			if (id == 0) return;
 			textInput.requestFocus();
 			Message editOn = Objects.requireNonNull(getMessageById(id)).getMessage();
 			massageReplyViw = getMessageReplyView(editOn, user, isReply);
@@ -290,14 +279,12 @@ public class ChatMenu extends Pane {
 		}
 	}
 
-	public static StackPane getMessageReplyView(Message replyOn, User user, boolean isRyply) {
+	public static StackPane getMessageReplyView(Message replyOn, User user, boolean isReply) {
 		String reply;
-		if (isRyply)
+		if (isReply)
 			reply = "reply on " + (replyOn.getOwner().equals(user) ? "you" : replyOn.getOwner().getNickname()) + ": " + replyOn.getText();
-		else
-			reply = "edit: " + replyOn.getText();
-		if (reply.length() > 30)
-			reply = reply.substring(0, 30) + "...";
+		else reply = "edit: " + replyOn.getText();
+		if (reply.length() > 30) reply = reply.substring(0, 30) + "...";
 		Text text = new Text(reply);
 		text.setWrappingWidth(140);
 		text.setStyle("-fx-font-size: 10px");

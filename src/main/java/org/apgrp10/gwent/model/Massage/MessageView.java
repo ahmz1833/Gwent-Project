@@ -2,6 +2,7 @@ package org.apgrp10.gwent.model.Massage;
 
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -11,9 +12,13 @@ import org.apgrp10.gwent.R;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.view.ChatMenu;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 public class MessageView extends HBox {
 	private final Message message;
@@ -23,6 +28,9 @@ public class MessageView extends HBox {
 	private final HBox allReactions = new HBox();
 	private Message replyOn;
 	private final Text messageText = new Text();
+	private final StackPane mainPain = new StackPane(), backPane = new StackPane();
+	private final Text time = new Text();
+	boolean edited = false;
 
 	public MessageView(Message message, User user, Message replyOn) {
 		this.replyOn = replyOn;
@@ -34,10 +42,29 @@ public class MessageView extends HBox {
 		addUserName();
 		addReply();
 		addText();
-		//addBorder();
 		fillReactions();
 		updateReactions();
 		messageBox.getChildren().add(allReactions);
+		setupTime();
+	}
+
+	private void setupTime() {
+		try {
+			StackPane pane = new StackPane();
+			pane.setPrefWidth(140);
+			pane.setPrefHeight(20);
+			pane.setAlignment(Pos.BOTTOM_RIGHT);
+			time.setFill(Color.GRAY);
+			time.setStyle("-fx-font-size: 8px");
+			DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
+					.withLocale(Locale.UK).withZone(ZoneId.systemDefault());
+			String formattedInstant = formatter.format(message.getCreationTime());
+			time.setText(formattedInstant);
+			pane.getChildren().add(time);
+			messageBox.getChildren().add(pane);
+		} catch (Exception ignored) {
+
+		}
 	}
 
 	private void fillReactions() {
@@ -77,8 +104,7 @@ public class MessageView extends HBox {
 				if (replyOn.getId() == id) {
 					Text reply = ((Text) (((StackPane) messageBox.getChildren().get(1)).getChildren().get(1)));
 					String string = "reply on you: " + text;
-					if (string.length() > 30)
-						string = string.substring(0, 30) + "...";
+					if (string.length() > 30) string = string.substring(0, 30) + "...";
 					reply.setText(string);
 				}
 			} catch (Exception ignored) {
@@ -109,12 +135,6 @@ public class MessageView extends HBox {
 		return message;
 	}
 
-	private void addBorder() {
-		ImageView image = new ImageView();
-		image.setFitHeight(135);
-		this.getChildren().add(image);
-	}
-
 	private Node getImage() {
 		//TODO set avatar image of message.getOwner in here instead of sample image
 		ImageView imageView = new ImageView(R.getImage("icons/card_ability_frost.png"));
@@ -125,7 +145,7 @@ public class MessageView extends HBox {
 
 	private void addImage() {
 		StackPane stackPane = new StackPane();
-		stackPane.setAlignment(Pos.CENTER);
+		stackPane.setAlignment(Pos.BOTTOM_CENTER);
 		stackPane.getChildren().add(getImage());
 		this.getChildren().add(stackPane);
 		this.setSpacing(5);
@@ -134,31 +154,34 @@ public class MessageView extends HBox {
 	private void addMessage() {
 		messageBox = new VBox();
 		Rectangle background = new Rectangle();
-		if (!user.equals(message.getOwner()))
-			background.setFill(Color.rgb(238, 180, 114));
-		else
-			background.setFill(Color.rgb(141, 227, 118));
+		if (!user.equals(message.getOwner())) background.setFill(Color.rgb(238, 180, 114));
+		else background.setFill(Color.rgb(141, 227, 118));
 		background.setArcWidth(20);
 		background.setArcHeight(20);
 		background.setWidth(160);
-		StackPane stackPane = new StackPane();
-		stackPane.getChildren().add(background);
-		stackPane.getChildren().add(messageBox);
-		background.heightProperty().bind(stackPane.heightProperty());
+		backPane.getChildren().add(background);
+		backPane.getChildren().add(messageBox);
+		background.heightProperty().bind(backPane.heightProperty());
 		messageBox.setStyle("-fx-padding: 5 5 5 5;");
-		StackPane container = new StackPane();
-		container.setAlignment(Pos.BOTTOM_CENTER);
-		container.getChildren().add(stackPane);
-		this.getChildren().add(container);
+		mainPain.setAlignment(Pos.BOTTOM_CENTER);
+		mainPain.getChildren().add(backPane);
+		this.getChildren().add(mainPain);
+		DropShadow dropShadow = new DropShadow();
+		dropShadow.setColor(Color.BLUE);
+		dropShadow.setRadius(10);
+		dropShadow.setOffsetX(5);
+		dropShadow.setOffsetY(5);
+		background.setEffect(dropShadow);
 	}
+
 	private void addUserName() {
 		Text username;
 		if (user.equals(message.getOwner())) {
-			username = new Text("YOU:");
+			username = new Text("you:");
 			username.setFill(Color.RED);
 
 		} else {
-			username = new Text(message.getOwner().getUsername() + ":");
+			username = new Text(message.getOwner().getNickname() + ":");
 			username.setFill(Color.GREEN);
 		}
 		username.setWrappingWidth(150);
@@ -184,13 +207,22 @@ public class MessageView extends HBox {
 	public void decreaseReaction(int index) {
 		int count = Integer.parseInt(((Text) (reactions[index].getChildren().get(1))).getText());
 		count--;
-		if (count >= 0)
-			((Text) (reactions[index].getChildren().get(1))).setText(String.valueOf(count));
+		if (count >= 0) ((Text) (reactions[index].getChildren().get(1))).setText(String.valueOf(count));
 		updateReactions();
+		messageBox.requestLayout();
+		mainPain.requestLayout();
+		backPane.requestLayout();
 	}
 
 	public void changeText(String text) {
 		messageText.setText(text.trim() + "\n");
 		message.setText(text.trim());
+		messageBox.requestLayout();
+		backPane.requestLayout();
+		mainPain.requestLayout();
+		if (!edited) {
+			time.setText("\"EDITED\" " + time.getText());
+			edited = true;
+		}
 	}
 }

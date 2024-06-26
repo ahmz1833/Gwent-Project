@@ -16,7 +16,7 @@ public class Message {
 	//4 -> edit a message
 	private final User owner;
 	private final Instant creationTime;
-	private int replyOn;
+	private final int replyOn;
 
 	private Message(int id, String text, int numberOfReaction, byte type, User owner, Instant creationTime, int replyOn) {
 		this.replyOn = replyOn;
