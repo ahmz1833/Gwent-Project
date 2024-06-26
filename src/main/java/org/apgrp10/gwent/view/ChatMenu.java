@@ -17,6 +17,7 @@ import org.apgrp10.gwent.model.Massage.MessageView;
 import org.apgrp10.gwent.model.User;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 public class ChatMenu extends Pane {
 	private final Text replyBox = new Text();
@@ -171,13 +172,35 @@ public class ChatMenu extends Pane {
 			if (messagesScroll.getVvalue() > 0.9)
 				scrollToEnd();
 		}
+		else if (message.getType() == (byte) 1) {
+			try {
+				MessageView target = getMessageById(message.getId());
+				Objects.requireNonNull(target).increaseReaction(message.getNumberOfReaction());
+			} catch (NullPointerException ignored) {
+			}
+		}
+		else if (message.getType() == (byte) 3) {
+			try {
+				MessageView target = getMessageById(message.getId());
+				Objects.requireNonNull(target).decreaseReaction(message.getNumberOfReaction());
+			} catch (NullPointerException ignored) {
+			}
+		}
 
 	}
 
 	private User getUserById(int id) {
+		try {
+			return Objects.requireNonNull(getMessageById(id)).getMessage().getOwner();
+		} catch (NullPointerException e) {
+			return null;
+		}
+	}
+
+	private MessageView getMessageById(int id) {
 		for (Node node : messagesBox.getChildren()) {
 			if (id == ((MessageView) (node)).getMessage().getId()) {
-				return ((MessageView) node).getMessage().getOwner();
+				return ((MessageView) node);
 			}
 		}
 		return null;
@@ -187,11 +210,13 @@ public class ChatMenu extends Pane {
 		new ReactionChat((int) (X - screenWidth + width), (int) Y, id, this,
 				user.equals(getUserById(id)), reactionList.get(id));
 	}
-	public void sendDeleteReaction(int id, int index){
+
+	public void sendDeleteReaction(int id, int index) {
 		reactionList.put(id, -1);
 		controller.sendMessage(Message.deleteReactionMessage(id, index, user));
 	}
-	public void sendNewReaction(int id, int index){
+
+	public void sendNewReaction(int id, int index) {
 		reactionList.put(id, index);
 		controller.sendMessage(Message.newReactionMessage(id, index, user));
 	}
