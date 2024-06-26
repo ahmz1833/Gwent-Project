@@ -9,7 +9,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import org.apgrp10.gwent.R;
 import org.apgrp10.gwent.controller.ChatMenuController;
 import org.apgrp10.gwent.model.Massage.Message;
@@ -29,13 +32,18 @@ public class ChatMenu extends Pane {
 	private final ChatMenuController controller;
 	private final HashMap<Integer, Integer> reactionList = new HashMap<>();
 	//this is a map from each message id to reaction number
+	private int replyId = 0;
+	private int editID = 0;
 	private final User user;
+	private StackPane massageReplyViw = new StackPane();
+	private final ImageView deleteReply = new ImageView(R.getImage("chat/clear.png"));
 
 	public ChatMenu(double screenWidth, ChatMenuController controller, User user) {
 		this.user = user;
 		this.screenWidth = (int) screenWidth;
 		this.controller = controller;
 		setSize(screenWidth);
+		setupDeleteReply();
 		addTextInput();
 		addMessagesBox();
 	}
@@ -68,6 +76,13 @@ public class ChatMenu extends Pane {
 		this.setPrefHeight(height);
 		this.getStyleClass().add("chatPane");
 		this.setOnMouseClicked(k -> this.requestFocus());
+	}
+
+	private void setupDeleteReply() {
+		deleteReply.setFitWidth(20);
+		deleteReply.setFitHeight(20);
+		deleteReply.setLayoutX(150);
+		deleteReply.setLayoutY(height - 60 - 32 - 15);
 	}
 
 	private void addTextInput() {
@@ -149,8 +164,13 @@ public class ChatMenu extends Pane {
 		if (textInput.getText().trim().equals(""))
 			return;
 		//TODO
-		User user1 = Math.random() > 0.5 ? user : new User("user", "b", "c", "d");
-		controller.sendMessage(Message.newTextMessage(controller.getId(), textInput.getText(), user1));
+		if (editID == 0) {
+			User user1 = Math.random() > 0.5 ? user : new User("user", "b", "c", "d");
+			controller.sendMessage(Message.newTextMessage(controller.getId(), textInput.getText(), user1, replyId));
+		} else {
+			controller.sendMessage(Message.editMessage(editID, textInput.getText(), user));
+		}
+		changeReplyNumber(0);
 		textInput.setText("");
 		scrollToEnd();
 	}
@@ -161,30 +181,54 @@ public class ChatMenu extends Pane {
 	}
 
 	public void addMessage(Message message) {
-		if (message.getType() == (byte) 0) {
-			MessageView messageView = new MessageView(message, user);
-			messageView.setOnMouseClicked(k -> {
-				if (k.getButton() == MouseButton.SECONDARY)
-					openNewWindow(k.getSceneX(), k.getSceneY(), messageView.getMessage().getId());
-			});
-			reactionList.put(message.getId(), -1);
-			messagesBox.getChildren().add(messageView);
-			if (messagesScroll.getVvalue() > 0.9)
-				scrollToEnd();
-		}
-		else if (message.getType() == (byte) 1) {
-			try {
+		try {
+			if (message.getType() == (byte) 0) {
+				MessageView messageView;
+				try {
+					messageView = new MessageView(message, user,
+							Objects.requireNonNull(getMessageById(message.getReplyOn())).getMessage());
+				} catch (NullPointerException ignored) {
+					messageView = new MessageView(message, user, null);
+				}
+				MessageView finalMessageView = messageView;
+				messageView.setOnMouseClicked(k -> {
+					if (k.getButton() == MouseButton.SECONDARY)
+						openNewWindow(k.getSceneX(), k.getSceneY(), finalMessageView.getMessage().getId());
+				});
+				reactionList.put(message.getId(), -1);
+				messagesBox.getChildren().add(messageView);
+				if (messagesScroll.getVvalue() > 0.9)
+					scrollToEnd();
+			} else if (message.getType() == (byte) 1) {
 				MessageView target = getMessageById(message.getId());
 				Objects.requireNonNull(target).increaseReaction(message.getNumberOfReaction());
-			} catch (NullPointerException ignored) {
-			}
-		}
-		else if (message.getType() == (byte) 3) {
-			try {
+			} else if (message.getType() == (byte) 2) {
+				MessageView messageView = getMessageById(message.getId());
+				messagesBox.getChildren().remove(messageView);
+				if (replyId == message.getId()) {
+					changeReplyNumber(0);
+				}
+				if (editID == message.getId()) {
+					changeEditNumber(0);
+				}
+				for (Node node : messagesBox.getChildren()) {
+					((MessageView) node).deleteReply(message.getId());
+				}
+			} else if (message.getType() == (byte) 3) {
 				MessageView target = getMessageById(message.getId());
 				Objects.requireNonNull(target).decreaseReaction(message.getNumberOfReaction());
-			} catch (NullPointerException ignored) {
+			} else if (message.getType() == (byte) 4) {
+				MessageView target = getMessageById(message.getId());
+				Objects.requireNonNull(target).changeText(message.getText());
+				if(replyId == message.getId())
+					changeReplyNumber(replyId);
+				if(editID == message.getId())
+					changeEditNumber(editID);
+				for (Node node : messagesBox.getChildren()) {
+					((MessageView) node).editReply(message.getId(), message.getText());
+				}
 			}
+		} catch (Exception ignored) {
 		}
 
 	}
@@ -219,5 +263,67 @@ public class ChatMenu extends Pane {
 	public void sendNewReaction(int id, int index) {
 		reactionList.put(id, index);
 		controller.sendMessage(Message.newReactionMessage(id, index, user));
+	}
+
+	public void changeReplyNumber(int id) {
+		this.replyId = id;
+		this.editID = 0;
+		addInfoTopInput(true, id);
+	}
+
+	public void changeEditNumber(int id) {
+		this.editID = id;
+		this.replyId = 0;
+		addInfoTopInput(false, id);
+	}
+
+	private void addInfoTopInput(boolean isReply, int id) {
+		try {
+			this.getChildren().remove(massageReplyViw);
+			this.getChildren().remove(deleteReply);
+			if (id == 0)
+				return;
+			textInput.requestFocus();
+			Message editOn = Objects.requireNonNull(getMessageById(id)).getMessage();
+			massageReplyViw = getMessageReplyView(editOn, user, isReply);
+			massageReplyViw.setLayoutX(5);
+			massageReplyViw.setLayoutY(height - 60 - 32 - 25);
+			this.getChildren().add(massageReplyViw);
+			deleteReply.setOnMouseClicked(isReply ? k -> changeReplyNumber(0) : k -> changeEditNumber(0));
+			this.getChildren().add(deleteReply);
+			if (!isReply) {
+				textInput.setText(Objects.requireNonNull(getMessageById(id)).getMessage().getText());
+			}
+		} catch (Exception ignored) {
+		}
+	}
+
+	public static StackPane getMessageReplyView(Message replyOn, User user, boolean isRyply) {
+		String reply;
+		if (isRyply)
+			reply = "reply on " + (replyOn.getOwner().equals(user) ? "you" : replyOn.getOwner().getNickname()) + ": " + replyOn.getText();
+		else
+			reply = "edit: " + replyOn.getText();
+		if (reply.length() > 30)
+			reply = reply.substring(0, 30) + "...";
+		Text text = new Text(reply);
+		text.setWrappingWidth(140);
+		text.setStyle("-fx-font-size: 10px");
+		text.setTextAlignment(TextAlignment.CENTER);
+		text.setFill(Color.BLACK);
+		Rectangle background = new Rectangle(140, 35, Color.LIGHTBLUE);
+		background.setArcWidth(10);
+		background.setArcHeight(10);
+		StackPane container = new StackPane();
+		container.setAlignment(Pos.CENTER);
+		container.getChildren().add(background);
+		container.getChildren().add(text);
+		container.setMaxWidth(140);
+		container.setMaxHeight(38);
+		return container;
+	}
+
+	public void deleteMessage(int id) {
+		controller.sendMessage(Message.deleteTextMessage(id, user));
 	}
 }

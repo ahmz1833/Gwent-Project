@@ -24,14 +24,18 @@ public class MessageView extends HBox {
 	private VBox messageBox;
 	private final HBox[] reactions = new HBox[4];
 	private final HBox allReactions = new HBox();
+	private Message replyOn;
+	private final Text messageText = new Text();
 
-	public MessageView(Message message, User user) {
+	public MessageView(Message message, User user, Message replyOn) {
+		this.replyOn = replyOn;
 		this.message = message;
 		this.user = user;
 		this.setPrefWidth(ChatMenu.width - 30);
 		addImage();
 		addMessage();
 		addUserName();
+		addReply();
 		addText();
 		addBorder();
 		fillReactions();
@@ -40,7 +44,7 @@ public class MessageView extends HBox {
 	}
 
 	private void fillReactions() {
-		for(int i = 0; i < 4; i++){
+		for (int i = 0; i < 4; i++) {
 			reactions[i] = new HBox();
 			ImageView image = new ImageView(R.getImage("chat/emoji" + i + ".png"));
 			image.setFitHeight(14);
@@ -54,7 +58,38 @@ public class MessageView extends HBox {
 			reactions[i].setMaxWidth(40);
 		}
 	}
-	private void updateReactions(){
+
+	private void addReply() {
+		if (replyOn != null) {
+			messageBox.getChildren().add(ChatMenu.getMessageReplyView(replyOn, user, true));
+		}
+	}
+
+	public void deleteReply(int id) {
+		if (replyOn != null) {
+			if (replyOn.getId() == id) {
+				messageBox.getChildren().remove(1);
+				replyOn = null;
+			}
+		}
+	}
+
+	public void editReply(int id, String text) {
+		if (replyOn != null) {
+			try {
+				if (replyOn.getId() == id) {
+					Text reply = ((Text) (((StackPane) messageBox.getChildren().get(1)).getChildren().get(1)));
+					String string = "reply on you: " + text;
+					if (string.length() > 30)
+						string = string.substring(0, 30) + "...";
+					reply.setText(string);
+				}
+			} catch (Exception ignored) {
+			}
+		}
+	}
+
+	private void updateReactions() {
 		allReactions.getChildren().clear();
 		allReactions.setSpacing(7);
 		List<HBox> sorted = new java.util.ArrayList<>(Arrays.stream(reactions).sorted((o1, o2) -> {
@@ -68,42 +103,45 @@ public class MessageView extends HBox {
 		}).toList());
 		Collections.reverse(sorted);
 		for (HBox reaction : sorted) {
-			if(Integer.parseInt(((Text) (reaction.getChildren().get(1))).getText()) > 0)
+			if (Integer.parseInt(((Text) (reaction.getChildren().get(1))).getText()) > 0)
 				allReactions.getChildren().add(reaction);
 		}
 	}
 
-	public Message getMessage(){
+	public Message getMessage() {
 		return message;
 	}
 
-	private void addBorder(){
-		ImageView image =new ImageView();
+	private void addBorder() {
+		ImageView image = new ImageView();
 		image.setFitHeight(80);
 		this.getChildren().add(image);
 	}
-	private Node getImage(){
+
+	private Node getImage() {
 		//TODO set avatar image of message.getOwner in here instead of sample image
 		ImageView imageView = new ImageView(R.getImage("icons/card_ability_frost.png"));
 		imageView.setFitWidth(30);
 		imageView.setFitHeight(30);
 		return imageView;
 	}
-	private void addImage(){
+
+	private void addImage() {
 		StackPane stackPane = new StackPane();
 		stackPane.setAlignment(Pos.CENTER);
 		stackPane.getChildren().add(getImage());
 		this.getChildren().add(stackPane);
 		this.setSpacing(5);
 	}
-	private void addMessage(){
+
+	private void addMessage() {
 		Pane pane = new Pane();
 		messageBox = new VBox();
 		Rectangle background = new Rectangle();
-		if(!user.equals(message.getOwner()))
-			background.setFill(Color.rgb(238,180, 114));
+		if (!user.equals(message.getOwner()))
+			background.setFill(Color.rgb(238, 180, 114));
 		else
-			background.setFill(Color.rgb(141,227, 118));
+			background.setFill(Color.rgb(141, 227, 118));
 		background.setArcWidth(20);
 		background.setArcHeight(20);
 		background.setWidth(160);
@@ -115,14 +153,14 @@ public class MessageView extends HBox {
 		messageBox.setStyle("-fx-padding: 5 5 5 5;");
 		this.getChildren().add(pane);
 	}
-	private void addUserName(){
+
+	private void addUserName() {
 		Text username;
-		if(user.equals(message.getOwner())) {
+		if (user.equals(message.getOwner())) {
 			username = new Text("YOU:");
 			username.setFill(Color.RED);
 
-		}
-		else {
+		} else {
 			username = new Text(message.getOwner().getUsername() + ":");
 			username.setFill(Color.GREEN);
 		}
@@ -130,24 +168,32 @@ public class MessageView extends HBox {
 		username.setStyle("-fx-font-size: 14px");
 		messageBox.getChildren().add(username);
 	}
-	private void addText(){
-		Text text = new Text(message.getText() + "\n");
-		text.setWrappingWidth(150);
-		text.setFill(Color.BLACK);
-		text.setStyle("-fx-font-size: 12px");
-		messageBox.getChildren().add(text);
+
+	private void addText() {
+		messageText.setText(message.getText().trim() + "\n");
+		messageText.setWrappingWidth(150);
+		messageText.setFill(Color.BLACK);
+		messageText.setStyle("-fx-font-size: 12px");
+		messageBox.getChildren().add(messageText);
 	}
-	public void increaseReaction(int index){
+
+	public void increaseReaction(int index) {
 		int count = Integer.parseInt(((Text) (reactions[index].getChildren().get(1))).getText());
 		count++;
 		((Text) (reactions[index].getChildren().get(1))).setText(String.valueOf(count));
 		updateReactions();
 	}
-	public void decreaseReaction(int index){
+
+	public void decreaseReaction(int index) {
 		int count = Integer.parseInt(((Text) (reactions[index].getChildren().get(1))).getText());
 		count--;
-		if(count >= 0)
+		if (count >= 0)
 			((Text) (reactions[index].getChildren().get(1))).setText(String.valueOf(count));
 		updateReactions();
+	}
+
+	public void changeText(String text) {
+		messageText.setText(text.trim() + "\n");
+		message.setText(text.trim());
 	}
 }

@@ -20,6 +20,35 @@ public class ReactionChat extends Pane {
 		setSize();
 		setupMenu(X, Y);
 		setReactions();
+		setReplyButton();
+		if (isForOwner) {
+			setEditButton();
+			setDeleteButton();
+		}
+	}
+
+	private void setDeleteButton() {
+		ImageView imageView = new ImageView(R.getImage("chat/delete.png"));
+		imageView.setFitWidth(80);
+		imageView.setFitHeight(20);
+		imageView.setOnMouseClicked(k->chatMenu.deleteMessage(id));
+		menu.getChildren().add(imageView);
+	}
+
+	private void setEditButton() {
+		ImageView imageView = new ImageView(R.getImage("chat/edit.png"));
+		imageView.setFitWidth(80);
+		imageView.setFitHeight(20);
+		imageView.setOnMouseClicked(k -> chatMenu.changeEditNumber(id));
+		menu.getChildren().add(imageView);
+	}
+
+	private void setReplyButton() {
+		ImageView imageView = new ImageView(R.getImage("chat/reply.png"));
+		imageView.setFitWidth(80);
+		imageView.setFitHeight(20);
+		imageView.setOnMouseClicked(k -> chatMenu.changeReplyNumber(id));
+		menu.getChildren().add(imageView);
 	}
 
 	private void setSize() {
@@ -32,8 +61,9 @@ public class ReactionChat extends Pane {
 	}
 
 	private void setupMenu(int X, int Y) {
-		menu.setPrefHeight(isForOwner ? 160 : 80);
-		menu.setPrefWidth(160);
+		menu.setPrefHeight(isForOwner ? 86 : 42);
+		menu.setPrefWidth(80);
+		menu.setSpacing(2);
 		menu.setStyle("-fx-background-color: #727c7b");
 		menu.setLayoutX(X + menu.getPrefWidth() > ChatMenu.width ? ChatMenu.width - menu.getPrefWidth() - 5 : X);
 		menu.setLayoutY(Y + menu.getPrefHeight() > ChatMenu.height ? ChatMenu.height - menu.getPrefHeight() - 5 : Y);
@@ -42,20 +72,20 @@ public class ReactionChat extends Pane {
 
 	private void setReactions() {
 		HBox hBox = new HBox();
-		hBox.setPrefHeight(40);
-		hBox.setPrefWidth(100);
+		hBox.setPrefHeight(20);
+		hBox.setPrefWidth(50);
 		for (int i = 0; i < 4; i++) {
 			ImageView image = new ImageView(R.getImage("chat/emoji" + i + ".png"));
-			image.setFitHeight(40);
-			image.setFitWidth(40);
+			image.setFitHeight(20);
+			image.setFitWidth(20);
 			StackPane stackPane = new StackPane(image);
-			stackPane.setMaxWidth(40);
-			stackPane.setMaxHeight(40);
+			stackPane.setMaxWidth(20);
+			stackPane.setMaxHeight(20);
 			stackPane.setBackground(Background.fill(i == reaction ? Color.LIGHTBLUE : Color.WHITE));
 			int finalI = i;
 			image.setOnMouseClicked(k -> {
 				removeReaction(reaction);
-				if(finalI != reaction)
+				if (finalI != reaction)
 					createReaction(finalI);
 				endShow();
 			});

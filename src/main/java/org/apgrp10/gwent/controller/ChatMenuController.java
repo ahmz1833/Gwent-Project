@@ -28,12 +28,13 @@ public class ChatMenuController {
 	private int lastId = 0;
 	public int getId(){
 		//TODO server should send a uniq id (synchronized) instead of calculating locally
+		//index should be ( > 0) && ( != 0)
 		return ++lastId;
 	}
 	public void sendMessage(Message message){
 		getMessage(message);
 		//TODO should send this message to server instead of calling getMessage
-		//TODO server should call all users "getMessage(message)"
+		//server should call all users "getMessage(message)"
 	}
 	public void getMessage(Message message){
 		chatMenu.addMessage(message);
