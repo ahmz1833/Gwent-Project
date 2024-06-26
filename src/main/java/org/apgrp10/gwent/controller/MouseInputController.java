@@ -40,7 +40,7 @@ public class MouseInputController implements InputController {
 	}
 
 	private void bgAction(Object obj) {
-		controller.sendCommand(new Command.SetActiveCard(player, null));
+		controller.sendCommand(new Command.SetActiveCard(player, -1));
 	}
 
 	private void rowAction(Object obj) {
@@ -50,20 +50,20 @@ public class MouseInputController implements InputController {
 			return;
 		if (!controller.canPlace(player, row, card))
 			return;
-		controller.sendCommand(new Command.PlayCard(player, card, row));
-		controller.sendCommand(new Command.SetActiveCard(player, null));
+		controller.sendCommand(new Command.PlayCard(player, card.getGameId(), row));
+		controller.sendCommand(new Command.SetActiveCard(player, -1));
 	}
 
 	private void cardAction(Object obj) {
 		Card card = (Card)obj;
 		if (controller.getActiveCard() != card) {
-			controller.sendCommand(new Command.SetActiveCard(player, card));
+			controller.sendCommand(new Command.SetActiveCard(player, card.getGameId()));
 			return;
 		}
 
 		PlayerData data = controller.getPlayer(player);
 		if (data.deck.getDeck().contains(card))
-			controller.sendCommand(new Command.MoveToHand(player, card));
+			controller.sendCommand(new Command.MoveToHand(player, card.getGameId()));
 	}
 
 	private void buttonAction(Object obj) {
@@ -71,7 +71,7 @@ public class MouseInputController implements InputController {
 		if (str.equals("hello")) {
 			List<Card> deck = controller.getPlayer(player).deck.getDeck();
 			if (!deck.isEmpty())
-				controller.sendCommand(new Command.MoveToHand(player, deck.get(0)));
+				controller.sendCommand(new Command.MoveToHand(player, deck.get(0).getGameId()));
 		}
 	}
 }

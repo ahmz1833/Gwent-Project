@@ -1,7 +1,10 @@
 package org.apgrp10.gwent.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.Deck;
@@ -33,6 +36,7 @@ public class GameController {
 	private int turn = 0;
 	private int activePlayer = 0;
 	private Card activeCard;
+	private Map<Integer, Card> cardIdMap = new HashMap<>();
 
 	public GameController(Stage stage, InputController c0, InputController c1, Deck d0, Deck d1) {
 		playerData[0] = new PlayerData(d0, c0);
@@ -44,6 +48,19 @@ public class GameController {
 		for (int i = 0; i < 6; i++)
 			row.add(new ArrayList<>());
 
+		int id = 0;
+		Random rand = new Random(System.currentTimeMillis());
+		for (PlayerData p : playerData) {
+			Deck d = p.deck;
+
+			// order is important so gameIds are deterministic
+			id = d.assignGameIds(id);
+			d.shuffle(rand);
+
+			for (Card card : d.getDeck())
+				cardIdMap.put(card.getGameId(), card);
+		}
+
 		// must be last so GameController initialization is complete
 		gameMenu = new GameMenu(this, stage);
 
@@ -53,20 +70,30 @@ public class GameController {
 		c0.beginTurn();
 	}
 
+	public Card cardById(int cardId) {
+		return cardIdMap.get(cardId);
+	}
+
 	public GameMenu getGameMenu() { return gameMenu; }
 
 	public PlayerData getPlayer(int player) { return playerData[player]; }
 
 	private void playCard(Command.PlayCard cmd) {
-		gameMenu.animationToRow(cmd.card(), cmd.row());
-		playerData[cmd.player()].handCards.remove(cmd.card());
-		row.get(cmd.row()).add(cmd.card());
+		Card card = cardById(cmd.cardId());
+		gameMenu.animationToRow(card, cmd.row());
+		playerData[cmd.player()].handCards.remove(card);
+		row.get(cmd.row()).add(card);
 	}
 
 	private void moveToHand(Command.MoveToHand cmd) {
-		gameMenu.animationToHand(cmd.card());
-		playerData[cmd.player()].deck.removeCard(cmd.card());
-		playerData[cmd.player()].handCards.add(cmd.card());
+		Card card = cardById(cmd.cardId());
+		gameMenu.animationToHand(card);
+		playerData[cmd.player()].deck.removeCard(card);
+		playerData[cmd.player()].handCards.add(card);
+	}
+
+	private void setActiveCard(Command.SetActiveCard cmd) {
+		activeCard = cardById(cmd.cardId());
 	}
 
 	public static interface CommandListener { public void call(Command cmd); }
@@ -76,7 +103,7 @@ public class GameController {
 	public void sendCommand(Command cmd) {
 		if (cmd instanceof Command.PlayCard) playCard((Command.PlayCard)cmd);
 		if (cmd instanceof Command.MoveToHand) moveToHand((Command.MoveToHand)cmd);
-		if (cmd instanceof Command.SetActiveCard) activeCard = ((Command.SetActiveCard)cmd).card();
+		if (cmd instanceof Command.SetActiveCard) setActiveCard((Command.SetActiveCard)cmd);
 		System.out.println(cmd);
 
 		for (CommandListener cb : commandListeners)

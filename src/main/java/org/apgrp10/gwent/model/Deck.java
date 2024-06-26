@@ -9,7 +9,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Random;
 
 public class Deck {
 	private final User user;
@@ -144,6 +146,17 @@ public class Deck {
 			deckToSave.addCard(card.pathAddress);
 		}
 		return deckToSave.getJson();
+	}
+
+	public int assignGameIds(int startingId) {
+		int id = startingId;
+		for (Card card : deck)
+			card.setGameId(id++);
+		return id;
+	}
+
+	public void shuffle(Random random) {
+		Collections.shuffle(deck, random);
 	}
 }
 
