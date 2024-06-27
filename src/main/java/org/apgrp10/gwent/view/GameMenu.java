@@ -17,6 +17,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -67,6 +68,14 @@ public class GameMenu extends Application {
 			new RectPos(0.3697, 0.5296, 0.7906, 0.6342),
 			new RectPos(0.3697, 0.6555, 0.7906, 0.7611),
 		};
+		public static final RectPos special[] = {
+			new RectPos(0.2963, 0.0212, 0.3640, 0.1250),
+			new RectPos(0.2963, 0.1388, 0.3640, 0.2444),
+			new RectPos(0.2963, 0.2666, 0.3640, 0.3722),
+			new RectPos(0.2963, 0.4074, 0.3640, 0.5111),
+			new RectPos(0.2963, 0.5296, 0.3640, 0.6342),
+			new RectPos(0.2963, 0.6555, 0.3640, 0.7611),
+		};
 		public static final RectPos rowScore[] = {
 			RectPos.bySize(0.2651, 0.0425, 0.0270, 0.0500),
 			RectPos.bySize(0.2651, 0.1638, 0.0270, 0.0500),
@@ -79,6 +88,7 @@ public class GameMenu extends Application {
 			RectPos.bySize(0.2218, 0.2824, 0.0270, 0.0500),
 			RectPos.bySize(0.2218, 0.6546, 0.0270, 0.0500),
 		};
+		public static final RectPos pass = new RectPos(0.1625, 0.8203, 0.2244, 0.8490);
 	}
 
 
@@ -112,6 +122,46 @@ public class GameMenu extends Application {
 		rootPane.getChildren().add(text);
 	}
 
+	private void addButton(String str, String cmd, Position.RectPos pos) {
+		Button btn = new Button(str);
+		btn.setOnAction(e -> notifyListeners(buttonListeners, cmd));
+		if (pos != null) // TODO: this if should be removed in the future
+			pos.setBounds(btn);
+		rootPane.getChildren().add(btn);
+	}
+
+	private void addSelectionRect(Position.RectPos pos, int code) {
+		Rectangle rect = new Rectangle(pos.x(), pos.y(), pos.w(), pos.h());
+		rect.setOnMouseClicked(e -> notifyListeners(rowListeners, code));
+		rect.setFill(Color.color(0.5, 0.5, 0, 0.3));
+		rootPane.getChildren().add(rect);
+	}
+
+	private CardView activeCardView;
+
+	private void addCardHBox(Position.RectPos pos, List<Card> cards) {
+		HBox hbox = new HBox();
+		hbox.setAlignment(Pos.CENTER);
+		pos.setBounds(hbox);
+		for (Card card : cards) {
+			CardView cardView = CardView.newHand(card.pathAddress, Position.card.w(), Position.card.h());
+			hbox.getChildren().add(cardView);
+			cardView.setOnMouseClicked(e -> notifyListeners(cardListeners, card));
+			if (controller.getActiveCard() == card)
+				activeCardView = cardView;
+			cardMap.put(card, cardView);
+		}
+		rootPane.getChildren().add(hbox);
+	}
+
+	private void addBackground(Image background) {
+		ImageView view = new ImageView(background);
+		view.setFitWidth(WIDTH);
+		view.setFitHeight(HEIGHT);
+		view.setOnMouseClicked(e -> notifyListeners(bgListeners, null));
+		rootPane.getChildren().add(view);
+	}
+
 	public void redraw() {
 		for (Card card : controller.getPlayer(0).handCards) {
 			CardView view = cardMap.get(card);
@@ -120,46 +170,21 @@ public class GameMenu extends Application {
 		}
 		rootPane.getChildren().clear();
 
-		ImageView background = new ImageView(R.image.board);
-		background.setFitWidth(WIDTH);
-		background.setFitHeight(HEIGHT);
-		background.setOnMouseClicked(e -> notifyListeners(bgListeners, null));
-		rootPane.getChildren().add(background);
+		addBackground(R.image.board);
 
-		Button hello = new Button("Hello");
-		hello.setOnAction(e -> notifyListeners(buttonListeners, "hello"));
-		rootPane.getChildren().add(hello);
+		addButton("Hello", "hello", null);
+		addButton("Pass", "pass", Position.pass);
 
 		final int player = controller.getActivePlayer();
 
-		CardView activeCardView = null;
+		activeCardView = null;
 
-		HBox hand = new HBox();
-		hand.setAlignment(Pos.CENTER);
-		Position.hand.setBounds(hand);
-		for (Card card : controller.getPlayer(player).handCards) {
-			CardView cardView = CardView.newHand(card.pathAddress, Position.card.w(), Position.card.h());
-			hand.getChildren().add(cardView);
-			cardView.setOnMouseClicked(e -> notifyListeners(cardListeners, card));
-			if (controller.getActiveCard() == card)
-				activeCardView = cardView;
-			cardMap.put(card, cardView);
-		}
-		rootPane.getChildren().add(hand);
+		addCardHBox(Position.hand, controller.getPlayer(player).handCards);
 
 		for (int i = 0; i < 6; i++) {
 			int actualRow = player == 1? 5 - i: i;
-
-			HBox hbox = new HBox();
-			hbox.setAlignment(Pos.CENTER);
-			Position.row[i].setBounds(hbox);
-			for (Card card : controller.getRow(actualRow)) {
-				CardView cardView = CardView.newHand(card.pathAddress, Position.card.w(), Position.card.h());
-				hbox.getChildren().add(cardView);
-				cardMap.put(card, cardView);
-			}
-			rootPane.getChildren().add(hbox);
-
+			addCardHBox(Position.row[i], controller.getRow(actualRow));
+			addCardHBox(Position.special[i], controller.getSpecial(actualRow));
 			int score = controller.calcRowScore(actualRow);
 			addText(String.valueOf(score), Position.rowScore[i]);
 		}
@@ -170,33 +195,23 @@ public class GameMenu extends Application {
 		for (int i = 0; i < 6; i++) {
 			int actualRow = player == 1? 5 - i: i;
 
-			Position.RectPos pos = Position.row[i];
-			Rectangle rect = new Rectangle(pos.x(), pos.y(), pos.w(), pos.h());
-			rect.setOnMouseClicked(e -> notifyListeners(rowListeners, actualRow));
-			Color col;
 			if (player == controller.getTurn()
-					&& controller.getPlayer(player).handCards.contains(controller.getActiveCard())
-					&& controller.canPlace(player, actualRow, controller.getActiveCard()))
-				col = Color.color(0.5, 0.5, 0, 0.3);
-			else
-				col = Color.color(0, 0, 0, 0);
-			rect.setFill(col);
-			rootPane.getChildren().add(rect);
+					&& controller.getPlayer(player).handCards.contains(controller.getActiveCard())) {
+				if (controller.canPlace(player, actualRow, controller.getActiveCard()))
+					addSelectionRect(Position.row[i], actualRow);
+				if (controller.canPlaceSpecial(player, actualRow, controller.getActiveCard()))
+					addSelectionRect(Position.special[i], actualRow + 6);
+			}
 		}
 
-		if (animationNode != null) {
-			CardView view = cardMap.get(animationCard);
-			cardMap.remove(animationCard);
-			for (Node node : rootPane.getChildren()) {
-				if (node instanceof Pane) {
-					List<Node> list = ((Pane)node).getChildren();
-					for (int i = 0; i < list.size(); i++)
-						if (list.get(i) == view)
-							list.remove(i);
-				}
-			}
-			rootPane.getChildren().add(animationNode);
+		for (Card card : animationCards) {
+			CardView view = cardMap.get(card);
+			cardMap.remove(card);
+			for (Node node : rootPane.getChildren())
+				if (node instanceof Pane)
+					((Pane)node).getChildren().remove(view);
 		}
+		rootPane.getChildren().addAll(animationNodes);
 
 		// TODO: use some highlight or something
 		if (activeCardView != null) {
@@ -233,15 +248,18 @@ public class GameMenu extends Application {
 			cb.call(obj);
 	}
 
-	private Node animationNode;
-	private Card animationCard;
+	private final List<Node> animationNodes = new ArrayList<>();
+	private final List<Card> animationCards = new ArrayList<>();
 
 	private class MoveAnimation extends Transition {
 		private final Node node;
+		private final Card card;
 		private final Point2D from, to;
 
-		public MoveAnimation(Node node, Point2D from, Point2D to) {
-			animationNode = node;
+		public MoveAnimation(Card card, Node node, Point2D from, Point2D to) {
+			animationNodes.add(node);
+			animationCards.add(card);
+			this.card = card;
 			this.node = node;
 			this.from = from;
 			this.to = to;
@@ -253,10 +271,9 @@ public class GameMenu extends Application {
 
 		private void finish() {
 			stop();
-			if (animationNode == node) {
-				animationNode = null;
-				redraw();
-			}
+			animationNodes.remove(node);
+			animationCards.remove(card);
+			redraw();
 		}
 
 		@Override
@@ -268,31 +285,36 @@ public class GameMenu extends Application {
 	}
 
 	private void animationTo(Card card, Point2D from, Point2D to) {
-		animationCard = card;
-
 		CardView animationView = CardView.newHand(card.pathAddress, Position.card.w(), Position.card.h());
-		new MoveAnimation(animationView, from, to);
+		new MoveAnimation(card, animationView, from, to);
+	}
+
+	private void animationToHBox(Card card, Position.RectPos pos, List<Card> others) {
+		Point2D to = new Point2D(
+			pos.centerX() + (Position.card.w() * (others.size() - 1)) / 2,
+			pos.y()
+		);
+		CardView cardView = cardMap.get(card);
+		Point2D from = cardView == null? new Point2D(0, 0): cardView.localToScene(0, 0);
+		animationTo(card, from, to);
 	}
 
 	public void animationToRow(Card card, int actualRow) {
 		int row = controller.getActivePlayer() == 1? 5 - actualRow: actualRow;
-		Point2D to = new Point2D(
-			Position.row[row].centerX() + (Position.card.w() * (controller.getRow(actualRow).size() - 1)) / 2,
-			Position.row[row].y()
-		);
-
-		CardView cardView = cardMap.get(card);
-		Point2D from = cardView == null? new Point2D(0, 0): cardView.localToScene(0, 0);
-
-		animationTo(card, from, to);
+		animationToHBox(card, Position.row[row], controller.getRow(actualRow));
+	}
+	public void animationToSpecial(Card card, int actualRow) {
+		int row = controller.getActivePlayer() == 1? 5 - actualRow: actualRow;
+		animationToHBox(card, Position.special[row], controller.getSpecial(actualRow));
+	}
+	public void animationToHand(Card card) {
+		animationToHBox(card, Position.hand, controller.getPlayer(controller.getActivePlayer()).handCards);
 	}
 
-	public void animationToHand(Card card) {
-		List<Card> hand = controller.getPlayer(controller.getActivePlayer()).handCards;
-		Point2D to = new Point2D(
-			Position.hand.centerX() + (Position.card.w() * (hand.size() - 1)) / 2,
-			Position.hand.y()
-		);
-		animationTo(card, new Point2D(0, 0), to);
+	public void animationSwap(Card c1, Card c2) {
+		Point2D p1 = cardMap.containsKey(c1)? cardMap.get(c1).localToScene(0, 0): new Point2D(0, 0);
+		Point2D p2 = cardMap.containsKey(c2)? cardMap.get(c2).localToScene(0, 0): new Point2D(0, 0);
+		animationTo(c1, p1, p2);
+		animationTo(c2, p2, p1);
 	}
 }

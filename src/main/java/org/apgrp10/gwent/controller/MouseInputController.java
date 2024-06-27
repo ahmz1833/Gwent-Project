@@ -41,29 +41,38 @@ public class MouseInputController implements InputController {
 
 	private void bgAction(Object obj) {
 		controller.sendCommand(new Command.SetActiveCard(player, -1));
+		controller.sendCommand(new Command.Sync());
 	}
 
 	private void rowAction(Object obj) {
+		// when we get here the card can actually be placed there so no need to check
 		int row = (int)obj;
 		Card card = controller.getActiveCard();
-		if (card == null || !controller.getPlayer(player).handCards.contains(card))
-			return;
-		if (!controller.canPlace(player, row, card))
-			return;
 		controller.sendCommand(new Command.PlayCard(player, card.getGameId(), row));
 		controller.sendCommand(new Command.SetActiveCard(player, -1));
+		controller.sendCommand(new Command.Sync());
 	}
 
 	private void cardAction(Object obj) {
 		Card card = (Card)obj;
-		if (controller.getActiveCard() != card) {
-			controller.sendCommand(new Command.SetActiveCard(player, card.getGameId()));
+		PlayerData data = controller.getPlayer(player);
+		Card active = controller.getActiveCard();
+
+		if (active != null && controller.canSwap(player, active, card)) {
+			controller.sendCommand(new Command.SwapCard(player, active.getGameId(), card.getGameId()));
+			controller.sendCommand(new Command.SetActiveCard(player, -1));
+			controller.sendCommand(new Command.Sync());
 			return;
 		}
 
-		PlayerData data = controller.getPlayer(player);
-		if (data.deck.getDeck().contains(card))
-			controller.sendCommand(new Command.MoveToHand(player, card.getGameId()));
+		if (!data.handCards.contains(card))
+			return;
+
+		if (active != card) {
+			controller.sendCommand(new Command.SetActiveCard(player, card.getGameId()));
+			controller.sendCommand(new Command.Sync());
+			return;
+		}
 	}
 
 	private void buttonAction(Object obj) {
@@ -73,5 +82,8 @@ public class MouseInputController implements InputController {
 			if (!deck.isEmpty())
 				controller.sendCommand(new Command.MoveToHand(player, deck.get(0).getGameId()));
 		}
+		if (str.equals("pass"))
+			controller.sendCommand(new Command.Pass(player));
+		controller.sendCommand(new Command.Sync());
 	}
 }

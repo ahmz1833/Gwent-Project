@@ -21,12 +21,14 @@ public class CardView extends StackPane {
 	private double width;
 	private double height;
 	private String rootPath;
+	private boolean simpleEquals;
 
-	private CardView(String address, boolean large, boolean withCount, int strength, double width, double height) {
+	private CardView(String address, boolean large, boolean withCount, boolean simpleEquals, int strength, double width, double height) {
 		this.address = address;
 		this.width = width;
 		this.height = height;
 		this.strength = strength;
+		this.simpleEquals = simpleEquals;
 		rootPath = large? "lg/": "sm/";
 		fillInfoByName();
 		addBackground();
@@ -36,13 +38,13 @@ public class CardView extends StackPane {
 	}
 
 	public static CardView newSelection(String address, double width, double height) {
-		return new CardView(address, true, true, -1, width, height);
+		return new CardView(address, true, true, false, -1, width, height);
 	}
 	public static CardView newHand(String address, double width, double height) {
-		return new CardView(address, false, false, -1, width, height);
+		return new CardView(address, false, false, true, -1, width, height);
 	}
 	public static CardView newInfo(String address, double width, double height) {
-		return new CardView(address, true, false, -1, width, height);
+		return new CardView(address, true, false, true, -1, width, height);
 	}
 
 	private void fillInfoByName() {
@@ -99,6 +101,8 @@ public class CardView extends StackPane {
 
 	@Override
 	public boolean equals(Object obj) {
+		if (simpleEquals)
+			return this == obj;
 		if (!(obj instanceof CardView))
 			return false;
 		return ((CardView) obj).address.equals(this.address);
