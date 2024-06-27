@@ -9,6 +9,7 @@ import java.util.Random;
 import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.User;
+import org.apgrp10.gwent.model.WaitExec;
 import org.apgrp10.gwent.model.card.Ability;
 import org.apgrp10.gwent.model.card.Card;
 import org.apgrp10.gwent.model.card.Faction;
@@ -39,6 +40,11 @@ public class GameController {
 	private int activePlayer = 0;
 	private Card activeCard;
 	private Map<Integer, Card> cardIdMap = new HashMap<>();
+	private boolean lastPassed;
+
+	public boolean isPasses() {
+		return lastPassed;
+	}
 
 	private static interface StrengthModifier {
 		public int modify(Card card, int currentStrength);
@@ -110,6 +116,9 @@ public class GameController {
 			}
 			default -> {}
 		};
+
+		if (!lastPassed)
+			nextTurn(1000);
 	}
 
 	private void swapCard(Command.SwapCard cmd) {
@@ -140,31 +149,60 @@ public class GameController {
 		moveCardToHand(cmd.player(), card);
 	}
 
+	private void nextTurn(long delay) {
+		playerData[turn].controller.endTurn();
+		new WaitExec(delay, () -> {
+			turn = 1 - turn;
+			playerData[turn].controller.beginTurn();
+		});
+	}
+
 	private void setActiveCard(Command.SetActiveCard cmd) {
 		activeCard = cardById(cmd.cardId());
 	}
 
+	private void nextRound() {
+		// TODO
+		System.exit(0);
+	}
+
 	private void pass(Command.Pass cmd) {
-		playerData[turn].controller.endTurn();
-		turn = 1 - turn;
-		playerData[turn].controller.beginTurn();
+		if (!lastPassed) {
+			lastPassed = true;
+			nextTurn(0);
+		} else {
+			nextRound();
+		}
 	}
 
 	public static interface CommandListener { public void call(Command cmd); }
 	private final List<CommandListener> commandListeners = new ArrayList<>();
 	public void addCommandListener(CommandListener cb) { commandListeners.add(cb); }
 
+	private List<Command> commandQueue = new ArrayList<>();
+
+	private void syncCommands() {
+		for (Command cmd : commandQueue) {
+			if (cmd instanceof Command.PlayCard) playCard((Command.PlayCard)cmd);
+			if (cmd instanceof Command.SwapCard) swapCard((Command.SwapCard)cmd);
+			if (cmd instanceof Command.MoveToHand) moveToHand((Command.MoveToHand)cmd);
+			if (cmd instanceof Command.SetActiveCard) setActiveCard((Command.SetActiveCard)cmd);
+			if (cmd instanceof Command.Pass) pass((Command.Pass)cmd);
+		}
+		commandQueue.clear();
+		gameMenu.redraw();
+	}
+
 	public void sendCommand(Command cmd) {
-		if (cmd instanceof Command.PlayCard) playCard((Command.PlayCard)cmd);
-		if (cmd instanceof Command.SwapCard) swapCard((Command.SwapCard)cmd);
-		if (cmd instanceof Command.MoveToHand) moveToHand((Command.MoveToHand)cmd);
-		if (cmd instanceof Command.SetActiveCard) setActiveCard((Command.SetActiveCard)cmd);
-		if (cmd instanceof Command.Pass) pass((Command.Pass)cmd);
-		if (cmd instanceof Command.Sync) gameMenu.redraw();
 		System.out.println(cmd);
 
 		for (CommandListener cb : commandListeners)
 			cb.call(cmd);
+
+		if (cmd instanceof Command.Sync)
+			syncCommands();
+		else
+			commandQueue.add(cmd);
 	}
 
 	public void setActivePlayer(int player) { activePlayer = player; gameMenu.redraw(); }

@@ -244,7 +244,10 @@ public class GameMenu extends Application {
 	}
 
 	private void notifyListeners(List<Callback> callbacks, Object obj) {
-		for (Callback cb : callbacks)
+		// we make a deep copy because someone might remove their listeners while we are iterating
+		List<Callback> copy = new ArrayList<>();
+		copy.addAll(callbacks);
+		for (Callback cb : copy)
 			cb.call(obj);
 	}
 

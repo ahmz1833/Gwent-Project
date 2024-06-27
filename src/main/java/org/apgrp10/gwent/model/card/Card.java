@@ -25,11 +25,4 @@ public class Card {
 	public void resetScore() { this.score = strength; }
 	public int getGameId() { return gameId; }
 	public void setGameId(int id) { gameId = id; }
-
-	public Card decoyVersion(int gameId) {
-		Card ans = new Card(name, "decoy", strength, row, faction, ability, isHero);
-		ans.score = this.score;
-		ans.gameId = gameId;
-		return ans;
-	}
 }
