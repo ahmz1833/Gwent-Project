@@ -9,7 +9,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Random;
 
 public class Deck {
 	private final User user;
@@ -40,7 +42,7 @@ public class Deck {
 	public void createDeckFromPane(GridPane gridPane) {
 		for (int i = 0; i < gridPane.getChildren().size(); i++) {
 			try {
-				CardViewPregame cardView = (CardViewPregame) gridPane.getChildren().get(i);
+				CardView cardView = (CardView) gridPane.getChildren().get(i);
 				for (CardInfo cardInfo : CardInfo.allCards)
 					if (cardInfo.pathAddress.equals(cardView.getAddress())) {
 						for (int j = 0; j < cardView.getCount(); j++)
@@ -57,6 +59,10 @@ public class Deck {
 
 	public void addCard(Card card) {
 		deck.add(card);
+	}
+
+	public void removeCard(Card card) {
+		deck.remove(card);
 	}
 
 	public void addCard(CardInfo cardInfo) {
@@ -140,6 +146,17 @@ public class Deck {
 			deckToSave.addCard(card.pathAddress);
 		}
 		return deckToSave.getJson();
+	}
+
+	public int assignGameIds(int startingId) {
+		int id = startingId;
+		for (Card card : deck)
+			card.setGameId(id++);
+		return id;
+	}
+
+	public void shuffle(Random random) {
+		Collections.shuffle(deck, random);
 	}
 }
 

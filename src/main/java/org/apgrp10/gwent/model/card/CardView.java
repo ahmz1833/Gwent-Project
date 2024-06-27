@@ -2,15 +2,15 @@ package org.apgrp10.gwent.model.card;
 
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import org.apgrp10.gwent.*;
-import org.apgrp10.gwent.view.PreGameMenu;
 
 
-public class CardViewPregame extends Pane {
+public class CardView extends StackPane {
 	private String address;
 	private String name;
 	private Text countLabel;
@@ -18,13 +18,33 @@ public class CardViewPregame extends Pane {
 	private int strength;
 	private Faction faction;
 	private boolean hero;
+	private double width;
+	private double height;
+	private String rootPath;
+	private boolean simpleEquals;
 
-	public CardViewPregame(String address) {
+	private CardView(String address, boolean large, boolean withCount, boolean simpleEquals, int strength, double width, double height) {
 		this.address = address;
+		this.width = width;
+		this.height = height;
+		this.strength = strength;
+		this.simpleEquals = simpleEquals;
+		rootPath = large? "lg/": "sm/";
 		fillInfoByName();
 		addBackground();
 		addSymbol();
-		addCountLabel();
+		if (withCount)
+			addCountLabel();
+	}
+
+	public static CardView newSelection(String address, double width, double height) {
+		return new CardView(address, true, true, false, -1, width, height);
+	}
+	public static CardView newHand(String address, double width, double height) {
+		return new CardView(address, false, false, true, -1, width, height);
+	}
+	public static CardView newInfo(String address, double width, double height) {
+		return new CardView(address, true, false, true, -1, width, height);
 	}
 
 	private void fillInfoByName() {
@@ -32,16 +52,16 @@ public class CardViewPregame extends Pane {
 			if (cardInfo.pathAddress.equals(address)) {
 				faction = cardInfo.faction;
 				name = cardInfo.name;
-				strength = cardInfo.strength;
+				if (strength == -1)
+					strength = cardInfo.strength;
 				hero = cardInfo.isHero;
 			}
 		}
 	}
 
 	private void addBackground() {
-		Rectangle image = new Rectangle(PreGameMenu.screenWidth / (double) PreGameMenu.cardWidth - 5,
-				PreGameMenu.screenHeight / (double) PreGameMenu.cardHeight);
-		image.setFill(new ImagePattern(R.getImage("lg/" + address + ".jpg")));
+		Rectangle image = new Rectangle(width, height);
+		image.setFill(new ImagePattern(R.getImage(rootPath + address + ".jpg")));
 		image.setX(0);
 		image.setY(0);
 		this.getChildren().add(image);
@@ -49,8 +69,8 @@ public class CardViewPregame extends Pane {
 
 	private void addSymbol() {
 		ImageView image = new ImageView(R.getImage("icons/preview_count.png"));
-		image.setX(PreGameMenu.screenWidth / (double) PreGameMenu.cardWidth - 52);
-		image.setY(PreGameMenu.screenHeight / (double) PreGameMenu.cardHeight - 30);
+		image.setX(width - 52);
+		image.setY(height - 30);
 		this.getChildren().add(image);
 	}
 
@@ -58,8 +78,8 @@ public class CardViewPregame extends Pane {
 		countLabel = new Text(String.valueOf(count));
 		countLabel.setStyle("-fx-font-size: 22px;");
 		countLabel.setFill(Color.BLUE);
-		countLabel.setX(PreGameMenu.screenWidth / (double) PreGameMenu.cardWidth - 20);
-		countLabel.setY(PreGameMenu.screenHeight / (double) PreGameMenu.cardHeight - 10);
+		countLabel.setX(width - 20);
+		countLabel.setY(height - 10);
 		this.getChildren().add(countLabel);
 	}
 
@@ -81,9 +101,11 @@ public class CardViewPregame extends Pane {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (!(obj instanceof CardViewPregame))
+		if (simpleEquals)
+			return this == obj;
+		if (!(obj instanceof CardView))
 			return false;
-		return ((CardViewPregame) obj).address.equals(this.address);
+		return ((CardView) obj).address.equals(this.address);
 	}
 
 	public String getName() {

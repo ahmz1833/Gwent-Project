@@ -24,8 +24,9 @@ public class PreGameController  {
 	public void setDeck2(Deck deck){
 		deck2 = deck;
 		System.gc();
-		//TODO deck 1 and 2 is ready. call game menu with stage and deck 1 and deck2
-		// but know i have to exit the app
-		System.exit(0);
+		// TODO: deck 1 and 2 is ready. call game menu with stage and deck 1 and deck2
+		// for now we just set a random game up;
+		InputController c1 = new MouseInputController(), c2 = new MouseInputController();
+		new GameController(stage, c1, c2, deck1, deck2, System.currentTimeMillis());
 	}
 }

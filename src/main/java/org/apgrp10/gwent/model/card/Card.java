@@ -7,7 +7,7 @@ public class Card {
 	public final Row row;
 	public final Faction faction;
 	public final Ability ability;
-	private int score;
+	private int gameId; // used in commands do they can be easily serialized
 	public Card(String name, String pathAddress, int strength, Row row, Faction faction, Ability ability, boolean isHero) {
 		this.name = name;
 		this.pathAddress = pathAddress;
@@ -17,4 +17,6 @@ public class Card {
 		this.faction = faction;
 		this.ability = ability;
 	}
+	public int getGameId() { return gameId; }
+	public void setGameId(int id) { gameId = id; }
 }
