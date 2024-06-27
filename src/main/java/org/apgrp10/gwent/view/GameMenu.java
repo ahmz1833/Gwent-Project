@@ -89,6 +89,7 @@ public class GameMenu extends Application {
 			RectPos.bySize(0.2218, 0.6546, 0.0270, 0.0500),
 		};
 		public static final RectPos pass = new RectPos(0.1625, 0.8203, 0.2244, 0.8490);
+		public static final RectPos screen = new RectPos(0, 0, 1, 1);
 	}
 
 
@@ -137,6 +138,13 @@ public class GameMenu extends Application {
 		rootPane.getChildren().add(rect);
 	}
 
+	private void setInfoOnClicked(Node node, List<Card> list, boolean send) {
+		node.setOnMouseClicked(e -> pickCard(list, obj -> {
+			if (send && obj != null)
+				notifyListeners(cardListeners, obj);
+		}, true));
+	}
+
 	private CardView activeCardView;
 
 	private void addCardHBox(Position.RectPos pos, List<Card> cards) {
@@ -146,7 +154,10 @@ public class GameMenu extends Application {
 		for (Card card : cards) {
 			CardView cardView = CardView.newHand(card.pathAddress, Position.card.w(), Position.card.h());
 			hbox.getChildren().add(cardView);
-			cardView.setOnMouseClicked(e -> notifyListeners(cardListeners, card));
+			cardView.setOnMouseClicked(e -> {
+				e.consume();
+				notifyListeners(cardListeners, card);
+			});
 			if (controller.getActiveCard() == card)
 				activeCardView = cardView;
 			cardMap.put(card, cardView);
@@ -162,7 +173,48 @@ public class GameMenu extends Application {
 		rootPane.getChildren().add(view);
 	}
 
+	private void addPicker() {
+		Rectangle rect = new Rectangle(0, 0, WIDTH, HEIGHT);
+		rect.setFill(Color.color(0, 0, 0, 0.5));
+		if (pickNullPossible) {
+			rect.setOnMouseClicked(e -> {
+				pickList = null;
+				pickFn.call(null);
+				redraw();
+			});
+		}
+
+		// TODO: make this more beautiful
+		HBox hbox = new HBox();
+		hbox.setAlignment(Pos.CENTER);
+		for (Card card : pickList) {
+			CardView view = CardView.newInfo(card.pathAddress, Position.info.w(), Position.info.h());
+			final int idx = hbox.getChildren().size();
+			view.setOnMouseClicked(e -> {
+				if (pickIdx != idx) {
+					pickIdx = idx;
+				} else {
+					pickList = null;
+					pickFn.call(card);
+				}
+				redraw();
+			});
+			hbox.getChildren().add(view);
+		}
+
+		Text text = new Text("Selected");
+		text.setFill(Color.GOLD);
+		text.setFont(new Font(32));
+		((CardView)hbox.getChildren().get(pickIdx)).getChildren().add(text);
+
+		rootPane.getChildren().add(rect);
+		rootPane.getChildren().add(hbox);
+	}
+
 	public void redraw() {
+		final int player = controller.getActivePlayer();
+		activeCardView = null;
+
 		for (Card card : controller.getPlayer(0).handCards) {
 			CardView view = cardMap.get(card);
 			if (view == null)
@@ -175,15 +227,12 @@ public class GameMenu extends Application {
 		addButton("Hello", "hello", null);
 		addButton("Pass", "pass", Position.pass);
 
-		final int player = controller.getActivePlayer();
-
-		activeCardView = null;
-
 		addCardHBox(Position.hand, controller.getPlayer(player).handCards);
 
 		for (int i = 0; i < 6; i++) {
 			int actualRow = player == 1? 5 - i: i;
 			addCardHBox(Position.row[i], controller.getRow(actualRow));
+			setInfoOnClicked(rootPane.getChildren().get(rootPane.getChildren().size() - 1), controller.getRow(actualRow), false);
 			addCardHBox(Position.special[i], controller.getSpecial(actualRow));
 			int score = controller.calcRowScore(actualRow);
 			addText(String.valueOf(score), Position.rowScore[i]);
@@ -223,6 +272,29 @@ public class GameMenu extends Application {
 			Position.info.setBounds(info);
 			rootPane.getChildren().add(info);
 		}
+
+		if (pickList != null)
+			addPicker();
+	}
+
+	private List<Card> pickList;
+	private int pickIdx;
+	private Callback pickFn;
+	private boolean pickNullPossible;
+
+	public void pickCard(List<Card> list, Callback cb, boolean nullPossible) {
+		assert pickList == null;
+
+		if (list.isEmpty()) {
+			cb.call(null);
+			return;
+		}
+
+		pickList = list;
+		pickIdx = 0;
+		pickFn = cb;
+		pickNullPossible = nullPossible;
+		redraw();
 	}
 
 	public static interface Callback { public void call(Object object); }

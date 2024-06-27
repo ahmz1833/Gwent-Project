@@ -27,6 +27,6 @@ public class PreGameController  {
 		// TODO: deck 1 and 2 is ready. call game menu with stage and deck 1 and deck2
 		// for now we just set a random game up;
 		InputController c1 = new MouseInputController(), c2 = new MouseInputController();
-		new GameController(stage, c1, c2, deck1, deck2);
+		new GameController(stage, c1, c2, deck1, deck2, System.currentTimeMillis());
 	}
 }

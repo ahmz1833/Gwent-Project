@@ -24,6 +24,7 @@ public class GameController {
 		public final InputController controller;
 		public final List<Card> handCards = new ArrayList<>();
 		public final List<Card> usedCards = new ArrayList<>();
+		public boolean vetoDone;
 
 		public PlayerData(Deck deck, InputController controller) {
 			this.user = deck.getUser();
@@ -46,13 +47,7 @@ public class GameController {
 		return lastPassed;
 	}
 
-	private static interface StrengthModifier {
-		public int modify(Card card, int currentStrength);
-	}
-
-	private List<List<StrengthModifier>> rowModifiers = new ArrayList<>();
-
-	public GameController(Stage stage, InputController c0, InputController c1, Deck d0, Deck d1) {
+	public GameController(Stage stage, InputController c0, InputController c1, Deck d0, Deck d1, long seed) {
 		playerData[0] = new PlayerData(d0, c0);
 		playerData[1] = new PlayerData(d1, c1);
 		this.stage = stage;
@@ -61,20 +56,23 @@ public class GameController {
 		for (int i = 0; i < 6; i++) {
 			row.add(new ArrayList<>());
 			special.add(new ArrayList<>());
-			rowModifiers.add(new ArrayList<>());
 		}
 
 		int id = 0;
-		Random rand = new Random(System.currentTimeMillis());
+		Random rand = new Random(seed);
 		for (PlayerData p : playerData) {
 			Deck d = p.deck;
 
-			// order is important so gameIds are deterministic
 			id = d.assignGameIds(id);
 			d.shuffle(rand);
 
 			for (Card card : d.getDeck())
 				cardIdMap.put(card.getGameId(), card);
+		}
+
+		for (PlayerData p : playerData) for (int i = 0; i < 10; i++) {
+			p.handCards.add(p.deck.getDeck().get(0));
+			p.deck.getDeck().remove(0);
 		}
 
 		// must be last so GameController initialization is complete
@@ -83,7 +81,8 @@ public class GameController {
 		// must be after instanciating GameMenu
 		c0.start(this, 0);
 		c1.start(this, 1);
-		c0.beginTurn();
+		c0.veto();
+		c1.veto();
 	}
 
 	public Card cardById(int cardId) {
@@ -94,28 +93,46 @@ public class GameController {
 
 	public PlayerData getPlayer(int player) { return playerData[player]; }
 
-	private void playCard(Command.PlayCard cmd) {
-		Card card = cardById(cmd.cardId());
-		int idx = cmd.row();
+	private void placeCard(Card card, int idx) {
+		playerData[0].handCards.remove(card);
+		playerData[1].handCards.remove(card);
+		playerData[0].deck.removeCard(card);
+		playerData[1].deck.removeCard(card);
 		if (idx < 6) { // normal row
 			gameMenu.animationToRow(card, idx);
-			playerData[cmd.player()].handCards.remove(card);
 			row.get(idx).add(card);
 		} else if (idx < 12) { // special place
 			idx -= 6;
 			gameMenu.animationToSpecial(card, idx);
-			playerData[cmd.player()].handCards.remove(card);
 			special.get(idx).add(card);
 		}
+	}
 
-		switch (card.ability) {
-			case SPY -> {
-				List<Card> deck = playerData[cmd.player()].deck.getDeck();
-				if (!deck.isEmpty()) moveCardToHand(cmd.player(), deck.get(0));
-				if (!deck.isEmpty()) moveCardToHand(cmd.player(), deck.get(0));
+	private void playCard(Command.PlayCard cmd) {
+		Card card = cardById(cmd.cardId());
+		placeCard(card, cmd.row());
+
+		if (card.ability == Ability.SPY) {
+			List<Card> deck = playerData[cmd.player()].deck.getDeck();
+			if (!deck.isEmpty()) moveCardToHand(cmd.player(), deck.get(0));
+			if (!deck.isEmpty()) moveCardToHand(cmd.player(), deck.get(0));
+		}
+
+		if (card.ability == Ability.MUSTER) {
+			List<Card> toBeMustered = new ArrayList<>();
+			for (Card c : playerData[cmd.player()].deck.getDeck())
+				if (card.name.equals(c.name))
+					toBeMustered.add(c);
+			for (Card c : toBeMustered)
+				placeCard(c, cmd.row());
+		}
+
+		if (card.ability == Ability.MEDIC) {
+			if (!playerData[cmd.player()].usedCards.isEmpty()) {
+				playerData[cmd.player()].controller.reviveCard();
+				return;
 			}
-			default -> {}
-		};
+		}
 
 		if (!lastPassed)
 			nextTurn(1000);
@@ -135,6 +152,9 @@ public class GameController {
 				break;
 			}
 		}
+
+		if (!lastPassed)
+			nextTurn(1000);
 	}
 
 	private void moveCardToHand(int player, Card card) {
@@ -175,14 +195,34 @@ public class GameController {
 		}
 	}
 
+	private void vetoCard(Command.VetoCard cmd) {
+		Card card = cardById(cmd.cardId());
+		PlayerData data = playerData[cmd.player()];
+
+		if (card == null) {
+			data.vetoDone = true;
+			if (playerData[0].vetoDone && playerData[1].vetoDone)
+				playerData[0].controller.beginTurn();
+			return;
+		}
+
+		List<Card> deck = data.deck.getDeck();
+		List<Card> hand = data.handCards;
+		hand.set(hand.indexOf(card), deck.get(0));
+		deck.remove(0);
+		deck.add(card);
+	}
+
 	public static interface CommandListener { public void call(Command cmd); }
 	private final List<CommandListener> commandListeners = new ArrayList<>();
 	public void addCommandListener(CommandListener cb) { commandListeners.add(cb); }
+	public void removeCommandListener(CommandListener cb) { commandListeners.remove(cb); }
 
 	private List<Command> commandQueue = new ArrayList<>();
 
 	private void syncCommands() {
 		for (Command cmd : commandQueue) {
+			if (cmd instanceof Command.VetoCard) vetoCard((Command.VetoCard)cmd);
 			if (cmd instanceof Command.PlayCard) playCard((Command.PlayCard)cmd);
 			if (cmd instanceof Command.SwapCard) swapCard((Command.SwapCard)cmd);
 			if (cmd instanceof Command.MoveToHand) moveToHand((Command.MoveToHand)cmd);
@@ -196,13 +236,16 @@ public class GameController {
 	public void sendCommand(Command cmd) {
 		System.out.println(cmd);
 
-		for (CommandListener cb : commandListeners)
-			cb.call(cmd);
-
 		if (cmd instanceof Command.Sync)
 			syncCommands();
 		else
 			commandQueue.add(cmd);
+
+		// we make a deep copy because some listeners might remove themselves while we are iterating
+		List<CommandListener> copy = new ArrayList<>();
+		copy.addAll(commandListeners);
+		for (CommandListener cb : copy)
+			cb.call(cmd);
 	}
 
 	public void setActivePlayer(int player) { activePlayer = player; gameMenu.redraw(); }
@@ -244,10 +287,39 @@ public class GameController {
 		return playerData[player].handCards.contains(c1) && inRow;
 	}
 
+	public int calcCardScore(Card card) {
+		if (card.isHero)
+			return card.strength;
+
+		int row = -1;
+		for (int i = 0; i < 6; i++)
+			if (this.row.get(i).contains(card))
+				row = i;
+		if (row == -1)
+			return card.strength;
+
+		int score = card.strength;
+		
+		if (card.ability == Ability.BOND) {
+			int x = 0;
+			for (Card c : this.row.get(row)) {
+				if (card.name.equals(c.name))
+					x += score;
+			}
+			score = x;
+		}
+
+		if (this.row.get(row).stream().anyMatch(c -> c.ability == Ability.HORN)
+				|| special.get(row).stream().anyMatch(c -> c.ability == Ability.HORN))
+			score *= 2;
+
+		return score;
+	}
+
 	public int calcRowScore(int i) {
 		int ans = 0;
 		for (Card card : row.get(i))
-			ans += card.getScore();
+			ans += calcCardScore(card);
 		return ans;
 	}
 

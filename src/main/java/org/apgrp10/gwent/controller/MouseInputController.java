@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apgrp10.gwent.controller.GameController.PlayerData;
 import org.apgrp10.gwent.model.Command;
+import org.apgrp10.gwent.model.WaitExec;
 import org.apgrp10.gwent.model.card.Card;
 
 public class MouseInputController implements InputController {
@@ -37,6 +38,69 @@ public class MouseInputController implements InputController {
 
 	@Override
 	public void endGame() {
+	}
+
+	@Override
+	public void veto() {
+		// TODO: this function is pure shit! maybe do something better?
+		// also note that if it's a local game player 2 needs to wait for player 1 before choosing
+
+		org.apgrp10.gwent.view.GameMenu.Callback pickCb = obj1 -> {
+			Card card1 = (Card)obj1;
+			if (card1 == null) {
+				new WaitExec(1000, () -> {
+					controller.sendCommand(new Command.VetoCard(player, -1));
+					controller.sendCommand(new Command.Sync());
+				});
+				return;
+			}
+			controller.sendCommand(new Command.VetoCard(player, card1.getGameId()));
+			controller.sendCommand(new Command.Sync());
+
+			controller.getGameMenu().pickCard(controller.getPlayer(player).handCards, obj2 -> {
+				Card card2 = (Card)obj2;
+				if (card2 != null) {
+					controller.sendCommand(new Command.VetoCard(player, card2.getGameId()));
+					controller.sendCommand(new Command.Sync());
+				}
+
+				new WaitExec(1000, () -> {
+					controller.sendCommand(new Command.VetoCard(player, -1));
+					controller.sendCommand(new Command.Sync());
+				});
+			}, true);
+		};
+
+		if (player == 1 && controller.getPlayer(0).controller instanceof MouseInputController) {
+			controller.addCommandListener(new GameController.CommandListener() {
+				@Override
+				public void call(Command cmd) {
+					if (!controller.getPlayer(0).vetoDone)
+						return;
+					controller.removeCommandListener(this);
+					controller.setActivePlayer(player);
+					controller.getGameMenu().pickCard(controller.getPlayer(player).handCards, pickCb, true);
+				}
+			});
+			return;
+		}
+
+		controller.setActivePlayer(player);
+		controller.getGameMenu().pickCard(controller.getPlayer(player).handCards, pickCb, true);
+	}
+
+	@Override
+	public void reviveCard() {
+		controller.getGameMenu().pickCard(controller.getPlayer(player).usedCards, obj -> {
+			Card card = (Card)obj;
+			int row = 0;
+
+			// TODO: what happens when an agile card gets revived?
+			while (!controller.canPlace(player, row, card)) row++;
+
+			controller.sendCommand(new Command.PlayCard(player, card.getGameId(), row));
+			controller.sendCommand(new Command.Sync());
+		}, false);
 	}
 
 	private void bgAction(Object obj) {
