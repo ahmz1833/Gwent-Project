@@ -137,6 +137,42 @@ public class GameController {
 		}
 	}
 
+	private List<Card> strongest(List<Card> list) {
+		List<Card> ans = new ArrayList<>();
+		for (Card card : list) {
+			if (card.isHero)
+				continue;
+			if (!ans.isEmpty() && calcCardScore(ans.get(0)) < calcCardScore(card))
+				ans.clear();
+			ans.add(card);
+		}
+		return ans;
+	}
+
+	private List<Card> strongestRow(int i) { return strongest(row.get(i)); }
+	private List<Card> strongestAll() {
+		List<Card> list = new ArrayList<>();
+		for (int i = 0; i < 6; i++)
+			list.addAll(row.get(i));
+		return strongest(list);
+	}
+
+	private void scorchWhenPlaced(List<Card> list) {
+		nextTurnDelay += 1500;
+		new WaitExec(500, () -> {
+			gameMenu.setScorchCards(list);
+			gameMenu.redraw();
+			new WaitExec(1000, () -> {
+				gameMenu.setScorchCards(new ArrayList<>());
+				for (Card card : list)
+					gameMenu.animationToUsed(card, ownerOfCard(card));
+				gameMenu.redraw();
+				for (int i = 0; i < 6; i++)
+					row.get(i).removeAll(list);
+			});
+		});
+	}
+
 	private void playCard(Command.PlayCard cmd) {
 		Card card = cardById(cmd.cardId());
 		placeCard(card, cmd.row());
@@ -152,6 +188,9 @@ public class GameController {
 			for (Card c : playerData[cmd.player()].deck.getDeck())
 				if (card.name.equals(c.name))
 					toBeMustered.add(c);
+			for (Card c : playerData[cmd.player()].handCards)
+				if (card.name.equals(c.name))
+					toBeMustered.add(c);
 			for (Card c : toBeMustered)
 				placeCard(c, cmd.row());
 		}
@@ -161,6 +200,26 @@ public class GameController {
 				playerData[cmd.player()].controller.reviveCard();
 				return;
 			}
+		}
+
+		if (cmd.player() == 0) {
+			if (card.ability == Ability.SCORCH_C && calcRowScore(2) >= 10) scorchWhenPlaced(strongestRow(2));
+			if (card.ability == Ability.SCORCH_R && calcRowScore(1) >= 10) scorchWhenPlaced(strongestRow(1));
+			if (card.ability == Ability.SCORCH_S && calcRowScore(0) >= 10) scorchWhenPlaced(strongestRow(0));
+		} else {
+			if (card.ability == Ability.SCORCH_C && calcRowScore(3) >= 10) scorchWhenPlaced(strongestRow(3));
+			if (card.ability == Ability.SCORCH_R && calcRowScore(4) >= 10) scorchWhenPlaced(strongestRow(4));
+			if (card.ability == Ability.SCORCH_S && calcRowScore(5) >= 10) scorchWhenPlaced(strongestRow(5));
+		}
+		if (card.ability == Ability.SCORCH) {
+			scorchWhenPlaced(strongestAll());
+			new WaitExec(600, () -> {
+				gameMenu.animationToUsed(card, cmd.player());
+				for (int i = 0; i < 6; i++) {
+					row.get(i).remove(card);
+					special.get(i).remove(card);
+				}
+			});
 		}
 
 		if (!lastPassed) {
@@ -289,6 +348,8 @@ public class GameController {
 	public List<Card> getWeather() { return weather; }
 	
 	public boolean canPlace(int player, int row, Card card) {
+		if (card.ability == Ability.SCORCH)
+			return true;
 		if (player == 1)
 			row = 5 - row;
 		if (card.ability == Ability.SPY)
@@ -304,7 +365,13 @@ public class GameController {
 		};
 	}
 	public boolean canPlaceSpecial(int player, int row, Card card) {
+		if (card.ability == Ability.SCORCH)
+			return true;
 		if (card.ability == Ability.DECOY)
+			return false;
+		if ((player == 1) != (row < 3))
+			return false;
+		if (card.ability == Ability.HORN && special.get(row).stream().anyMatch(c -> c.ability == Ability.HORN))
 			return false;
 
 		return card.faction == Faction.SPECIAL;

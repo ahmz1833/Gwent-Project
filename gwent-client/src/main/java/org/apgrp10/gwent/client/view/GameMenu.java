@@ -234,7 +234,7 @@ public class GameMenu extends Application {
 	public void addWeatherOverlay(Position.RectPos pos, Image image) {
 		Rectangle rect = new Rectangle(pos.x(), pos.y(), pos.w(), pos.h());
 		rect.setMouseTransparent(true);
-		rect.setFill(new ImagePattern(image, pos.x(), pos.y(), pos.w(), pos.h(), false));
+		rect.setFill(new ImagePattern(image, 0, 0, 1, 1, true));
 		rootPane.getChildren().add(rect);
 	}
 
@@ -308,6 +308,9 @@ public class GameMenu extends Application {
 		}
 		rootPane.getChildren().addAll(animationNodes);
 
+		for (Card card : scorchCards)
+			setCardViewScorch(cardMap.get(card));
+
 		// TODO: use some highlight or something
 		if (activeCardView != null) {
 			Text text = new Text("Sel");
@@ -363,6 +366,10 @@ public class GameMenu extends Application {
 	}
 
 	private void notifyListeners(List<Callback> callbacks, Object obj) {
+		// we probably shouldn't accept input when an animation is playing
+		if (isAnimationPlaying())
+			return;
+
 		// we make a deep copy because someone might remove their listeners while we are iterating
 		List<Callback> copy = new ArrayList<>();
 		copy.addAll(callbacks);
@@ -418,9 +425,6 @@ public class GameMenu extends Application {
 		);
 		CardView cardView = cardMap.get(card);
 		Point2D from = cardView == null? new Point2D(0, 0): cardView.localToScene(0, 0);
-		System.out.println(from);
-		System.out.println(to);
-		System.out.println("bye");
 		animationTo(card, from, to);
 	}
 
@@ -442,7 +446,6 @@ public class GameMenu extends Application {
 		animationToHBox(card, Position.deck[player == controller.getActivePlayer()? 1: 0], new ArrayList<>());
 	}
 	public void animationToUsed(Card card, int player) {
-		System.out.println("Hi");
 		animationToHBox(card, Position.used[player == controller.getActivePlayer()? 1: 0], new ArrayList<>());
 	}
 
@@ -453,5 +456,15 @@ public class GameMenu extends Application {
 		animationTo(c2, p2, p1);
 	}
 
-	public boolean isAnimationPlaying() { return !animationNodes.isEmpty(); }
+	public boolean isAnimationPlaying() { return !animationNodes.isEmpty() || !scorchCards.isEmpty(); }
+
+	private List<Card> scorchCards = new ArrayList<>();
+	public void setScorchCards(List<Card> list) { scorchCards = list; }
+	private void setCardViewScorch(CardView view) {
+		if (view == null)
+			return;
+		Rectangle rect = new Rectangle(0, 0, Position.card.w(), Position.card.h());
+		rect.setFill(new ImagePattern(R.image.scorch, 0, 0, 1, 1, true));
+		view.getChildren().add(rect);
+	}
 }
