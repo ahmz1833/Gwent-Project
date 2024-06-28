@@ -4,7 +4,7 @@ import javax.crypto.Cipher;
 import java.security.*;
 
 public class RSA {
-	private static final String ALGORITHM_RSA = "SHA256withRSA";
+	private static final String ALGORITHM_RSA = "RSA";
 	
 	public static KeyPair generateKeyPair() {
 		KeyPairGenerator keyGen = null;
