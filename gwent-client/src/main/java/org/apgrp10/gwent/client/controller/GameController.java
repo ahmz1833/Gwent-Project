@@ -14,6 +14,7 @@ import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.card.Ability;
 import org.apgrp10.gwent.model.card.Card;
 import org.apgrp10.gwent.model.card.Faction;
+import org.apgrp10.gwent.model.card.Row;
 
 import javafx.stage.Stage;
 
@@ -24,6 +25,7 @@ public class GameController {
 		public final InputController controller;
 		public final List<Card> handCards = new ArrayList<>();
 		public final List<Card> usedCards = new ArrayList<>();
+		public final List<Card> ownedCards = new ArrayList<>();
 		public boolean vetoDone;
 
 		public PlayerData(Deck deck, InputController controller) {
@@ -37,6 +39,7 @@ public class GameController {
 	private final PlayerData playerData[] = new PlayerData[2];
 	private final List<List<Card>> row = new ArrayList<>();
 	private final List<List<Card>> special = new ArrayList<>();
+	private final List<Card> weather = new ArrayList<>();
 	private int turn = 0;
 	private int activePlayer = 0;
 	private Card activeCard;
@@ -63,6 +66,8 @@ public class GameController {
 		for (PlayerData p : playerData) {
 			Deck d = p.deck;
 
+			p.ownedCards.addAll(d.getDeck());
+
 			id = d.assignGameIds(id);
 			d.shuffle(rand);
 
@@ -85,8 +90,19 @@ public class GameController {
 		c1.veto();
 	}
 
+	private long nextTurnDelay = 1000;
+
 	public Card cardById(int cardId) {
 		return cardIdMap.get(cardId);
+	}
+	public int ownerOfCard(Card card) {
+		return playerData[1].ownedCards.contains(card)? 1: 0;
+	}
+	public int rowOfCard(Card card) {
+		for (int i = 0; i < 6; i++)
+			if (row.get(i).contains(card))
+				return i;
+		return -1;
 	}
 
 	public GameMenu getGameMenu() { return gameMenu; }
@@ -105,6 +121,19 @@ public class GameController {
 			idx -= 6;
 			gameMenu.animationToSpecial(card, idx);
 			special.get(idx).add(card);
+		} else if (idx < 13) { // weather
+			gameMenu.animationToWeather(card);
+			weather.add(card);
+
+			if (card.ability == Ability.CLEAR) {
+				nextTurnDelay += 600;
+				new WaitExec(600, () -> {
+					for (Card c : weather)
+						gameMenu.animationToUsed(c, ownerOfCard(c));
+					weather.clear();
+					gameMenu.redraw();
+				});
+			}
 		}
 	}
 
@@ -134,8 +163,10 @@ public class GameController {
 			}
 		}
 
-		if (!lastPassed)
-			nextTurn(1000);
+		if (!lastPassed) {
+			nextTurn(nextTurnDelay);
+			nextTurnDelay = 1000;
+		}
 	}
 
 	private void swapCard(Command.SwapCard cmd) {
@@ -255,6 +286,7 @@ public class GameController {
 
 	public List<Card> getRow(int i) { return row.get(i); }
 	public List<Card> getSpecial(int i) { return special.get(i); }
+	public List<Card> getWeather() { return weather; }
 	
 	public boolean canPlace(int player, int row, Card card) {
 		if (player == 1)
@@ -277,28 +309,37 @@ public class GameController {
 
 		return card.faction == Faction.SPECIAL;
 	}
+	public boolean canPlaceWeather(int player, Card card) {
+		return card.faction == Faction.WEATHER;
+	}
 	public boolean canSwap(int player, Card c1, Card c2) {
 		if (c1.ability != Ability.DECOY)
 			return false;
 
 		boolean inRow = false;
-		for (int i = (player == 1? 0: 3); i < (player == 1? 3: 6); i++)
+		boolean side = player != (c2.ability == Ability.SPY? 1: 0);
+		for (int i = (side? 0: 3); i < (side? 3: 6); i++)
 			inRow |= row.get(i).contains(c2);
 		return playerData[player].handCards.contains(c1) && inRow;
 	}
 
+	public boolean hasFrost() { return weather.stream().anyMatch(c -> c.ability == Ability.FROST); }
+	public boolean hasFog() { return weather.stream().anyMatch(c -> c.ability == Ability.FOG || c.ability == Ability.RAIN_FOG); }
+	public boolean hasRain() { return weather.stream().anyMatch(c -> c.ability == Ability.RAIN || c.ability == Ability.RAIN_FOG); }
+
 	public int calcCardScore(Card card) {
-		if (card.isHero)
+		if (card.isHero || card.row == Row.NON)
 			return card.strength;
 
-		int row = -1;
-		for (int i = 0; i < 6; i++)
-			if (this.row.get(i).contains(card))
-				row = i;
+		int row = rowOfCard(card);
 		if (row == -1)
 			return card.strength;
 
 		int score = card.strength;
+
+		if ((row == 0 || row == 5) && hasRain()) score = 1;
+		if ((row == 1 || row == 4) && hasFog()) score = 1;
+		if ((row == 2 || row == 3) && hasFrost()) score = 1;
 		
 		if (card.ability == Ability.BOND) {
 			int x = 0;

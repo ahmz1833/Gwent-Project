@@ -32,9 +32,10 @@ public class CardView extends Pane {
 		rootPath = large? "lg/": "sm/";
 		fillInfoByName();
 		addBackground();
-		addSymbol();
-		if (withCount)
+		if (withCount) {
+			addSymbol();
 			addCountLabel();
+		}
 	}
 
 	public static CardView newSelection(String address, double width, double height) {

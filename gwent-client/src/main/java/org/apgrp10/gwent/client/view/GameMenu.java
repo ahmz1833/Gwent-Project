@@ -17,12 +17,14 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -76,6 +78,7 @@ public class GameMenu extends Application {
 			new RectPos(0.2963, 0.5296, 0.3640, 0.6342),
 			new RectPos(0.2963, 0.6555, 0.3640, 0.7611),
 		};
+		public static final RectPos weather = new RectPos(0.0729, 0.4157, 0.2182, 0.5398);
 		public static final RectPos rowScore[] = {
 			RectPos.bySize(0.2651, 0.0425, 0.0270, 0.0500),
 			RectPos.bySize(0.2651, 0.1638, 0.0270, 0.0500),
@@ -90,6 +93,14 @@ public class GameMenu extends Application {
 		};
 		public static final RectPos pass = new RectPos(0.1625, 0.8203, 0.2244, 0.8490);
 		public static final RectPos screen = new RectPos(0, 0, 1, 1);
+		public static final RectPos deck[] = {
+			new RectPos(0.8984, 0.0648, 0.9552, 0.1990),
+			new RectPos(0.8984, 0.7657, 0.9552, 0.9009),
+		};
+		public static final RectPos used[] = {
+			new RectPos(0.8041, 0.0648, 0.8619, 0.1990),
+			new RectPos(0.8041, 0.7657, 0.8619, 0.9009),
+		};
 	}
 
 
@@ -173,6 +184,9 @@ public class GameMenu extends Application {
 		rootPane.getChildren().add(view);
 	}
 
+	// this shit is for keeping the scroller position
+	private Text pickSelectedText;
+
 	private void addPicker() {
 		Rectangle rect = new Rectangle(0, 0, WIDTH, HEIGHT);
 		rect.setFill(Color.color(0, 0, 0, 0.5));
@@ -192,23 +206,36 @@ public class GameMenu extends Application {
 			final int idx = hbox.getChildren().size();
 			view.setOnMouseClicked(e -> {
 				if (pickIdx != idx) {
+					((CardView)hbox.getChildren().get(pickIdx)).getChildren().remove(pickSelectedText);
 					pickIdx = idx;
+					((CardView)hbox.getChildren().get(pickIdx)).getChildren().add(pickSelectedText);
 				} else {
 					pickList = null;
 					pickFn.call(card);
+					redraw();
 				}
-				redraw();
 			});
 			hbox.getChildren().add(view);
 		}
 
-		Text text = new Text("Selected");
-		text.setFill(Color.GOLD);
-		text.setFont(new Font(32));
-		((CardView)hbox.getChildren().get(pickIdx)).getChildren().add(text);
+		pickSelectedText = new Text("Selected");
+		pickSelectedText.setFill(Color.GOLD);
+		pickSelectedText.setFont(new Font(32));
+		pickSelectedText.setLayoutY(Position.info.h()/2);
+		((CardView)hbox.getChildren().get(pickIdx)).getChildren().add(pickSelectedText);
+
+		ScrollPane scroller = new ScrollPane(hbox);
+		scroller.setMaxSize(WIDTH, HEIGHT);
 
 		rootPane.getChildren().add(rect);
-		rootPane.getChildren().add(hbox);
+		rootPane.getChildren().add(scroller);
+	}
+	
+	public void addWeatherOverlay(Position.RectPos pos, Image image) {
+		Rectangle rect = new Rectangle(pos.x(), pos.y(), pos.w(), pos.h());
+		rect.setMouseTransparent(true);
+		rect.setFill(new ImagePattern(image, pos.x(), pos.y(), pos.w(), pos.h(), false));
+		rootPane.getChildren().add(rect);
 	}
 
 	public void redraw() {
@@ -222,7 +249,7 @@ public class GameMenu extends Application {
 		}
 		rootPane.getChildren().clear();
 
-		addBackground(R.image.board);
+		addBackground(R.image.board[controller.getActivePlayer()]);
 
 		addButton("Hello", "hello", null);
 		addButton("Pass", "pass", Position.pass);
@@ -232,11 +259,13 @@ public class GameMenu extends Application {
 		for (int i = 0; i < 6; i++) {
 			int actualRow = player == 1? 5 - i: i;
 			addCardHBox(Position.row[i], controller.getRow(actualRow));
-			setInfoOnClicked(rootPane.getChildren().get(rootPane.getChildren().size() - 1), controller.getRow(actualRow), false);
+			setInfoOnClicked(rootPane.getChildren().getLast(), controller.getRow(actualRow), false);
 			addCardHBox(Position.special[i], controller.getSpecial(actualRow));
 			int score = controller.calcRowScore(actualRow);
 			addText(String.valueOf(score), Position.rowScore[i]);
 		}
+		addCardHBox(Position.weather, controller.getWeather());
+		setInfoOnClicked(rootPane.getChildren().getLast(), controller.getWeather(), false);
 
 		addText(String.valueOf(controller.calcPlayerScore(1 - player)), Position.totalScore[0]);
 		addText(String.valueOf(controller.calcPlayerScore(player)), Position.totalScore[1]);
@@ -252,6 +281,23 @@ public class GameMenu extends Application {
 					addSelectionRect(Position.special[i], actualRow + 6);
 			}
 		}
+		if (player == controller.getTurn()
+				&& controller.getPlayer(player).handCards.contains(controller.getActiveCard())
+				&& controller.canPlaceWeather(player, controller.getActiveCard()))
+			addSelectionRect(Position.weather, 12);
+
+		if (controller.hasRain()) {
+			addWeatherOverlay(Position.row[0], R.image.rain);
+			addWeatherOverlay(Position.row[5], R.image.rain);
+		}
+		if (controller.hasFog()) {
+			addWeatherOverlay(Position.row[1], R.image.fog);
+			addWeatherOverlay(Position.row[4], R.image.fog);
+		}
+		if (controller.hasFrost()) {
+			addWeatherOverlay(Position.row[2], R.image.frost);
+			addWeatherOverlay(Position.row[3], R.image.frost);
+		}
 
 		for (Card card : animationCards) {
 			CardView view = cardMap.get(card);
@@ -266,6 +312,7 @@ public class GameMenu extends Application {
 		if (activeCardView != null) {
 			Text text = new Text("Sel");
 			text.setFill(Color.GOLD);
+			text.setLayoutY(Position.card.h()/2);
 			activeCardView.getChildren().add(text);
 
 			CardView info = CardView.newInfo(activeCardView.getAddress(), Position.info.w(), Position.info.h());
@@ -371,6 +418,9 @@ public class GameMenu extends Application {
 		);
 		CardView cardView = cardMap.get(card);
 		Point2D from = cardView == null? new Point2D(0, 0): cardView.localToScene(0, 0);
+		System.out.println(from);
+		System.out.println(to);
+		System.out.println("bye");
 		animationTo(card, from, to);
 	}
 
@@ -385,6 +435,16 @@ public class GameMenu extends Application {
 	public void animationToHand(Card card) {
 		animationToHBox(card, Position.hand, controller.getPlayer(controller.getActivePlayer()).handCards);
 	}
+	public void animationToWeather(Card card) {
+		animationToHBox(card, Position.weather, controller.getWeather());
+	}
+	public void animationToDeck(Card card, int player) {
+		animationToHBox(card, Position.deck[player == controller.getActivePlayer()? 1: 0], new ArrayList<>());
+	}
+	public void animationToUsed(Card card, int player) {
+		System.out.println("Hi");
+		animationToHBox(card, Position.used[player == controller.getActivePlayer()? 1: 0], new ArrayList<>());
+	}
 
 	public void animationSwap(Card c1, Card c2) {
 		Point2D p1 = cardMap.containsKey(c1)? cardMap.get(c1).localToScene(0, 0): new Point2D(0, 0);
@@ -392,4 +452,6 @@ public class GameMenu extends Application {
 		animationTo(c1, p1, p2);
 		animationTo(c2, p2, p1);
 	}
+
+	public boolean isAnimationPlaying() { return !animationNodes.isEmpty(); }
 }

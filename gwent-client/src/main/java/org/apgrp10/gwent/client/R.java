@@ -36,7 +36,7 @@ public class R
 		}
 	}
 	
-	// this is used for loading cards each time a new card is made which is sloooow!
+	// getImage is used for loading cards each time a new card is made which is sloooow!
 	// so we cache the results
 	private static Map<String, Image> imageCache = new HashMap<>();
 	public static Image getImage(String name)
@@ -92,7 +92,10 @@ public class R
 	
 	public static class image
 	{
-		public static final Image board = getImage("board.jpg");
+		public static final Image board[] = { getImage("board.jpg"), getImage("board_rev.jpg") };
+		public static final Image frost = getImage("icons/overlay_frost.png");
+		public static final Image fog = getImage("icons/overlay_fog.png");
+		public static final Image rain = getImage("icons/overlay_rain.png");
 	}
 	
 	public static class icon
