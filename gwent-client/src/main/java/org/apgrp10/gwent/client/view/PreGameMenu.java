@@ -71,6 +71,7 @@ public class PreGameMenu extends Application {
         if (path == null) loadFactionDeck(Faction.REALMS);
         else uploadDeck(path.getPath());
         addLinkTexts();
+        PreGameStage.getInstance().start();
     }
 
     private void addUserInfo() {

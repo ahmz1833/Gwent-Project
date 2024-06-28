@@ -13,7 +13,6 @@ public class PreGameController  {
 	private Deck deck2 = null;
 
 	public PreGameController(User user1, User user2){
-		PreGameStage.getInstance().start();
 		this.user1 = user1;
 		this.user2 = user2;
 		new PreGameMenu(this, true, user1);

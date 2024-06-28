@@ -7,12 +7,9 @@ import javafx.stage.WindowEvent;
 public class PreGameStage extends AbstractStage {
     private static PreGameStage INSTANCE;
 
-    private final Pane pane;
+    private Pane pane;
     private PreGameStage() {
         super("PreGame Menu", null);// TODO: set icon
-        pane = new Pane();
-        this.setWidth(PreGameMenu.screenWidth);
-        this.setHeight(PreGameMenu.screenHeight);
         if (INSTANCE != null) throw new RuntimeException("Duplicate Instance of MainStage");
     }
 
@@ -43,6 +40,9 @@ public class PreGameStage extends AbstractStage {
 
     }
     public Pane getPane(){
+        pane = new Pane();
+        this.setWidth(PreGameMenu.screenWidth);
+        this.setHeight(PreGameMenu.screenHeight);
         return pane;
     }
 }
