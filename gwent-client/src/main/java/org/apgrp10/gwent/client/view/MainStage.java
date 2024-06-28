@@ -1,10 +1,17 @@
 package org.apgrp10.gwent.client.view;
 
 import io.github.palexdev.materialfx.controls.MFXButton;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import org.apgrp10.gwent.client.controller.PreGameController;
 import org.apgrp10.gwent.client.controller.UserController;
+import org.apgrp10.gwent.model.User;
 
 public class MainStage extends AbstractStage {
 	private static MainStage INSTANCE;
@@ -21,14 +28,21 @@ public class MainStage extends AbstractStage {
 	
 	@Override
 	protected boolean onCreate(){
-		if(!UserController.isLoggedIn())
-		{
-			LoginStage.getInstance().start();
-			return false;
-		}
+//		if(!UserController.isLoggedIn())
+//		{
+//			LoginStage.getInstance().start();
+//			return false;
+//		}
 		Pane pane = new Pane();
 		Scene scene = new Scene(pane);
-		pane.getChildren().add(new MFXButton("Logout"));
+		pane.setPrefWidth(400);
+		pane.setPrefHeight(300);
+		MFXButton btn = new MFXButton("Salam");
+		Platform.runLater(()->{
+			btn.setOnMouseClicked(event -> new PreGameController(new User("a", "a", "a", "a"),
+					new User("b", "b", "b", "b"), new Stage()));
+		});
+		pane.getChildren().add(btn);
 		setScene(scene);
 		return true;
 	}

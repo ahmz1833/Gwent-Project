@@ -1,4 +1,4 @@
-@import 'fontss';
+@import '../fonts/fonts.css';
 
 .frame {
     -fx-background-color: #FFFFFF70;

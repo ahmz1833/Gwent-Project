@@ -7,4 +7,5 @@ open module gwent.common {
 	requires com.auth0.jwt;
 	exports org.apgrp10.gwent.model;
 	exports org.apgrp10.gwent.utils;
+	exports org.apgrp10.gwent.model.card;
 }

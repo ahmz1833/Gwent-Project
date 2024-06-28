@@ -1,5 +1,5 @@
 AnchorPane {
-    -fx-background-image: url("imageGame.jpg");
+    -fx-background-image: url("../image/icons/boardPreGame.jpg");
     -fx-background-repeat: stretch;
     -fx-background-size: 100% 100%;
 }
