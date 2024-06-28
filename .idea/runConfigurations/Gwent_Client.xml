@@ -1,9 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Gwent Client" type="Application" factoryName="Application">
-    <option name="ALTERNATIVE_JRE_PATH" value="/usr/lib/jvm/java-21-openjdk-amd64" />
-    <option name="MAIN_CLASS_NAME" value="org.apgrp10.gwent.client.ClientMain" />
-    <module name="gwent-client" />
-    <target name="@@@LOCAL@@@" />
-    <method v="2" />
-  </configuration>
-</component>

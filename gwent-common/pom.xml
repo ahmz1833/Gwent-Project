@@ -22,18 +22,27 @@
                     <useIncrementalCompilation>true</useIncrementalCompilation>
                 </configuration>
             </plugin>
+
+            <!-- Plugin to copy dependencies -->
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>org.apgrp10.gwent.server.ServerMain</mainClass>
-                        </manifest>
-                    </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.1.2</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>target/</outputDirectory>
+                            <excludeArtifactIds>gwent-common</excludeArtifactIds>
+                            <excludeArtifactIds>gwent-server</excludeArtifactIds>
+                            <excludeArtifactIds>gwent-client</excludeArtifactIds>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

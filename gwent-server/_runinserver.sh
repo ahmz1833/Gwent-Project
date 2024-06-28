@@ -6,17 +6,32 @@ PASSPHRASE="14032024apgrp10"
 REMOTE_USER="ubuntu"
 REMOTE_IP="37.152.181.45"
 SCREEN_SESSION_NAME="gwent-server"
-LOCAL_FILE="target/gwent-server-1.0-SNAPSHOT-jar-with-dependencies.jar"
-REMOTE_DIR="/home/ubuntu"
-REMOTE_FILE="$REMOTE_DIR/gwent-server.jar"
+
+MAIN_CLASS="org.apgrp10.gwent.server.ServerMain"
+LIB_DIR="../gwent-common/target"
+REMOTE_DIR="/home/ubuntu/gwent"
+
+JAR_NAMES=($(find "$LIB_DIR" -name "*.jar" -exec basename {} \;))
+CLASS_PATH=""
+LOCAL_FILES=""
+for jar in "${JAR_NAMES[@]}"; do
+  CLASS_PATH="$CLASS_PATH$jar:"
+  LOCAL_FILES="$LOCAL_FILES$LIB_DIR/$jar "
+done
+LOCAL_FILES=$LOCAL_FILES"../gwent-server/target/gwent-server-1.0-SNAPSHOT.jar"
+CLASS_PATH=$CLASS_PATH"gwent-server-1.0-SNAPSHOT.jar"
+
+echo
+echo "Uploading files to the server..."
+echo
 
 # First, kill all java processes on the server
 ( sshpass -P assphrase -p $PASSPHRASE ssh -i "$KEY_FILE" $REMOTE_USER@$REMOTE_IP "pkill java"; \
 
-# Use rsync to upload the file with progress
-sshpass -P assphrase -p $PASSPHRASE rsync -avz -e "ssh -i $KEY_FILE" --progress $LOCAL_FILE $REMOTE_USER@$REMOTE_IP:$REMOTE_FILE && \
+# Use rsync to upload the jar file to the server
+sshpass -P assphrase -p $PASSPHRASE rsync -avz -e "ssh -i $KEY_FILE" --progress $LOCAL_FILES $REMOTE_USER@$REMOTE_IP:$REMOTE_DIR/ && \
 
-# Run the jar file in a screen session
+# Run java in a screen session
 sshpass -P assphrase -p $PASSPHRASE ssh -t -i $KEY_FILE $REMOTE_USER@$REMOTE_IP "
   if screen -list | grep -q \"$SCREEN_SESSION_NAME\"; then
     screen -S $SCREEN_SESSION_NAME -X quit; # Quit existing session
@@ -25,7 +40,7 @@ sshpass -P assphrase -p $PASSPHRASE ssh -t -i $KEY_FILE $REMOTE_USER@$REMOTE_IP 
   echo \"echo Starting the server... Press Ctrl-A + D for detaching the screen\" >> $REMOTE_DIR/run.sh
   echo \"echo\" >> $REMOTE_DIR/run.sh
   echo \"echo\" >> $REMOTE_DIR/run.sh
-  echo \"java -jar $REMOTE_FILE\" >> $REMOTE_DIR/run.sh
+  echo \"cd '$REMOTE_DIR' && java -cp '$CLASS_PATH' $MAIN_CLASS\" >> $REMOTE_DIR/run.sh
   echo \"echo\" >> $REMOTE_DIR/run.sh
   echo \"echo\" >> $REMOTE_DIR/run.sh
   echo \"read -p 'Press [Enter] key to exit...'\" >> $REMOTE_DIR/run.sh
