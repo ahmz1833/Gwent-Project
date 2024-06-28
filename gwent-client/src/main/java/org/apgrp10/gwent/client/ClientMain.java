@@ -18,11 +18,6 @@ public class ClientMain {
 		if (!Files.exists(path)) {
 			try {
 				Files.createDirectories(path);
-				if (USE_WINDOWS) {
-					// If the operating system is Windows, set the hidden attribute of the directory
-					ProcessBuilder pb = new ProcessBuilder("attrib", "+S +H", APP_DATA);
-					pb.start();
-				}
 				System.out.println(ANSI.LYELLOW.bd() + "app directory created at: " + APP_DATA + ANSI.RST + "\n");
 			} catch (IOException e) {
 				e.printStackTrace();
