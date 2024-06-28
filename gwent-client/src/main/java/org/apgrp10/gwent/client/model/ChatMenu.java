@@ -211,9 +211,10 @@ public class ChatMenu extends Pane {
 					((MessageView) node).editReply(message.getId(), message.getText());
 				}
 			}
-		} catch (Exception ignored) {
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			System.out.println(e.getStackTrace());
 		}
-
 	}
 
 	private User getUserById(int id) {
@@ -275,7 +276,9 @@ public class ChatMenu extends Pane {
 			if (!isReply) {
 				textInput.setText(Objects.requireNonNull(getMessageById(id)).getMessage().getText());
 			}
-		} catch (Exception ignored) {
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			System.out.println(e.getStackTrace());
 		}
 	}
 

@@ -62,8 +62,9 @@ public class MessageView extends HBox {
 			time.setText(formattedInstant);
 			pane.getChildren().add(time);
 			messageBox.getChildren().add(pane);
-		} catch (Exception ignored) {
-
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			System.out.println(e.getStackTrace());
 		}
 	}
 
@@ -107,7 +108,9 @@ public class MessageView extends HBox {
 					if (string.length() > 30) string = string.substring(0, 30) + "...";
 					reply.setText(string);
 				}
-			} catch (Exception ignored) {
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+				System.out.println(e.getStackTrace());
 			}
 		}
 	}

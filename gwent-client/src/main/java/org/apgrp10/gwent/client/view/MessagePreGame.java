@@ -14,13 +14,13 @@ import javafx.scene.text.TextAlignment;
 import org.apgrp10.gwent.model.card.Faction;
 
 
-public class MassagePreGame extends Pane {
+public class MessagePreGame extends Pane {
 	private final Pane gamePane;
 	private final int cornerX = PreGameMenu.screenWidth / 4 - 200;
 	private final int cornerY = PreGameMenu.screenHeight / 2 - 80;
 
 	//this constructor is for confirming new faction
-	public MassagePreGame(PreGameMenu preGameMenu, Pane gamePane, Faction faction, int primaryX) {
+	public MessagePreGame(PreGameMenu preGameMenu, Pane gamePane, Faction faction, int primaryX) {
 		this.gamePane = gamePane;
 		this.setMinWidth(PreGameMenu.screenWidth / 2.0);
 		this.setMinHeight(PreGameMenu.screenHeight);
@@ -38,7 +38,7 @@ public class MassagePreGame extends Pane {
 	}
 
 	//this constructor is for "deck is not formatted correctly"
-	public MassagePreGame(Pane gamePane, int primaryX) {
+	public MessagePreGame(Pane gamePane, int primaryX) {
 		this.gamePane = gamePane;
 		this.setMinWidth(PreGameMenu.screenWidth / 2.0);
 		this.setMinHeight(PreGameMenu.screenHeight);
