@@ -1,9 +1,8 @@
-package org.apgrp10.gwent.client.model;
+package org.apgrp10.gwent.model;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.scene.layout.GridPane;
-import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.card.*;
 
 import java.io.BufferedReader;
@@ -40,21 +39,9 @@ public class Deck {
 		leader = leaderCopy;
 	}
 
-	public void createDeckFromPane(GridPane gridPane) {
-		for (int i = 0; i < gridPane.getChildren().size(); i++) {
-			try {
-				CardView cardView = (CardView) gridPane.getChildren().get(i);
-				for (CardInfo cardInfo : CardInfo.allCards)
-					if (cardInfo.pathAddress.equals(cardView.getAddress())) {
-						for (int j = 0; j < cardView.getCount(); j++)
-							addCard(convertCortInfoToCard(cardInfo));
-					}
-			} catch (Exception ignored) {
-			}
-		}
-	}
 
-	private Card convertCortInfoToCard(CardInfo cardInfo) {
+
+	public Card convertCortInfoToCard(CardInfo cardInfo) {
 		return new Card(cardInfo.name, cardInfo.pathAddress, cardInfo.strength, cardInfo.row, cardInfo.faction, cardInfo.ability, cardInfo.isHero);
 	}
 

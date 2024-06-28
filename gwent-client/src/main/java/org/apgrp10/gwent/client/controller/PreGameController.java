@@ -1,9 +1,8 @@
 package org.apgrp10.gwent.client.controller;
 
 
-import javafx.stage.Stage;
 import org.apgrp10.gwent.client.view.PreGameMenu;
-import org.apgrp10.gwent.client.model.Deck;
+import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.client.view.PreGameStage;
 import org.apgrp10.gwent.model.User;
 

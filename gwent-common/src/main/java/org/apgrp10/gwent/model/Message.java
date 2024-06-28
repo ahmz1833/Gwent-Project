@@ -1,7 +1,6 @@
 package org.apgrp10.gwent.model;
 
 
-import org.apgrp10.gwent.model.User;
 
 import java.time.Instant;
 

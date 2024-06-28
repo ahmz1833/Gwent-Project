@@ -9,7 +9,7 @@ import java.util.Random;
 import org.apgrp10.gwent.client.model.WaitExec;
 import org.apgrp10.gwent.client.view.GameMenu;
 import org.apgrp10.gwent.model.Command;
-import org.apgrp10.gwent.client.model.Deck;
+import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.card.Ability;
 import org.apgrp10.gwent.model.card.Card;

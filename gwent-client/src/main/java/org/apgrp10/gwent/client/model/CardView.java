@@ -1,7 +1,7 @@
 package org.apgrp10.gwent.client.model;
 
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
@@ -10,7 +10,7 @@ import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.model.card.CardInfo;
 import org.apgrp10.gwent.model.card.Faction;
 
-public class CardView extends StackPane {
+public class CardView extends Pane {
 	private String address;
 	private String name;
 	private Text countLabel;

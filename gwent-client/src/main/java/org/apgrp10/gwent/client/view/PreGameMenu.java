@@ -3,9 +3,7 @@ package org.apgrp10.gwent.client.view;
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.ImageCursor;
-import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -15,12 +13,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.PreGameController;
 import org.apgrp10.gwent.client.model.CardView;
-import org.apgrp10.gwent.client.model.Deck;
+import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.card.*;
 
@@ -466,8 +463,7 @@ public class PreGameMenu extends Application {
     }
 
     private String downloadDeck() {
-        Deck deck = new Deck(currentFactionIndex, leaderName, user);
-        deck.createDeckFromPane(deckLists[1]);
+        Deck deck = createDeckFromPane(deckLists[1]);
         return Deck.saveDeck(deck);
     }
 
@@ -515,8 +511,7 @@ public class PreGameMenu extends Application {
             }
         }
         if (totalSpecialCards <= 10 && totalUnitCads >= 22) {
-            Deck deck = new Deck(currentFactionIndex, leaderName, user);
-            deck.createDeckFromPane(deckLists[1]);
+            Deck deck = createDeckFromPane(deckLists[1]);
             pane.getChildren().clear();
             pane = null;
             deckLists[0] = null;
@@ -531,5 +526,20 @@ public class PreGameMenu extends Application {
             else
                 preGameController.setDeck2(deck);
         }
+    }
+    public Deck createDeckFromPane(GridPane gridPane) {
+        Deck deck = new Deck(currentFactionIndex, leaderName, user);
+        for (int i = 0; i < gridPane.getChildren().size(); i++) {
+            try {
+                CardView cardView = (CardView) gridPane.getChildren().get(i);
+                for (CardInfo cardInfo : CardInfo.allCards)
+                    if (cardInfo.pathAddress.equals(cardView.getAddress())) {
+                        for (int j = 0; j < cardView.getCount(); j++)
+                            deck.addCard(deck.convertCortInfoToCard(cardInfo));
+                    }
+            } catch (Exception ignored) {
+            }
+        }
+        return deck;
     }
 }
