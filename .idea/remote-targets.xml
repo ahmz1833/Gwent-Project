@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteTargetsManager">
+    <targets>
+      <target name="ubuntu@37.152.181.45:22" type="ssh/sftp" uuid="82dffc26-c763-4fbc-87ed-7b5703efedda">
+        <config>
+          <option name="projectRootOnTarget" value="/home/ubuntu/Gwent" />
+          <option name="serverName" value="ubuntu@37.152.181.45:22 key" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="MavenRuntime">
+          <config>
+            <option name="homePath" value="/usr/share/maven" />
+            <option name="versionString" value="[1mApache Maven 3.6.3[m" />
+          </config>
+        </ContributedStateBase>
+        <ContributedStateBase type="JavaLanguageRuntime">
+          <config>
+            <option name="homePath" value="/usr/lib/jvm/java-1.21.0-openjdk-amd64" />
+            <option name="javaVersionString" value="21" />
+          </config>
+        </ContributedStateBase>
+      </target>
+    </targets>
+  </component>
+</project>
