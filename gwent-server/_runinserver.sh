@@ -25,14 +25,17 @@ echo
 echo "Uploading files to the server..."
 echo
 
+eval $(ssh-agent -s) > /dev/null
+sshpass -P assphrase -p $PASSPHRASE ssh-add "$KEY_FILE" > /dev/null
+
 # First, kill all java processes on the server
-( sshpass -P assphrase -p $PASSPHRASE ssh -i "$KEY_FILE" $REMOTE_USER@$REMOTE_IP "pkill java"; \
+( ssh $REMOTE_USER@$REMOTE_IP "pkill java"; \
 
 # Use rsync to upload the jar file to the server
-sshpass -P assphrase -p $PASSPHRASE rsync -avz -e "ssh -i $KEY_FILE" --progress $LOCAL_FILES $REMOTE_USER@$REMOTE_IP:$REMOTE_DIR/ && \
+rsync -avz -e "ssh" --progress $LOCAL_FILES $REMOTE_USER@$REMOTE_IP:$REMOTE_DIR/ && \
 
 # Run java in a screen session
-sshpass -P assphrase -p $PASSPHRASE ssh -t -i $KEY_FILE $REMOTE_USER@$REMOTE_IP "
+ssh -t $REMOTE_USER@$REMOTE_IP "
   if screen -list | grep -q \"$SCREEN_SESSION_NAME\"; then
     screen -S $SCREEN_SESSION_NAME -X quit; # Quit existing session
   fi
