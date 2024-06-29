@@ -194,33 +194,33 @@ public class FivePlacePreGame extends Pane {
 	private void changeText() {
 		String text = nameList.get(currentIndex);
 		switch (nameList.get(currentIndex).trim()) {
-			case "Foltest - King of Temeria" ->
-					text = "Leader Ability\nPick an Impenetrable Fog card from your deck and play it instantly.";
-			case "Foltest - Lord Commander of the North" ->
-					text = "Leader Ability\nClear any weather effects (resulting from Biting Frost, Torrential " + "Rain or Impenetrable Fog cards) in play.";
 			case "Foltest - The Siegemaster" ->
-					text = "Leader Ability\nDoubles the strength of all your Siege units (unless a Commander's " + "Horn is also present on that row).";
+					text = "Leader Ability\nPick an Impenetrable Fog card from your deck and play it instantly.";
 			case "Foltest - The Steel-Forged" ->
+					text = "Leader Ability\nClear any weather effects (resulting from Biting Frost, Torrential " + "Rain or Impenetrable Fog cards) in play.";
+			case "Foltest - King of Temeria" ->
+					text = "Leader Ability\nDoubles the strength of all your Siege units (unless a Commander's " + "Horn is also present on that row).";
+			case "Foltest - Lord Commander of the North" ->
 					text = "Leader Ability\nDestroy your enemy's strongest Siege unit(s) if the combined strength " + "of all his or her Siege units is 10 or more.";
 			case "Foltest - Son of Medell" ->
 					text = "Leader Ability\nDestroy your enemy's strongest Ranged Combat unit(s) if the combined " + "strength of all his or her Ranged Combat units is 10 or more.";
-			case "Emhyr var Emreis - His Imperial Majesty" ->
-					text = "Leader Ability\nPick a Torrential Rain card from your deck and play it instantly.";
-			case "Emhyr var Emreis - Emperor of Nilfgaard" ->
-					text = "Leader Ability\nLook at 3 random cards from your opponent's hand.";
 			case "Emhyr var Emreis - the White Flame" ->
+					text = "Leader Ability\nPick a Torrential Rain card from your deck and play it instantly.";
+			case "Emhyr var Emreis - His Imperial Majesty" ->
+					text = "Leader Ability\nLook at 3 random cards from your opponent's hand.";
+			case "Emhyr var Emreis - Emperor of Nilfgaard" ->
 					text = "Leader Ability\nCancel your opponent's Leader Ability.";
 			case "Emhyr var Emreis - The Relentless" ->
 					text = "Leader Ability\nDraw a card from your opponent's discard pile.";
 			case "Emhyr var Emreis - Invader of the North" ->
 					text = "Leader Ability\nAbilities that restore a unit to the battlefield restore a randomly-chosen" + " unit. Affects both players.";
-			case "Eredin - Commander of the Red Riders" ->
-					text = "Leader Ability\nDouble the strength of all your Close Combat units (unless a Commander's" + " horn is also present on that row).";
 			case "Eredin - Bringer of Death" ->
+					text = "Leader Ability\nDouble the strength of all your Close Combat units (unless a Commander's" + " horn is also present on that row).";
+			case "Eredin - King of the Wild Hunt" ->
 					text = "Leader Ability\nRestore a card from your discard pile to your hand.";
 			case "Eredin - Destroyer of Worlds" ->
 					text = "Leader Ability\nDiscard 2 card and draw 1 card of your choice from your deck.";
-			case "Eredin - King of the Wild Hunt" ->
+			case "Eredin - Commander of the Red Riders" ->
 					text = "Leader Ability\nPick any weather card from your deck and play it instantly.";
 			case "Eredin Bréacc Glas - The Treacherous" ->
 					text = "Leader Ability\nDoubles the strength of all spy cards (affects both players).";
@@ -236,13 +236,13 @@ public class FivePlacePreGame extends Pane {
 					text = "Leader Ability\nMove agile units to whichever valid row maximizes their strength " + "(don't move units already in optimal row).";
 			case "Crach an Craite" ->
 					text = "Leader Ability\nShuffle all cards from each player's graveyard back into their decks.";
-			case "King Bran" -> text = "Leader Ability\nUnits only lose half their Strength in bad weather conditions.";
+			case "King Bran" ->
+					text = "Leader Ability\nUnits only lose half their Strength in bad weather conditions.";
 			case "REALMS" -> text = "Northern Realms\nDraw a card from your deck whenever you win a round.";
 			case "NILFGAARD" -> text = "Nilfgaardian Empire\nWins any round that ends in a draw.";
 			case "MONSTERS" -> text = "Monsters\nKeeps a random Unit Card out after each round.";
 			case "SCOIATAEL" -> text = "Scoia'tael\nDecides who takes first turn.";
-			case "SKELLIGE" ->
-					text = "Skellige\n2 random cards from the graveyard are placed on the battlefield" + " at the start of the third round.";
+			case "SKELLIGE" -> text = "Skellige\n2 random cards from the graveyard are placed on the battlefield at the start of the third round.";
 		}
 		textFiled.setText("\n" + text);
 	}
