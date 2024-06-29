@@ -5,6 +5,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.model.card.CardInfo;
@@ -23,7 +24,7 @@ public class CardView extends Pane {
 	private String rootPath;
 	private boolean simpleEquals;
 
-	private CardView(String address, boolean large, boolean withCount, boolean simpleEquals, int strength, double width, double height) {
+	private CardView(String address, boolean large, boolean withCount, boolean simpleEquals, int strength, boolean showStrength, double width, double height) {
 		this.address = address;
 		this.width = width;
 		this.height = height;
@@ -31,21 +32,37 @@ public class CardView extends Pane {
 		this.simpleEquals = simpleEquals;
 		rootPath = large? "lg/": "sm/";
 		fillInfoByName();
+		if (strength == -1)
+			strength = this.strength;
 		addBackground();
 		if (withCount) {
 			addSymbol();
 			addCountLabel();
 		}
+		if (showStrength) {
+			// TODO: make this better
+			Text text = new Text(String.valueOf(strength));
+			text.setFont(new Font(16));
+			text.setLayoutY(height);
+			if (strength <  this.strength) text.setFill(Color.color(1, 0, 0));
+			if (strength == this.strength) text.setFill(Color.color(1, 1, 1));
+			if (strength >  this.strength) text.setFill(Color.color(0, 1, 0));
+			getChildren().add(text);
+		}
+		this.strength = strength;
 	}
 
 	public static CardView newSelection(String address, double width, double height) {
-		return new CardView(address, true, true, false, -1, width, height);
+		return new CardView(address, true, true, false, -1, false, width, height);
 	}
 	public static CardView newHand(String address, double width, double height) {
-		return new CardView(address, false, false, true, -1, width, height);
+		return new CardView(address, false, false, true, -1, true, width, height);
+	}
+	public static CardView newInBoard(String address, int strength, double width, double height) {
+		return new CardView(address, false, false, true, strength, true, width, height);
 	}
 	public static CardView newInfo(String address, double width, double height) {
-		return new CardView(address, true, false, true, -1, width, height);
+		return new CardView(address, true, false, true, -1, false, width, height);
 	}
 
 	private void fillInfoByName() {
@@ -53,8 +70,7 @@ public class CardView extends Pane {
 			if (cardInfo.pathAddress.equals(address)) {
 				faction = cardInfo.faction;
 				name = cardInfo.name;
-				if (strength == -1)
-					strength = cardInfo.strength;
+				strength = cardInfo.strength;
 				hero = cardInfo.isHero;
 			}
 		}

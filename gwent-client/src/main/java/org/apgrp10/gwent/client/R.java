@@ -97,6 +97,7 @@ public class R
 		public static final Image fog = getImage("icons/overlay_fog.png");
 		public static final Image rain = getImage("icons/overlay_rain.png");
 		public static final Image scorch = getImage("icons/anim_scorch.png");
+		public static final Image gem_on = getImage("icons/icon_gem_on.png");
 	}
 	
 	public static class icon

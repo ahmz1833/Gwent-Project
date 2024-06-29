@@ -101,6 +101,10 @@ public class GameMenu extends Application {
 			new RectPos(0.8041, 0.0648, 0.8619, 0.1990),
 			new RectPos(0.8041, 0.7657, 0.8619, 0.9009),
 		};
+		public static final RectPos hp[] = {
+			new RectPos(0.0666, 0.2824, 0.2260, 0.3324),
+			new RectPos(0.0666, 0.6546, 0.2260, 0.7046),
+		};
 	}
 
 
@@ -158,12 +162,14 @@ public class GameMenu extends Application {
 
 	private CardView activeCardView;
 
-	private void addCardHBox(Position.RectPos pos, List<Card> cards) {
+	private void addCardHBox(Position.RectPos pos, List<Card> cards, boolean calcStrength) {
 		HBox hbox = new HBox();
 		hbox.setAlignment(Pos.CENTER);
 		pos.setBounds(hbox);
 		for (Card card : cards) {
-			CardView cardView = CardView.newHand(card.pathAddress, Position.card.w(), Position.card.h());
+			CardView cardView = calcStrength
+					? CardView.newInBoard(card.pathAddress, controller.calcCardScore(card), Position.card.w(), Position.card.h())
+					: CardView.newHand(card.pathAddress, Position.card.w(), Position.card.h());
 			hbox.getChildren().add(cardView);
 			cardView.setOnMouseClicked(e -> {
 				e.consume();
@@ -254,17 +260,17 @@ public class GameMenu extends Application {
 		addButton("Hello", "hello", null);
 		addButton("Pass", "pass", Position.pass);
 
-		addCardHBox(Position.hand, controller.getPlayer(player).handCards);
+		addCardHBox(Position.hand, controller.getPlayer(player).handCards, false);
 
 		for (int i = 0; i < 6; i++) {
 			int actualRow = player == 1? 5 - i: i;
-			addCardHBox(Position.row[i], controller.getRow(actualRow));
+			addCardHBox(Position.row[i], controller.getRow(actualRow), true);
 			setInfoOnClicked(rootPane.getChildren().getLast(), controller.getRow(actualRow), false);
-			addCardHBox(Position.special[i], controller.getSpecial(actualRow));
+			addCardHBox(Position.special[i], controller.getSpecial(actualRow), false);
 			int score = controller.calcRowScore(actualRow);
 			addText(String.valueOf(score), Position.rowScore[i]);
 		}
-		addCardHBox(Position.weather, controller.getWeather());
+		addCardHBox(Position.weather, controller.getWeather(), false);
 		setInfoOnClicked(rootPane.getChildren().getLast(), controller.getWeather(), false);
 
 		addText(String.valueOf(controller.calcPlayerScore(1 - player)), Position.totalScore[0]);
@@ -310,6 +316,14 @@ public class GameMenu extends Application {
 
 		for (Card card : scorchCards)
 			setCardViewScorch(cardMap.get(card));
+
+		for (int i = 0; i < 2; i++) {
+			HBox healthBar = new HBox();
+			Position.hp[i].setBounds(healthBar);
+			for (int j = 0; j < controller.getPlayer(i == player? 1: 0).hp; j++)
+				healthBar.getChildren().add(new ImageView(R.image.gem_on));
+			rootPane.getChildren().add(healthBar);
+		}
 
 		// TODO: use some highlight or something
 		if (activeCardView != null) {

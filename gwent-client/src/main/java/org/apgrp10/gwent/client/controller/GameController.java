@@ -28,6 +28,7 @@ public class GameController {
 		public final List<Card> usedCards = new ArrayList<>();
 		public final List<Card> ownedCards = new ArrayList<>();
 		public boolean vetoDone;
+		public int hp = 2;
 
 		public PlayerData(Deck deck, InputController controller) {
 			this.user = deck.getUser();
@@ -47,7 +48,7 @@ public class GameController {
 	private Map<Integer, Card> cardIdMap = new HashMap<>();
 	private boolean lastPassed;
 
-	public boolean isPasses() {
+	public boolean isPassed() {
 		return lastPassed;
 	}
 
@@ -316,8 +317,40 @@ public class GameController {
 	}
 
 	private void nextRound() {
-		// TODO
-		System.exit(0);
+		playerData[turn].controller.endTurn();
+		boolean end = false;
+		for (int i = 0; i < 2; i++) {
+			boolean lose = calcPlayerScore(i) <= calcPlayerScore(1 - i);
+			playerData[i].hp -= lose? 1: 0;
+			end |= playerData[i].hp == 0;
+		}
+		if (end) {
+			// TODO
+			System.exit(0);
+		}
+
+		lastPassed = false;
+		activeCard = null;
+
+		List<Card> toBeRemoved = new ArrayList<>();
+		for (int i = 0; i < 6; i++) {
+			toBeRemoved.addAll(row.get(i));
+			toBeRemoved.addAll(special.get(i));
+		}
+		toBeRemoved.addAll(weather);
+		
+		for (int i = 0; i < 6; i++) {
+			row.get(i).removeAll(toBeRemoved);
+			special.get(i).removeAll(toBeRemoved);
+		}
+		weather.removeAll(toBeRemoved);
+		for (Card card : toBeRemoved) {
+			gameMenu.animationToUsed(card, ownerOfCard(card));
+			playerData[ownerOfCard(card)].usedCards.add(card);
+		}
+
+		gameMenu.redraw();
+		new WaitExec(600, () -> playerData[0].controller.beginTurn());
 	}
 
 	private void pass(Command.Pass cmd) {
@@ -465,6 +498,10 @@ public class GameController {
 				(this.row.get(row).stream().anyMatch(c -> c.ability == Ability.HORN)
 				|| special.get(row).stream().anyMatch(c -> c.ability == Ability.HORN)))
 			score *= 2;
+
+		score += this.row.get(row).stream().filter(c -> c.ability == Ability.MORALE).count();
+		if (card.ability == Ability.MORALE)
+			score -= 1;
 
 		return score;
 	}
