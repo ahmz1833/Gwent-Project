@@ -18,6 +18,7 @@ import org.apgrp10.gwent.client.controller.ChatMenuController;
 import org.apgrp10.gwent.client.view.ReactionChat;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.User;
+import org.apgrp10.gwent.utils.ANSI;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -212,8 +213,7 @@ public class ChatMenu extends Pane {
 				}
 			}
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			System.out.println(e.getStackTrace());
+			ANSI.logError(System.err, null, e);
 		}
 	}
 

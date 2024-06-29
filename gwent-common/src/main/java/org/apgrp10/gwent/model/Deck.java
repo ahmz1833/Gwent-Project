@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.scene.layout.GridPane;
 import org.apgrp10.gwent.model.card.*;
+import org.apgrp10.gwent.utils.ANSI;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -122,6 +123,7 @@ public class Deck {
 			br.close();
 			return DeckToSave.loadFromJson(text.toString());
 		} catch (Exception e) {
+			ANSI.logError(System.err, "Error in loading deck from " + fileAddress, e);
 			return null;
 		}
 	}

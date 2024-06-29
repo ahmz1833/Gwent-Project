@@ -10,6 +10,8 @@ import javafx.scene.text.Font;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -60,6 +62,11 @@ public class R
 	public static URL get(String path)
 	{
 		return R.class.getResource(path);
+	}
+	
+	public static String getAbsPath(String resource)
+	{
+		return URLDecoder.decode(get(resource).getFile(), StandardCharsets.UTF_8);
 	}
 	
 	public static InputStream getAsStream(String path)

@@ -12,8 +12,7 @@ public class ChatMenuController {
 	private final Pane pane;
 
 	public ChatMenuController(Pane pane, User user, double screenWidth, Scene scene) {
-		//TODO correct this. it should call R class
-		scene.getStylesheets().add(R.class.getResource("css/chat.css").toExternalForm());
+		scene.getStylesheets().add(R.get("css/chat.css").toExternalForm());
 		this.chatMenu = new ChatMenu(screenWidth, this, user);
 		this.pane = pane;
 	}

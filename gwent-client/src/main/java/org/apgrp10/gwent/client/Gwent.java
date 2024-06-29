@@ -7,12 +7,28 @@ import javafx.stage.Stage;
 import org.apgrp10.gwent.client.view.MainStage;
 import org.apgrp10.gwent.utils.ANSI;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Set;
 
 public class Gwent extends Application {
 	
+	public static final boolean USE_WINDOWS = System.getProperty("os.name").startsWith("Windows");
+	public static final String APP_DATA = System.getProperty("user.home") + "/.gwentdata/";
+	
 	public static void main(String[] args) {
 		System.out.println(ANSI.LGREEN.bd() + "Hello! Welcome to Gwent Game (Made by AP Group 10) !" + ANSI.RST);
+		Path path = Paths.get(APP_DATA);
+		if (!Files.exists(path)) {
+			try {
+				Files.createDirectories(path);
+				System.out.println(ANSI.LYELLOW.bd() + "app directory created at: " + APP_DATA + ANSI.RST + "\n");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		launch(args);
 	}
 	

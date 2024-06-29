@@ -43,7 +43,6 @@ public class MessagePreGame extends Pane {
 		this.setMinWidth(PreGameMenu.screenWidth / 2.0);
 		this.setMinHeight(PreGameMenu.screenHeight);
 		this.setLayoutX(primaryX);
-		System.out.println(primaryX);
 		this.setLayoutY(0);
 		gamePane.getChildren().add(this);
 		this.setOnMouseClicked(k -> endShow());
