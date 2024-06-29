@@ -2,6 +2,7 @@ package org.apgrp10.gwent.client.controller;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -47,6 +48,7 @@ public class GameController {
 	private Card activeCard;
 	private Map<Integer, Card> cardIdMap = new HashMap<>();
 	private boolean lastPassed;
+	private Random rand;
 
 	public boolean isPassed() {
 		return lastPassed;
@@ -64,7 +66,7 @@ public class GameController {
 		}
 
 		int id = 0;
-		Random rand = new Random(seed);
+		rand = new Random(seed);
 		for (PlayerData p : playerData) {
 			Deck d = p.deck;
 
@@ -181,6 +183,29 @@ public class GameController {
 		});
 	}
 
+	private void transformCard(Card card, CardInfo info) {
+		Card newCard = new Card(info.name, info.pathAddress, info.strength, info.row, info.faction, info.ability, info.isHero);
+		newCard.setGameId(card.getGameId());
+
+		List<List<Card>> lists = new ArrayList<>();
+		lists.addAll(row);
+		lists.addAll(special);
+		lists.add(weather);
+		for (PlayerData data : playerData) {
+			lists.add(data.deck.getDeck());
+			lists.add(data.handCards);
+			lists.add(data.usedCards);
+			lists.add(data.ownedCards);
+		}
+
+		for (List<Card> list : lists) {
+			if (!list.contains(card))
+				continue;
+			int i = list.indexOf(card);
+			list.set(i, newCard);
+		}
+	}
+
 	private void checkBerserker() {
 		for (int i = 0; i < 6; i++) {
 			if (!row.get(i).stream().anyMatch(card -> card.ability == Ability.MARDROEME)
@@ -188,19 +213,8 @@ public class GameController {
 				continue;
 
 			for (Card card : row.get(i)) {
-				if (card.ability != Ability.BERSERKER)
-					continue;
-
-				CardInfo info = CardInfo.byPathAddress(card.pathAddress.replace("berserker", "vildkaarl"));
-				Card newCard = new Card(info.name, info.pathAddress, info.strength, info.row, info.faction, info.ability, info.isHero);
-				newCard.setGameId(card.getGameId());
-
-				int j = row.get(i).indexOf(card);
-				row.get(i).set(j, newCard);
-
-				List<Card> owned = playerData[i < 3? 1: 0].ownedCards;
-				j = owned.indexOf(card);
-				owned.set(j, newCard);
+				if (card.ability == Ability.BERSERKER)
+					transformCard(card, CardInfo.byPathAddress(card.pathAddress.replace("berserker", "vildkaarl")));
 			}
 		}
 	}
@@ -338,7 +352,24 @@ public class GameController {
 			toBeRemoved.addAll(special.get(i));
 		}
 		toBeRemoved.addAll(weather);
-		
+
+		Iterator<Card> it = toBeRemoved.iterator();
+		while (it.hasNext()) {
+			Card card = it.next();
+
+			if (card.ability == Ability.AVENGER || card.ability == Ability.AVENGER_KAMBI) {
+				// TODO: use a better method for choosing the new card e.g. using the Random object
+				CardInfo info = CardInfo.allCards.stream()
+					.filter(i -> i.row == card.row)
+					.filter(i -> i.strength == 8)
+					.filter(i -> !i.isHero)
+					.findAny()
+					.get();
+				new WaitExec(500, () -> transformCard(card, info));
+				it.remove();
+			}
+		}
+
 		for (int i = 0; i < 6; i++) {
 			row.get(i).removeAll(toBeRemoved);
 			special.get(i).removeAll(toBeRemoved);
