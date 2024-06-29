@@ -1,11 +1,13 @@
 package org.apgrp10.gwent.client.controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import org.apgrp10.gwent.client.model.WaitExec;
 import org.apgrp10.gwent.client.view.GameMenu;
@@ -30,6 +32,8 @@ public class GameController {
 		public final List<Card> ownedCards = new ArrayList<>();
 		public boolean vetoDone;
 		public int hp = 2;
+		public boolean leaderUsed;
+		public boolean leaderCancelled;
 
 		public PlayerData(Deck deck, InputController controller) {
 			this.user = deck.getUser();
@@ -49,6 +53,18 @@ public class GameController {
 	private Map<Integer, Card> cardIdMap = new HashMap<>();
 	private boolean lastPassed;
 	private Random rand;
+
+	public boolean leaderAbilityInUse(int player, Ability ability) {
+		boolean ans = false;
+		for (int p = 0; p < 2; p++) {
+			if (player != -1 && player != p)
+				continue;
+			ans |= playerData[p].leaderUsed
+					&& !playerData[p].leaderCancelled
+					&& playerData[p].deck.getLeader().ability == ability;
+		}
+		return ans;
+	}
 
 	public boolean isPassed() {
 		return lastPassed;
@@ -77,11 +93,12 @@ public class GameController {
 
 			for (Card card : d.getDeck())
 				cardIdMap.put(card.getGameId(), card);
-		}
 
-		for (PlayerData p : playerData) for (int i = 0; i < 10; i++) {
-			p.handCards.add(p.deck.getDeck().get(0));
-			p.deck.getDeck().remove(0);
+			int handSize = p.deck.getLeader().ability == Ability.FRANCESCA_DAISY? 11: 10;
+			for (int i = 0; i < handSize; i++) {
+				p.handCards.add(p.deck.getDeck().get(0));
+				p.deck.getDeck().remove(0);
+			}
 		}
 
 		// must be last so GameController initialization is complete
@@ -92,6 +109,12 @@ public class GameController {
 		c1.start(this, 1);
 		c0.veto();
 		c1.veto();
+	}
+
+	private void beginRound() {
+		turn = 0;
+		nextTurnDelay = 1000;
+		playerData[0].controller.beginTurn();
 	}
 
 	private long nextTurnDelay = 1000;
@@ -167,9 +190,9 @@ public class GameController {
 		return strongest(list);
 	}
 
-	private void scorchWhenPlaced(List<Card> list) {
-		nextTurnDelay += 1500;
-		new WaitExec(500, () -> {
+	private void scorchWithDelay(List<Card> list, long delay) {
+		nextTurnDelay += 1000 + delay;
+		new WaitExec(delay, () -> {
 			gameMenu.setScorchCards(list);
 			gameMenu.redraw();
 			new WaitExec(1000, () -> {
@@ -182,6 +205,9 @@ public class GameController {
 			});
 		});
 	}
+
+	private void scorchWhenPlaced(List<Card> list) { scorchWithDelay(list, 500); }
+	private void scorchNow(List<Card> list) { scorchWithDelay(list, 0); }
 
 	private void transformCard(Card card, CardInfo info) {
 		Card newCard = new Card(info.name, info.pathAddress, info.strength, info.row, info.faction, info.ability, info.isHero);
@@ -219,42 +245,47 @@ public class GameController {
 		}
 	}
 
-	private void playCard(Command.PlayCard cmd) {
-		Card card = cardById(cmd.cardId());
-
+	private void playCardImpl(int player, Card card, int rowIdx) {
 		// must be before placing so the card itself isn't considered for being strongest
 		// other things needed for scorch will be done further down
 		if (card.ability == Ability.SCORCH)
 			scorchWhenPlaced(strongestAll());
 
-		placeCard(card, cmd.row());
+		placeCard(card, rowIdx);
 
 		if (card.ability == Ability.SPY) {
-			List<Card> deck = playerData[cmd.player()].deck.getDeck();
-			if (!deck.isEmpty()) moveCardToHand(cmd.player(), deck.get(0));
-			if (!deck.isEmpty()) moveCardToHand(cmd.player(), deck.get(0));
+			List<Card> deck = playerData[player].deck.getDeck();
+			if (!deck.isEmpty()) moveCardToHand(player, deck.get(0));
+			if (!deck.isEmpty()) moveCardToHand(player, deck.get(0));
 		}
 
 		if (card.ability == Ability.MUSTER) {
 			List<Card> toBeMustered = new ArrayList<>();
-			for (Card c : playerData[cmd.player()].deck.getDeck())
+			for (Card c : playerData[player].deck.getDeck())
 				if (card.name.equals(c.name))
 					toBeMustered.add(c);
-			for (Card c : playerData[cmd.player()].handCards)
+			for (Card c : playerData[player].handCards)
 				if (card.name.equals(c.name))
 					toBeMustered.add(c);
 			for (Card c : toBeMustered)
-				placeCard(c, cmd.row());
+				placeCard(c, rowIdx);
 		}
 
 		if (card.ability == Ability.MEDIC) {
-			if (!playerData[cmd.player()].usedCards.isEmpty()) {
-				playerData[cmd.player()].controller.reviveCard();
+			nextTurnDelay = -1;
+			List<Card> list = playerData[player].usedCards.stream()
+				.filter(c -> c.row != Row.NON)
+				.collect(Collectors.toList());
+
+			if (leaderAbilityInUse(-1, Ability.EMHYR_INVADER)) {
+				pickRevive(player, list.isEmpty()? null: list.get(rand.nextInt(list.size())));
 				return;
 			}
+
+			playerData[player].controller.pick(list, "revive");
 		}
 
-		if (cmd.player() == 0) {
+		if (player == 0) {
 			if (card.ability == Ability.SCORCH_C && calcRowScore(2) >= 10) scorchWhenPlaced(strongestRow(2));
 			if (card.ability == Ability.SCORCH_R && calcRowScore(1) >= 10) scorchWhenPlaced(strongestRow(1));
 			if (card.ability == Ability.SCORCH_S && calcRowScore(0) >= 10) scorchWhenPlaced(strongestRow(0));
@@ -265,23 +296,36 @@ public class GameController {
 		}
 		if (card.ability == Ability.SCORCH) {
 			if (card.row == Row.NON) new WaitExec(600, () -> {
-				for (int i = 0; i < 6; i++) {
-					row.get(i).remove(card);
+				for (int i = 0; i < 6; i++)
 					special.get(i).remove(card);
-				}
-				playerData[cmd.player()].usedCards.add(card);
-				gameMenu.animationToUsed(card, cmd.player());
+				playerData[player].usedCards.add(card);
+				gameMenu.animationToUsed(card, player);
 				gameMenu.redraw();
 			});
 		}
 
 		if (card.ability == Ability.MARDROEME || card.ability == Ability.BERSERKER)
 			checkBerserker();
+	}
 
-		if (!lastPassed) {
-			nextTurn(nextTurnDelay);
+	private void playCard(Command.PlayCard cmd) {
+		playCardImpl(cmd.player(), cardById(cmd.cardId()), cmd.row());
+		nextTurn();
+	}
+
+	private void nextTurn() {
+		if (nextTurnDelay == -1) {
 			nextTurnDelay = 1000;
-		} else if (nextTurnDelay != 1000) {
+			return;
+		}
+		if (!lastPassed) {
+			playerData[turn].controller.endTurn();
+			new WaitExec(nextTurnDelay, () -> {
+				turn = 1 - turn;
+				playerData[turn].controller.beginTurn();
+			});
+			nextTurnDelay = 1000;
+		} else if (nextTurnDelay > 1000) {
 			playerData[turn].controller.pauseTurn();
 			new WaitExec(nextTurnDelay, () -> { playerData[turn].controller.resumeTurn(); });
 		}
@@ -302,8 +346,7 @@ public class GameController {
 			}
 		}
 
-		if (!lastPassed)
-			nextTurn(1000);
+		nextTurn();
 	}
 
 	private void moveCardToHand(int player, Card card) {
@@ -316,14 +359,6 @@ public class GameController {
 	private void moveToHand(Command.MoveToHand cmd) {
 		Card card = cardById(cmd.cardId());
 		moveCardToHand(cmd.player(), card);
-	}
-
-	private void nextTurn(long delay) {
-		playerData[turn].controller.endTurn();
-		new WaitExec(delay, () -> {
-			turn = 1 - turn;
-			playerData[turn].controller.beginTurn();
-		});
 	}
 
 	private void setActiveCard(Command.SetActiveCard cmd) {
@@ -381,13 +416,14 @@ public class GameController {
 		}
 
 		gameMenu.redraw();
-		new WaitExec(600, () -> playerData[0].controller.beginTurn());
+		new WaitExec(600, () -> beginRound());
 	}
 
 	private void pass(Command.Pass cmd) {
 		if (!lastPassed) {
 			lastPassed = true;
-			nextTurn(0);
+			nextTurnDelay = 100;
+			nextTurn();
 		} else {
 			nextRound();
 		}
@@ -400,7 +436,7 @@ public class GameController {
 		if (card == null) {
 			data.vetoDone = true;
 			if (playerData[0].vetoDone && playerData[1].vetoDone)
-				playerData[0].controller.beginTurn();
+				beginRound();
 			return;
 		}
 
@@ -409,6 +445,82 @@ public class GameController {
 		hand.set(hand.indexOf(card), deck.get(0));
 		deck.remove(0);
 		deck.add(card);
+	}
+
+	private void playLeader(Command.PlayLeader cmd) {
+		PlayerData data = playerData[cmd.player()];
+		data.leaderUsed = true;
+		doLeaderAbility(cmd.player(), data.deck.getLeader().ability);
+		nextTurn();
+	}
+
+	private void pickView(int player, Card card) { }
+	private void pickStealUsed(int player, Card card) {
+		if (card == null) return;
+
+		PlayerData us = playerData[player];
+		PlayerData them = playerData[1 - player];
+
+		them.ownedCards.remove(card);
+		them.usedCards.remove(card);
+		us.ownedCards.add(card);
+		us.handCards.add(card);
+
+		if (player == activePlayer)
+			gameMenu.animationToHand(card);
+	}
+	private void pickRevive(int player, Card card) {
+		if (card == null) return;
+		int row = 0;
+		// TODO: what happens when an agile card gets revived?
+		while (!canPlace(player, row, card)) row++;
+		playCardImpl(player, card, row);
+	}
+	private void pickRestoreToHand(int player, Card card) {
+		if (card == null) return;
+		gameMenu.animationToHand(card);
+		playerData[player].usedCards.remove(card);
+		playerData[player].handCards.add(card);
+	}
+	private void pickDiscard(int player, Card card, int i) {
+		nextTurnDelay = -1;
+		List<Card> deck = new ArrayList<>();
+		deck.addAll(playerData[player].deck.getDeck());
+		Collections.shuffle(deck, rand);
+		if (card == null) {
+			playerData[player].controller.pick(deck, "deck_to_hand");
+			return;
+		}
+		gameMenu.animationToUsed(card, player);
+		playerData[player].handCards.remove(card);
+		playerData[player].usedCards.add(card);
+		playerData[player].controller.pick(i == 0? playerData[player].handCards: deck, i == 0? "discard_2": "deck_to_hand");
+	}
+	private void pickDeckToHand(int player, Card card) {
+		if (card == null) return;
+		gameMenu.animationToHand(card);
+		playerData[player].deck.removeCard(card);
+		playerData[player].handCards.add(card);
+	}
+	private void pickWeather(int player, Card card) {
+		if (card == null) return;
+		playCardImpl(player, card, 12);
+	}
+
+	private void pickResponse(Command.PickResponse cmd) {
+		Card card = cardById(cmd.cardId());
+		int player = cmd.player();
+		switch (cmd.what()) {
+			case "revive" -> pickRevive(player, card);
+			case "view_enemy_hand" -> pickView(player, card);
+			case "steal_used" -> pickStealUsed(player, card);
+			case "restore_to_hand" -> pickRestoreToHand(player, card);
+			case "discard_1" -> pickDiscard(player, card, 0);
+			case "discard_2" -> pickDiscard(player, card, 1);
+			case "deck_to_hand" -> pickDeckToHand(player, card);
+			case "weather" -> pickWeather(player, card);
+			default -> { assert false; }
+		}
 	}
 
 	public static interface CommandListener { public void call(Command cmd); }
@@ -423,9 +535,11 @@ public class GameController {
 			if (cmd instanceof Command.VetoCard) vetoCard((Command.VetoCard)cmd);
 			if (cmd instanceof Command.PlayCard) playCard((Command.PlayCard)cmd);
 			if (cmd instanceof Command.SwapCard) swapCard((Command.SwapCard)cmd);
+			if (cmd instanceof Command.PlayLeader) playLeader((Command.PlayLeader)cmd);
 			if (cmd instanceof Command.MoveToHand) moveToHand((Command.MoveToHand)cmd);
-			if (cmd instanceof Command.SetActiveCard) setActiveCard((Command.SetActiveCard)cmd);
 			if (cmd instanceof Command.Pass) pass((Command.Pass)cmd);
+			if (cmd instanceof Command.SetActiveCard) setActiveCard((Command.SetActiveCard)cmd);
+			if (cmd instanceof Command.PickResponse) pickResponse((Command.PickResponse)cmd);
 		}
 		commandQueue.clear();
 		gameMenu.redraw();
@@ -502,20 +616,18 @@ public class GameController {
 	public boolean hasFog() { return weather.stream().anyMatch(c -> c.ability == Ability.FOG || c.ability == Ability.RAIN_FOG); }
 	public boolean hasRain() { return weather.stream().anyMatch(c -> c.ability == Ability.RAIN || c.ability == Ability.RAIN_FOG); }
 
-	public int calcCardScore(Card card) {
-		if (card.isHero || card.row == Row.NON)
-			return card.strength;
-
-		int row = rowOfCard(card);
-		if (row == -1)
-			return card.strength;
-
+	private int calcCardScoreRow(Card card, int row) {
 		int score = card.strength;
 
-		if ((row == 0 || row == 5) && hasRain()) score = 1;
-		if ((row == 1 || row == 4) && hasFog()) score = 1;
-		if ((row == 2 || row == 3) && hasFrost()) score = 1;
+		// TODO: round up or down?
+		if ((row == 0 || row == 5) && hasRain()) score = leaderAbilityInUse(-1, Ability.KING_BRAN)? score / 2: 1;
+		if ((row == 1 || row == 4) && hasFog()) score = leaderAbilityInUse(-1, Ability.KING_BRAN)? score / 2: 1;
+		if ((row == 2 || row == 3) && hasFrost()) score = leaderAbilityInUse(-1, Ability.KING_BRAN)? score / 2: 1;
 		
+		score += this.row.get(row).stream().filter(c -> c.ability == Ability.MORALE).count();
+		if (card.ability == Ability.MORALE)
+			score -= 1;
+
 		if (card.ability == Ability.BOND) {
 			int x = 0;
 			for (Card c : this.row.get(row)) {
@@ -525,16 +637,30 @@ public class GameController {
 			score = x;
 		}
 
-		if (card.ability != Ability.HORN &&
-				(this.row.get(row).stream().anyMatch(c -> c.ability == Ability.HORN)
-				|| special.get(row).stream().anyMatch(c -> c.ability == Ability.HORN)))
+		boolean horn = false;
+		horn |= this.row.get(row).stream().anyMatch(c -> c.ability == Ability.HORN);
+		horn |= special.get(row).stream().anyMatch(c -> c.ability == Ability.HORN);
+		horn |= (row == 5 || row == 0) && leaderAbilityInUse(row < 3? 1: 0, Ability.FOLTEST_KING);
+		horn |= (row == 4 || row == 1) && leaderAbilityInUse(row < 3? 1: 0, Ability.FRANCESCA_BEAUTIFUL);
+		horn |= (row == 3 || row == 2) && leaderAbilityInUse(row < 3? 1: 0, Ability.EREDIN_BRINGER_OF_DEATH);
+		if (card.ability != Ability.HORN && horn)
 			score *= 2;
 
-		score += this.row.get(row).stream().filter(c -> c.ability == Ability.MORALE).count();
-		if (card.ability == Ability.MORALE)
-			score -= 1;
+		if (card.ability == Ability.SPY && leaderAbilityInUse(-1, Ability.EREDIN_TREACHEROUS))
+			score *= 2;
 
 		return score;
+	}
+
+	public int calcCardScore(Card card) {
+		if (card.isHero || card.row == Row.NON)
+			return card.strength;
+
+		int row = rowOfCard(card);
+		if (row == -1)
+			return card.strength;
+
+		return calcCardScoreRow(card, row);
 	}
 
 	public int calcRowScore(int i) {
@@ -549,5 +675,149 @@ public class GameController {
 		for (int i = (player == 1? 0: 3); i < (player == 1? 3: 6); i++)
 			ans += calcRowScore(i);
 		return ans;
+	}
+
+	private void doLeaderAbility(int player, Ability ability) {
+		PlayerData us = playerData[player], them = playerData[1 - player];
+		switch (ability) {
+			case FOLTEST_SIEGEMASTER -> {
+				Card card = us.deck.getDeck().stream().filter(c -> c.ability == Ability.FOG).findFirst().orElse(null);
+				if (card != null)
+					playCard(new Command.PlayCard(player, card.getGameId(), 12));
+			}
+
+			case FOLTEST_STEELFORGED -> {
+				for (Card card : weather)
+					gameMenu.animationToUsed(card, ownerOfCard(card));
+				weather.clear();
+			}
+
+			case FOLTEST_KING -> {}
+
+			case FOLTEST_LORD -> {
+				if (calcRowScore(player == 1? 5: 0) >= 10)
+					scorchNow(strongestRow(player == 1? 5: 0));
+			}
+
+			case FOLTEST_SON -> {
+				if (calcRowScore(player == 1? 4: 1) >= 10)
+					scorchNow(strongestRow(player == 1? 4: 1));
+			}
+
+			case EMHYR_WHITEFLAME -> {
+				Card card = us.deck.getDeck().stream().filter(c -> c.ability == Ability.RAIN).findFirst().orElse(null);
+				if (card != null)
+					playCardImpl(player, card, 12);
+			}
+
+			case EMHYR_IMPERIAL -> {
+				nextTurnDelay = -1;
+				List<Card> list = new ArrayList<>();
+				list.addAll(them.handCards);
+				Collections.shuffle(list, rand);
+				while (list.size() > 3)
+					list.removeLast();
+				us.controller.pick(list, "view_enemy_hand");
+			}
+
+			case EMHYR_EMPEROR -> {
+				them.leaderCancelled = true;
+			}
+
+			case EMHYR_RELENTLESS -> {
+				nextTurnDelay = -1;
+				us.controller.pick(them.usedCards, "steal_used");
+			}
+
+			case EMHYR_INVADER -> {}
+
+			case EREDIN_BRINGER_OF_DEATH -> {}
+
+			case EREDIN_KING -> {
+				nextTurnDelay = -1;
+				us.controller.pick(us.usedCards, "restore_to_hand");
+			}
+
+			case EREDIN_DESTROYER -> {
+				nextTurnDelay = -1;
+				us.controller.pick(us.handCards, "discard_1");
+			}
+
+			case EREDIN_COMMANDER -> {
+				nextTurnDelay = -1;
+				List<Card> list = us.deck.getDeck().stream()
+					.filter(c -> canPlace(player, 12, c))
+					.collect(Collectors.toList());
+				us.controller.pick(list, "weather");
+			}
+
+			case EREDIN_TREACHEROUS -> {}
+
+			case FRANCESCA_QUEEN -> {
+				if (calcRowScore(player == 1? 3: 2) >= 10)
+					scorchNow(strongestRow(player == 1? 3: 2));
+			}
+
+			case FRANCESCA_BEAUTIFUL -> {}
+
+			case FRANCESCA_DAISY -> {}
+
+			case FRANCESCA_PUREBLOOD -> {
+				Card card = us.deck.getDeck().stream().filter(c -> c.ability == Ability.FROST).findFirst().orElse(null);
+				if (card != null)
+					playCardImpl(player, card, 12);
+			}
+
+			case FRANCESCA_HOPE -> {
+				List<List<Card>> rem = new ArrayList<>();
+				List<List<Card>> add = new ArrayList<>();
+				for (int i = 0; i < 6; i++) {
+					rem.add(new ArrayList<>());
+					add.add(new ArrayList<>());
+				}
+				for (int i = 0; i < 6; i++) {
+					for (Card card : row.get(i)) {
+						// TODO: does it actualy move enemy's units as well?
+						if (ownerOfCard(card) != player)
+							continue;
+						int mx = i;
+						for (int j = 0; j < 6; j++) {
+							if (!canPlace(player, j, card))
+								continue;
+							if (calcCardScoreRow(card, mx) < calcCardScoreRow(card, j))
+								mx = j;
+						}
+						if (mx == i)
+							continue;
+						gameMenu.animationToRow(card, mx);
+						rem.get(i).add(card);
+						add.get(mx).add(card);
+					}
+				}
+				for (int i = 0; i < 6; i++) {
+					row.get(i).removeAll(rem.get(i));
+					row.get(i).addAll(add.get(i));
+				}
+			}
+
+			case CRACH_AN_CRAITE -> {
+				for (int p = 0; p < 2; p++) {
+					PlayerData data = playerData[p];
+
+					for (Card card : data.usedCards)
+						gameMenu.animationToDeck(card, p);
+
+					data.deck.getDeck().addAll(data.usedCards);
+					data.deck.shuffle(rand);
+					data.usedCards.clear();
+				}
+			}
+
+			case KING_BRAN -> {}
+
+			default -> {
+				assert false;
+			}
+		}
 	}
 }

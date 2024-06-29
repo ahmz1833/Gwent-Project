@@ -39,7 +39,7 @@ public class CardView extends Pane {
 			addSymbol();
 			addCountLabel();
 		}
-		if (showStrength) {
+		if (showStrength && strength != 0) {
 			// TODO: make this better
 			Text text = new Text(String.valueOf(strength));
 			text.setFont(new Font(16));

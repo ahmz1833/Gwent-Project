@@ -96,17 +96,13 @@ public class MouseInputController implements InputController {
 	}
 
 	@Override
-	public void reviveCard() {
-		controller.getGameMenu().pickCard(controller.getPlayer(player).usedCards, obj -> {
+	public void pick(List<Card> list, String what) {
+		boolean nullPossible = what.equals("view_enemy_hand");
+		controller.getGameMenu().pickCard(list, obj -> {
 			Card card = (Card)obj;
-			int row = 0;
-
-			// TODO: what happens when an agile card gets revived?
-			while (!controller.canPlace(player, row, card)) row++;
-
-			controller.sendCommand(new Command.PlayCard(player, card.getGameId(), row));
+			controller.sendCommand(new Command.PickResponse(player, card != null? card.getGameId(): -1, what));
 			controller.sendCommand(new Command.Sync());
-		}, false);
+		}, nullPossible);
 	}
 
 	private void bgAction(Object obj) {
@@ -127,6 +123,13 @@ public class MouseInputController implements InputController {
 		Card card = (Card)obj;
 		GameController.PlayerData data = controller.getPlayer(player);
 		Card active = controller.getActiveCard();
+
+		if (data.deck.getLeader() == card && !data.leaderUsed) {
+			controller.sendCommand(new Command.PlayLeader(player));
+			controller.sendCommand(new Command.SetActiveCard(player, -1));
+			controller.sendCommand(new Command.Sync());
+			return;
+		}
 
 		if (active != null && controller.canSwap(player, active, card)) {
 			controller.sendCommand(new Command.SwapCard(player, active.getGameId(), card.getGameId()));

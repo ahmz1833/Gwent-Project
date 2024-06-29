@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.GameController;
+import org.apgrp10.gwent.client.controller.GameController.PlayerData;
 import org.apgrp10.gwent.model.card.Card;
 import org.apgrp10.gwent.client.model.CardView;
 
@@ -105,6 +106,10 @@ public class GameMenu extends Application {
 			new RectPos(0.0666, 0.2824, 0.2260, 0.3324),
 			new RectPos(0.0666, 0.6546, 0.2260, 0.7046),
 		};
+		public static final RectPos leader[] = {
+			new RectPos(0.0713, 0.0740, 0.1244, 0.1990),
+			new RectPos(0.0713, 0.7712, 0.1244, 0.8962),
+		};
 	}
 
 
@@ -162,7 +167,7 @@ public class GameMenu extends Application {
 
 	private CardView activeCardView;
 
-	private void addCardHBox(Position.RectPos pos, List<Card> cards, boolean calcStrength) {
+	private void addCardHBox(Position.RectPos pos, List<Card> cards, boolean calcStrength, boolean cardClickable) {
 		HBox hbox = new HBox();
 		hbox.setAlignment(Pos.CENTER);
 		pos.setBounds(hbox);
@@ -171,10 +176,12 @@ public class GameMenu extends Application {
 					? CardView.newInBoard(card.pathAddress, controller.calcCardScore(card), Position.card.w(), Position.card.h())
 					: CardView.newHand(card.pathAddress, Position.card.w(), Position.card.h());
 			hbox.getChildren().add(cardView);
-			cardView.setOnMouseClicked(e -> {
-				e.consume();
-				notifyListeners(cardListeners, card);
-			});
+			if (cardClickable) {
+				cardView.setOnMouseClicked(e -> {
+					e.consume();
+					notifyListeners(cardListeners, card);
+				});
+			}
 			if (controller.getActiveCard() == card)
 				activeCardView = cardView;
 			cardMap.put(card, cardView);
@@ -260,18 +267,27 @@ public class GameMenu extends Application {
 		addButton("Hello", "hello", null);
 		addButton("Pass", "pass", Position.pass);
 
-		addCardHBox(Position.hand, controller.getPlayer(player).handCards, false);
+		addCardHBox(Position.hand, controller.getPlayer(player).handCards, false, true);
 
 		for (int i = 0; i < 6; i++) {
 			int actualRow = player == 1? 5 - i: i;
-			addCardHBox(Position.row[i], controller.getRow(actualRow), true);
+			addCardHBox(Position.row[i], controller.getRow(actualRow), true, true);
 			setInfoOnClicked(rootPane.getChildren().getLast(), controller.getRow(actualRow), false);
-			addCardHBox(Position.special[i], controller.getSpecial(actualRow), false);
+			addCardHBox(Position.special[i], controller.getSpecial(actualRow), false, true);
 			int score = controller.calcRowScore(actualRow);
 			addText(String.valueOf(score), Position.rowScore[i]);
 		}
-		addCardHBox(Position.weather, controller.getWeather(), false);
+		addCardHBox(Position.weather, controller.getWeather(), false, true);
 		setInfoOnClicked(rootPane.getChildren().getLast(), controller.getWeather(), false);
+
+		for (int i = 0; i < 2; i++) {
+			PlayerData data = controller.getPlayer(i == player? 1: 0);
+			List<Card> leaderList = new ArrayList<>();
+			List<Card> empty = new ArrayList<>();
+			leaderList.add(data.deck.getLeader());
+			addCardHBox(Position.leader[i], data.leaderUsed? empty: leaderList, false, false);
+			setInfoOnClicked(rootPane.getChildren().getLast(), leaderList, true);
+		}
 
 		addText(String.valueOf(controller.calcPlayerScore(1 - player)), Position.totalScore[0]);
 		addText(String.valueOf(controller.calcPlayerScore(player)), Position.totalScore[1]);
