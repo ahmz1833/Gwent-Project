@@ -20,21 +20,27 @@ public class MouseInputController implements InputController {
 
 	private final List<Object> listeners = new ArrayList<>();
 
-	@Override
-	public void beginTurn() {
-		controller.setActivePlayer(player);
-		listeners.clear();
+	private void addListeners() {
 		listeners.add(controller.getGameMenu().addButtonListener(this::buttonAction));
 		listeners.add(controller.getGameMenu().addCardListener(this::cardAction));
 		listeners.add(controller.getGameMenu().addRowListener(this::rowAction));
 		listeners.add(controller.getGameMenu().addBgListener(this::bgAction));
 	}
-
-	@Override
-	public void endTurn() {
+	private void removeListeners() {
 		for (Object listener : listeners)
 			controller.getGameMenu().removeListener(listener);
+		listeners.clear();
 	}
+
+	@Override
+	public void beginTurn() {
+		controller.setActivePlayer(player);
+		addListeners();
+	}
+
+	@Override public void endTurn() { removeListeners(); }
+	@Override public void pauseTurn() { removeListeners(); }
+	@Override public void resumeTurn() { addListeners(); }
 
 	@Override
 	public void endGame() {

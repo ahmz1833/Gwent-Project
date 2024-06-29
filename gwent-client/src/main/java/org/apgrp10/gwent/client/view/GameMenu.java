@@ -366,10 +366,6 @@ public class GameMenu extends Application {
 	}
 
 	private void notifyListeners(List<Callback> callbacks, Object obj) {
-		// we probably shouldn't accept input when an animation is playing
-		if (isAnimationPlaying())
-			return;
-
 		// we make a deep copy because someone might remove their listeners while we are iterating
 		List<Callback> copy = new ArrayList<>();
 		copy.addAll(callbacks);

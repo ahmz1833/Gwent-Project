@@ -33,6 +33,13 @@ public class CardInfo {
 		this.ability = ability;
 		allCards.add(this);
 	}
+
+	public static CardInfo byPathAddress(String path) {
+		for (CardInfo info : allCards)
+			if (info.pathAddress.equals(path))
+				return info;
+		return null;
+	}
 }
 
 

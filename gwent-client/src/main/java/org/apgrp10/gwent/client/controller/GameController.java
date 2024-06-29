@@ -13,6 +13,7 @@ import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.card.Ability;
 import org.apgrp10.gwent.model.card.Card;
+import org.apgrp10.gwent.model.card.CardInfo;
 import org.apgrp10.gwent.model.card.Faction;
 import org.apgrp10.gwent.model.card.Row;
 
@@ -100,7 +101,7 @@ public class GameController {
 	}
 	public int rowOfCard(Card card) {
 		for (int i = 0; i < 6; i++)
-			if (row.get(i).contains(card))
+			if (row.get(i).contains(card) || special.get(i).contains(card))
 				return i;
 		return -1;
 	}
@@ -142,8 +143,14 @@ public class GameController {
 		for (Card card : list) {
 			if (card.isHero)
 				continue;
-			if (!ans.isEmpty() && calcCardScore(ans.get(0)) < calcCardScore(card))
-				ans.clear();
+			if (!ans.isEmpty()) {
+				int x = calcCardScore(ans.get(0));
+				int y = calcCardScore(card);
+				if (x > y)
+					continue;
+				if (x < y)
+					ans.clear();
+			}
 			ans.add(card);
 		}
 		return ans;
@@ -166,15 +173,45 @@ public class GameController {
 				gameMenu.setScorchCards(new ArrayList<>());
 				for (Card card : list)
 					gameMenu.animationToUsed(card, ownerOfCard(card));
-				gameMenu.redraw();
 				for (int i = 0; i < 6; i++)
 					row.get(i).removeAll(list);
+				gameMenu.redraw();
 			});
 		});
 	}
 
+	private void checkBerserker() {
+		for (int i = 0; i < 6; i++) {
+			if (!row.get(i).stream().anyMatch(card -> card.ability == Ability.MARDROEME)
+					&& !special.get(i).stream().anyMatch(card -> card.ability == Ability.MARDROEME))
+				continue;
+
+			for (Card card : row.get(i)) {
+				if (card.ability != Ability.BERSERKER)
+					continue;
+
+				CardInfo info = CardInfo.byPathAddress(card.pathAddress.replace("berserker", "vildkaarl"));
+				Card newCard = new Card(info.name, info.pathAddress, info.strength, info.row, info.faction, info.ability, info.isHero);
+				newCard.setGameId(card.getGameId());
+
+				int j = row.get(i).indexOf(card);
+				row.get(i).set(j, newCard);
+
+				List<Card> owned = playerData[i < 3? 1: 0].ownedCards;
+				j = owned.indexOf(card);
+				owned.set(j, newCard);
+			}
+		}
+	}
+
 	private void playCard(Command.PlayCard cmd) {
 		Card card = cardById(cmd.cardId());
+
+		// must be before placing so the card itself isn't considered for being strongest
+		// other things needed for scorch will be done further down
+		if (card.ability == Ability.SCORCH)
+			scorchWhenPlaced(strongestAll());
+
 		placeCard(card, cmd.row());
 
 		if (card.ability == Ability.SPY) {
@@ -212,19 +249,26 @@ public class GameController {
 			if (card.ability == Ability.SCORCH_S && calcRowScore(5) >= 10) scorchWhenPlaced(strongestRow(5));
 		}
 		if (card.ability == Ability.SCORCH) {
-			scorchWhenPlaced(strongestAll());
-			new WaitExec(600, () -> {
-				gameMenu.animationToUsed(card, cmd.player());
+			if (card.row == Row.NON) new WaitExec(600, () -> {
 				for (int i = 0; i < 6; i++) {
 					row.get(i).remove(card);
 					special.get(i).remove(card);
 				}
+				playerData[cmd.player()].usedCards.add(card);
+				gameMenu.animationToUsed(card, cmd.player());
+				gameMenu.redraw();
 			});
 		}
+
+		if (card.ability == Ability.MARDROEME || card.ability == Ability.BERSERKER)
+			checkBerserker();
 
 		if (!lastPassed) {
 			nextTurn(nextTurnDelay);
 			nextTurnDelay = 1000;
+		} else if (nextTurnDelay != 1000) {
+			playerData[turn].controller.pauseTurn();
+			new WaitExec(nextTurnDelay, () -> { playerData[turn].controller.resumeTurn(); });
 		}
 	}
 
@@ -348,7 +392,7 @@ public class GameController {
 	public List<Card> getWeather() { return weather; }
 	
 	public boolean canPlace(int player, int row, Card card) {
-		if (card.ability == Ability.SCORCH)
+		if (card.ability == Ability.SCORCH && card.row == Row.NON)
 			return true;
 		if (player == 1)
 			row = 5 - row;
@@ -365,7 +409,7 @@ public class GameController {
 		};
 	}
 	public boolean canPlaceSpecial(int player, int row, Card card) {
-		if (card.ability == Ability.SCORCH)
+		if (card.ability == Ability.SCORCH && card.row == Row.NON)
 			return true;
 		if (card.ability == Ability.DECOY)
 			return false;
@@ -417,8 +461,9 @@ public class GameController {
 			score = x;
 		}
 
-		if (this.row.get(row).stream().anyMatch(c -> c.ability == Ability.HORN)
-				|| special.get(row).stream().anyMatch(c -> c.ability == Ability.HORN))
+		if (card.ability != Ability.HORN &&
+				(this.row.get(row).stream().anyMatch(c -> c.ability == Ability.HORN)
+				|| special.get(row).stream().anyMatch(c -> c.ability == Ability.HORN)))
 			score *= 2;
 
 		return score;
