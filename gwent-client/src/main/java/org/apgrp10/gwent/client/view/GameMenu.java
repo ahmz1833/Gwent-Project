@@ -24,6 +24,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
@@ -143,12 +144,12 @@ public class GameMenu extends Application {
 		rootPane.getChildren().add(text);
 	}
 
-	private void addButton(String str, String cmd, Position.RectPos pos) {
+	private void addButton(Pane parent, String str, String cmd, Position.RectPos pos) {
 		Button btn = new Button(str);
 		btn.setOnAction(e -> notifyListeners(buttonListeners, cmd));
-		if (pos != null) // TODO: this if should be removed in the future
+		if (pos != null)
 			pos.setBounds(btn);
-		rootPane.getChildren().add(btn);
+		parent.getChildren().add(btn);
 	}
 
 	private void addSelectionRect(Position.RectPos pos, int code) {
@@ -251,6 +252,20 @@ public class GameMenu extends Application {
 		rootPane.getChildren().add(rect);
 	}
 
+	private void addCheatButtons() {
+		HBox cheats = new HBox();
+		addButton(cheats, "Cheat: take from deck", "cheat_0", null);
+		addButton(cheats, "Cheat: add hp", "cheat_1", null);
+		addButton(cheats, "Cheat: restore leader", "cheat_2", null);
+		addButton(cheats, "Cheat: clear weather", "cheat_3", null);
+		addButton(cheats, "Cheat: restore graveyard", "cheat_4", null);
+		addButton(cheats, "Cheat: show opponent's hand", "cheat_5", null);
+		addButton(cheats, "Cheat: horn", "cheat_6", null);
+		for (Node node : cheats.getChildren())
+			node.setStyle("-fx-font-size:8");
+		rootPane.getChildren().add(cheats);
+	}
+
 	public void redraw() {
 		final int player = controller.getActivePlayer();
 		activeCardView = null;
@@ -264,8 +279,9 @@ public class GameMenu extends Application {
 
 		addBackground(R.image.board[controller.getActivePlayer()]);
 
-		addButton("Hello", "hello", null);
-		addButton("Pass", "pass", Position.pass);
+		// TODO: hide these
+		addCheatButtons();
+		addButton(rootPane, "Pass", "pass", Position.pass);
 
 		addCardHBox(Position.hand, controller.getPlayer(player).handCards, false, true);
 

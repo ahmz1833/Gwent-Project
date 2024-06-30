@@ -11,5 +11,6 @@ public interface Command {
 	public static record Pass(int player) implements Command, Serializable {}
 	public static record SetActiveCard(int player, int cardId) implements Command, Serializable {}
 	public static record PickResponse(int player, int cardId, String what) implements Command, Serializable {}
+	public static record Cheat(int player, int cheatId) implements Command, Serializable {}
 	public static record Sync() implements Command, Serializable {}
 }

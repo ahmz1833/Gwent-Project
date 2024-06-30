@@ -34,6 +34,7 @@ public class GameController {
 		public int hp = 2;
 		public boolean leaderUsed;
 		public boolean leaderCancelled;
+		public boolean cheatHorn;
 
 		public PlayerData(Deck deck, InputController controller) {
 			this.user = deck.getUser();
@@ -54,6 +55,7 @@ public class GameController {
 	private boolean lastPassed;
 	private Random rand;
 	private int currentRound = 0;
+	private boolean cheatAllowd = true;
 
 	public boolean leaderAbilityInUse(int player, Ability ability) {
 		boolean ans = false;
@@ -511,7 +513,8 @@ public class GameController {
 		nextTurn();
 	}
 
-	private void pickView(int player, Card card) { }
+	private void pickViewEnemyHand(int player) { }
+	private void pickCheatEnemyHand(int player) { nextTurnDelay = -1; }
 	private void pickStealUsed(int player, Card card) {
 		if (card == null) return;
 		moveCard(card, playerData[player].handCards);
@@ -553,16 +556,53 @@ public class GameController {
 		int player = cmd.player();
 		switch (cmd.what()) {
 			case "revive" -> pickRevive(player, card);
-			case "view_enemy_hand" -> pickView(player, card);
+			case "view_enemy_hand" -> pickViewEnemyHand(player);
 			case "steal_used" -> pickStealUsed(player, card);
 			case "restore_to_hand" -> pickRestoreToHand(player, card);
 			case "discard_1" -> pickDiscard(player, card, 0);
 			case "discard_2" -> pickDiscard(player, card, 1);
 			case "deck_to_hand" -> pickDeckToHand(player, card);
 			case "weather" -> pickWeather(player, card);
+			case "cheat_enemy_hand" -> pickCheatEnemyHand(player);
 			default -> { assert false; }
 		}
 		nextTurn();
+	}
+
+	private void cheat(Command.Cheat cmd) {
+		int p = cmd.player();
+		switch (cmd.cheatId()) {
+			case 0 -> {
+				if (!playerData[p].deck.getDeck().isEmpty())
+					moveCard(playerData[p].deck.getDeck().get(0), playerData[p].handCards);
+			}
+			case 1 -> {
+				playerData[p].hp++;
+			}
+			case 2 -> {
+				playerData[p].leaderUsed = false;
+				playerData[p].leaderCancelled = false;
+			}
+			case 3 -> {
+				List<Card> copy = new ArrayList<>();
+				copy.addAll(weather);
+				for (Card card : copy)
+					moveCard(card, playerData[ownerOfCard(card)].usedCards);
+			}
+			case 4 -> {
+				List<Card> copy = new ArrayList<>();
+				copy.addAll(playerData[p].usedCards);
+				for (Card card : copy)
+					moveCard(card, playerData[p].handCards);
+			}
+			case 5 -> {
+				playerData[p].controller.pick(playerData[1 - p].handCards, "cheat_enemy_hand");
+			}
+			case 6 -> {
+				playerData[p].cheatHorn = !playerData[p].cheatHorn;
+			}
+			default -> { assert false; }
+		}
 	}
 
 	public static interface CommandListener { public void call(Command cmd); }
@@ -587,6 +627,7 @@ public class GameController {
 			if (cmd instanceof Command.Pass) pass((Command.Pass)cmd);
 			if (cmd instanceof Command.SetActiveCard) setActiveCard((Command.SetActiveCard)cmd);
 			if (cmd instanceof Command.PickResponse) pickResponse((Command.PickResponse)cmd);
+			if (cmd instanceof Command.Cheat) cheat((Command.Cheat)cmd);
 		}
 		syncLock = false;
 		commandQueue.clear();
@@ -693,6 +734,7 @@ public class GameController {
 		horn |= (row == 5 || row == 0) && leaderAbilityInUse(row < 3? 1: 0, Ability.FOLTEST_KING);
 		horn |= (row == 4 || row == 1) && leaderAbilityInUse(row < 3? 1: 0, Ability.FRANCESCA_BEAUTIFUL);
 		horn |= (row == 3 || row == 2) && leaderAbilityInUse(row < 3? 1: 0, Ability.EREDIN_BRINGER_OF_DEATH);
+		horn |= playerData[ownerOfCard(card)].cheatHorn;
 		if (card.ability != Ability.HORN && horn)
 			score *= 2;
 

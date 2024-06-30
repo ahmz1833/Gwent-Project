@@ -97,7 +97,7 @@ public class MouseInputController implements InputController {
 
 	@Override
 	public void pick(List<Card> list, String what) {
-		boolean nullPossible = what.equals("view_enemy_hand");
+		boolean nullPossible = what.equals("view_enemy_hand") || what.equals("cheat_enemy_hand");
 		controller.getGameMenu().pickCard(list, obj -> {
 			Card card = (Card)obj;
 			controller.sendCommand(new Command.PickResponse(player, card != null? card.getGameId(): -1, what));
@@ -150,13 +150,10 @@ public class MouseInputController implements InputController {
 
 	private void buttonAction(Object obj) {
 		String str = (String)obj;
-		if (str.equals("hello")) {
-			List<Card> deck = controller.getPlayer(player).deck.getDeck();
-			if (!deck.isEmpty())
-				controller.sendCommand(new Command.MoveToHand(player, deck.get(0).getGameId()));
-		}
 		if (str.equals("pass"))
 			controller.sendCommand(new Command.Pass(player));
+		if (str.startsWith("cheat_"))
+			controller.sendCommand(new Command.Cheat(player, Integer.parseInt(str.substring(6))));
 		controller.sendCommand(new Command.Sync());
 	}
 }
