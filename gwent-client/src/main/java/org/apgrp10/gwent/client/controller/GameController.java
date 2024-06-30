@@ -53,6 +53,7 @@ public class GameController {
 	private Map<Integer, Card> cardIdMap = new HashMap<>();
 	private boolean lastPassed;
 	private Random rand;
+	private int currentRound = 0;
 
 	public boolean leaderAbilityInUse(int player, Ability ability) {
 		boolean ans = false;
@@ -112,9 +113,40 @@ public class GameController {
 	}
 
 	private void beginRound() {
-		turn = 0;
+		currentRound++;
+
+		Faction f0 = playerData[0].deck.getFaction();
+		Faction f1 = playerData[1].deck.getFaction();
+		if (f0 == Faction.SCOIATAEL && f1 != Faction.SCOIATAEL)
+			turn = 0;
+		else if (f1 == Faction.SCOIATAEL && f0 != Faction.SCOIATAEL)
+			turn = 1;
+		else
+			turn = rand.nextInt(2);
+
+		if (currentRound >= 3) {
+			for (int p = 0; p < 2; p++) {
+				Faction f = p == 1? f1: f0;
+				if (f != Faction.SKELLIGE)
+					continue;
+				for (int i = 0; i < 2; i++) {
+					// TODO: medic requires "pick"ing which is a pain and currently is not possible when it's not your turn
+					Card card = chooseRandom(playerData[p].usedCards.stream()
+							.filter(c -> c.row != Row.NON)
+							.filter(c -> c.ability != Ability.MEDIC)
+							.collect(Collectors.toList()));
+					if (card == null)
+						continue;
+					int row = 0;
+					// TODO: what happens when an agile card gets revived?
+					while (!canPlace(p, row, card)) row++;
+					playCardImpl(p, card, row);
+				}
+			}
+		}
+
 		nextTurnDelay = 1000;
-		playerData[0].controller.beginTurn();
+		playerData[turn].controller.beginTurn();
 	}
 
 	private long nextTurnDelay = 1000;
@@ -136,28 +168,51 @@ public class GameController {
 
 	public PlayerData getPlayer(int player) { return playerData[player]; }
 
+	private void moveCard(Card card, List<Card> to) {
+		if (card == null)
+			return;
+
+		for (int p = 0; p < 2; p++) {
+			if (to == playerData[p].deck.getDeck()) gameMenu.animationToDeck(card, p);
+			if (to == playerData[p].handCards && activePlayer == p) gameMenu.animationToHand(card);
+			if (to == playerData[p].usedCards) gameMenu.animationToUsed(card, p);
+		}
+		for (int i = 0; i < 6; i++) {
+			if (to == row.get(i)) gameMenu.animationToRow(card, i);
+			if (to == special.get(i)) gameMenu.animationToSpecial(card, i);
+		}
+		if (to == weather) gameMenu.animationToWeather(card);
+
+		for (int p = 0; p < 2; p++) {
+			playerData[p].deck.removeCard(card);
+			playerData[p].handCards.remove(card);
+			playerData[p].usedCards.remove(card);
+		}
+		for (int i = 0; i < 6; i++) {
+			row.get(i).remove(card);
+			special.get(i).remove(card);
+		}
+		weather.remove(card);
+
+		to.add(card);
+	}
+
 	private void placeCard(Card card, int idx) {
-		playerData[0].handCards.remove(card);
-		playerData[1].handCards.remove(card);
-		playerData[0].deck.removeCard(card);
-		playerData[1].deck.removeCard(card);
 		if (idx < 6) { // normal row
-			gameMenu.animationToRow(card, idx);
-			row.get(idx).add(card);
+			moveCard(card, row.get(idx));
 		} else if (idx < 12) { // special place
 			idx -= 6;
-			gameMenu.animationToSpecial(card, idx);
-			special.get(idx).add(card);
+			moveCard(card, special.get(idx));
 		} else if (idx < 13) { // weather
-			gameMenu.animationToWeather(card);
-			weather.add(card);
+			moveCard(card, weather);
 
 			if (card.ability == Ability.CLEAR) {
 				nextTurnDelay += 600;
 				new WaitExec(600, () -> {
-					for (Card c : weather)
-						gameMenu.animationToUsed(c, ownerOfCard(c));
-					weather.clear();
+					List<Card> copy = new ArrayList<>();
+					copy.addAll(weather);
+					for (Card c : copy)
+						moveCard(c, playerData[ownerOfCard(c)].usedCards);
 					gameMenu.redraw();
 				});
 			}
@@ -198,9 +253,7 @@ public class GameController {
 			new WaitExec(1000, () -> {
 				gameMenu.setScorchCards(new ArrayList<>());
 				for (Card card : list)
-					gameMenu.animationToUsed(card, ownerOfCard(card));
-				for (int i = 0; i < 6; i++)
-					row.get(i).removeAll(list);
+					moveCard(card, playerData[ownerOfCard(card)].usedCards);
 				gameMenu.redraw();
 			});
 		});
@@ -245,6 +298,10 @@ public class GameController {
 		}
 	}
 
+	private<T> T chooseRandom(List<T> list) {
+		return list.isEmpty()? null: list.get(rand.nextInt(list.size()));
+	}
+
 	private void playCardImpl(int player, Card card, int rowIdx) {
 		// must be before placing so the card itself isn't considered for being strongest
 		// other things needed for scorch will be done further down
@@ -255,8 +312,8 @@ public class GameController {
 
 		if (card.ability == Ability.SPY) {
 			List<Card> deck = playerData[player].deck.getDeck();
-			if (!deck.isEmpty()) moveCardToHand(player, deck.get(0));
-			if (!deck.isEmpty()) moveCardToHand(player, deck.get(0));
+			if (!deck.isEmpty()) moveCard(deck.get(0), playerData[player].handCards);
+			if (!deck.isEmpty()) moveCard(deck.get(0), playerData[player].handCards);
 		}
 
 		if (card.ability == Ability.MUSTER) {
@@ -277,12 +334,10 @@ public class GameController {
 				.filter(c -> c.row != Row.NON)
 				.collect(Collectors.toList());
 
-			if (leaderAbilityInUse(-1, Ability.EMHYR_INVADER)) {
-				pickRevive(player, list.isEmpty()? null: list.get(rand.nextInt(list.size())));
-				return;
-			}
-
-			playerData[player].controller.pick(list, "revive");
+			if (leaderAbilityInUse(-1, Ability.EMHYR_INVADER))
+				pickRevive(player, chooseRandom(list));
+			else
+				playerData[player].controller.pick(list, "revive");
 		}
 
 		if (player == 0) {
@@ -296,10 +351,7 @@ public class GameController {
 		}
 		if (card.ability == Ability.SCORCH) {
 			if (card.row == Row.NON) new WaitExec(600, () -> {
-				for (int i = 0; i < 6; i++)
-					special.get(i).remove(card);
-				playerData[player].usedCards.add(card);
-				gameMenu.animationToUsed(card, player);
+				moveCard(card, playerData[player].usedCards);
 				gameMenu.redraw();
 			});
 		}
@@ -349,28 +401,31 @@ public class GameController {
 		nextTurn();
 	}
 
-	private void moveCardToHand(int player, Card card) {
-		if (player == activePlayer)
-			gameMenu.animationToHand(card);
-		playerData[player].deck.removeCard(card);
-		playerData[player].handCards.add(card);
-	}
-
 	private void moveToHand(Command.MoveToHand cmd) {
 		Card card = cardById(cmd.cardId());
-		moveCardToHand(cmd.player(), card);
+		moveCard(card, playerData[cmd.player()].handCards);
 	}
 
 	private void setActiveCard(Command.SetActiveCard cmd) {
 		activeCard = cardById(cmd.cardId());
 	}
 
+	public boolean gonnaWin(int player) {
+		int us = calcPlayerScore(player);
+		int them = calcPlayerScore(1 - player);
+		Faction ourFaction /* Soyuz nerushimy... */ = playerData[player].deck.getFaction();
+		Faction theirFaction = playerData[1 - player].deck.getFaction();
+		return us > them || (us == them && ourFaction == Faction.NILFGAARD && theirFaction != Faction.NILFGAARD);
+	}
+
 	private void nextRound() {
 		playerData[turn].controller.endTurn();
 		boolean end = false;
 		for (int i = 0; i < 2; i++) {
-			boolean lose = calcPlayerScore(i) <= calcPlayerScore(1 - i);
-			playerData[i].hp -= lose? 1: 0;
+			boolean win = gonnaWin(i);
+			playerData[i].hp -= win? 0: 1;
+			if (win && playerData[i].deck.getFaction() == Faction.REALMS && !playerData[i].deck.getDeck().isEmpty())
+				moveCard(playerData[i].deck.getDeck().get(0), playerData[i].handCards);
 			end |= playerData[i].hp == 0;
 		}
 		if (end) {
@@ -393,27 +448,29 @@ public class GameController {
 			Card card = it.next();
 
 			if (card.ability == Ability.AVENGER || card.ability == Ability.AVENGER_KAMBI) {
-				// TODO: use a better method for choosing the new card e.g. using the Random object
-				CardInfo info = CardInfo.allCards.stream()
+				CardInfo info = chooseRandom(CardInfo.allCards.stream()
 					.filter(i -> i.row == card.row)
 					.filter(i -> i.strength == 8)
 					.filter(i -> !i.isHero)
-					.findAny()
-					.get();
+					.collect(Collectors.toList()));
 				new WaitExec(500, () -> transformCard(card, info));
 				it.remove();
 			}
 		}
 
-		for (int i = 0; i < 6; i++) {
-			row.get(i).removeAll(toBeRemoved);
-			special.get(i).removeAll(toBeRemoved);
+		for (int player = 0; player < 2; player++) {
+			int p = player;
+			if (playerData[p].deck.getFaction() == Faction.MONSTERS) {
+				Card card = chooseRandom(toBeRemoved.stream()
+					.filter(c -> ownerOfCard(c) == p)
+					.filter(c -> c.row != Row.NON)
+					.collect(Collectors.toList()));
+				toBeRemoved.remove(card);
+			}
 		}
-		weather.removeAll(toBeRemoved);
-		for (Card card : toBeRemoved) {
-			gameMenu.animationToUsed(card, ownerOfCard(card));
-			playerData[ownerOfCard(card)].usedCards.add(card);
-		}
+
+		for (Card card : toBeRemoved)
+			moveCard(card, playerData[ownerOfCard(card)].usedCards);
 
 		gameMenu.redraw();
 		new WaitExec(600, () -> beginRound());
@@ -457,17 +514,7 @@ public class GameController {
 	private void pickView(int player, Card card) { }
 	private void pickStealUsed(int player, Card card) {
 		if (card == null) return;
-
-		PlayerData us = playerData[player];
-		PlayerData them = playerData[1 - player];
-
-		them.ownedCards.remove(card);
-		them.usedCards.remove(card);
-		us.ownedCards.add(card);
-		us.handCards.add(card);
-
-		if (player == activePlayer)
-			gameMenu.animationToHand(card);
+		moveCard(card, playerData[player].handCards);
 	}
 	private void pickRevive(int player, Card card) {
 		if (card == null) return;
@@ -478,9 +525,7 @@ public class GameController {
 	}
 	private void pickRestoreToHand(int player, Card card) {
 		if (card == null) return;
-		gameMenu.animationToHand(card);
-		playerData[player].usedCards.remove(card);
-		playerData[player].handCards.add(card);
+		moveCard(card, playerData[player].handCards);
 	}
 	private void pickDiscard(int player, Card card, int i) {
 		nextTurnDelay = -1;
@@ -491,16 +536,12 @@ public class GameController {
 			playerData[player].controller.pick(deck, "deck_to_hand");
 			return;
 		}
-		gameMenu.animationToUsed(card, player);
-		playerData[player].handCards.remove(card);
-		playerData[player].usedCards.add(card);
+		moveCard(card, playerData[player].usedCards);
 		playerData[player].controller.pick(i == 0? playerData[player].handCards: deck, i == 0? "discard_2": "deck_to_hand");
 	}
 	private void pickDeckToHand(int player, Card card) {
 		if (card == null) return;
-		gameMenu.animationToHand(card);
-		playerData[player].deck.removeCard(card);
-		playerData[player].handCards.add(card);
+		moveCard(card, playerData[player].handCards);
 	}
 	private void pickWeather(int player, Card card) {
 		if (card == null) return;
@@ -521,6 +562,7 @@ public class GameController {
 			case "weather" -> pickWeather(player, card);
 			default -> { assert false; }
 		}
+		nextTurn();
 	}
 
 	public static interface CommandListener { public void call(Command cmd); }
@@ -530,8 +572,13 @@ public class GameController {
 
 	private List<Command> commandQueue = new ArrayList<>();
 
+	// this lock is not for multi-threading
+	// it is for when precessing commands causes for new commands to arrive
+	private boolean syncLock = false;
 	private void syncCommands() {
-		for (Command cmd : commandQueue) {
+		syncLock = true;
+		for (int i = 0; i < commandQueue.size(); i++) {
+			Command cmd = commandQueue.get(i);
 			if (cmd instanceof Command.VetoCard) vetoCard((Command.VetoCard)cmd);
 			if (cmd instanceof Command.PlayCard) playCard((Command.PlayCard)cmd);
 			if (cmd instanceof Command.SwapCard) swapCard((Command.SwapCard)cmd);
@@ -541,6 +588,7 @@ public class GameController {
 			if (cmd instanceof Command.SetActiveCard) setActiveCard((Command.SetActiveCard)cmd);
 			if (cmd instanceof Command.PickResponse) pickResponse((Command.PickResponse)cmd);
 		}
+		syncLock = false;
 		commandQueue.clear();
 		gameMenu.redraw();
 	}
@@ -548,10 +596,12 @@ public class GameController {
 	public void sendCommand(Command cmd) {
 		System.out.println(cmd);
 
-		if (cmd instanceof Command.Sync)
-			syncCommands();
-		else
+		if (cmd instanceof Command.Sync) {
+			if (!syncLock)
+				syncCommands();
+		} else {
 			commandQueue.add(cmd);
+		}
 
 		// we make a deep copy because some listeners might remove themselves while we are iterating
 		List<CommandListener> copy = new ArrayList<>();
@@ -687,9 +737,10 @@ public class GameController {
 			}
 
 			case FOLTEST_STEELFORGED -> {
-				for (Card card : weather)
-					gameMenu.animationToUsed(card, ownerOfCard(card));
-				weather.clear();
+				List<Card> copy = new ArrayList<>();
+				copy.addAll(weather);
+				for (Card card : copy)
+					moveCard(card, playerData[ownerOfCard(card)].usedCards);
 			}
 
 			case FOLTEST_KING -> {}
@@ -769,12 +820,9 @@ public class GameController {
 			}
 
 			case FRANCESCA_HOPE -> {
-				List<List<Card>> rem = new ArrayList<>();
 				List<List<Card>> add = new ArrayList<>();
-				for (int i = 0; i < 6; i++) {
-					rem.add(new ArrayList<>());
+				for (int i = 0; i < 6; i++)
 					add.add(new ArrayList<>());
-				}
 				for (int i = 0; i < 6; i++) {
 					for (Card card : row.get(i)) {
 						// TODO: does it actualy move enemy's units as well?
@@ -789,14 +837,12 @@ public class GameController {
 						}
 						if (mx == i)
 							continue;
-						gameMenu.animationToRow(card, mx);
-						rem.get(i).add(card);
 						add.get(mx).add(card);
 					}
 				}
 				for (int i = 0; i < 6; i++) {
-					row.get(i).removeAll(rem.get(i));
-					row.get(i).addAll(add.get(i));
+					for (Card card : add.get(i))
+						moveCard(card, row.get(i));
 				}
 			}
 
@@ -804,10 +850,11 @@ public class GameController {
 				for (int p = 0; p < 2; p++) {
 					PlayerData data = playerData[p];
 
-					for (Card card : data.usedCards)
-						gameMenu.animationToDeck(card, p);
+					List<Card> copy = new ArrayList<>();
+					copy.addAll(data.usedCards);
+					for (Card c : copy)
+						moveCard(c, data.deck.getDeck());
 
-					data.deck.getDeck().addAll(data.usedCards);
 					data.deck.shuffle(rand);
 					data.usedCards.clear();
 				}
