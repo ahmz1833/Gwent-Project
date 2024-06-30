@@ -775,7 +775,7 @@ public class GameController {
 			case FOLTEST_SIEGEMASTER -> {
 				Card card = us.deck.getDeck().stream().filter(c -> c.ability == Ability.FOG).findFirst().orElse(null);
 				if (card != null)
-					playCard(new Command.PlayCard(player, card.getGameId(), 12));
+					playCardImpl(player, card, 12);
 			}
 
 			case FOLTEST_STEELFORGED -> {
