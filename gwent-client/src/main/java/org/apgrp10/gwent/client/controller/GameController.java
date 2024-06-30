@@ -480,9 +480,8 @@ public class GameController {
 
 	private void pass(Command.Pass cmd) {
 		if (!lastPassed) {
-			lastPassed = true;
-			nextTurnDelay = 100;
 			nextTurn();
+			lastPassed = true;
 		} else {
 			nextRound();
 		}
