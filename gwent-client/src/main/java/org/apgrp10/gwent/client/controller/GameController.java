@@ -391,7 +391,7 @@ public class GameController {
 		// there are some guarantees because of canSwap and we rely on them
 		int player = cmd.player();
 		playerData[player].handCards.set(playerData[player].handCards.indexOf(c1), c2);
-		for (int i = (player == 1? 0: 3); i < (player == 1? 3: 6); i++) {
+		for (int i = 0; i < 6; i++) {
 			if (row.get(i).contains(c2)) {
 				row.get(i).set(row.get(i).indexOf(c2), c1);
 				break;
