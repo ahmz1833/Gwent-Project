@@ -15,6 +15,8 @@ import java.util.HashMap;
 public abstract class Packet {
 	protected final JsonObject header;
 	protected final JsonObject body;
+
+	public static interface Callback { public void call(Packet packet); }
 	
 	public Packet(JsonObject header, JsonObject body) {
 		this.header = header;

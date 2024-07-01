@@ -48,23 +48,54 @@ public class ServerMain {
 		// Initialize the thread pool
 		HandlingThread[] threads = new HandlingThread[10];
 		for (int i = 0; i < threads.length; i++) {
-			threads[i] = new HandlingThread(Client.connectedClients());
+			threads[i] = new HandlingThread();
 			threads[i].start();
 		}
 		
+		ANSI.log("Listening at port: " + PORT, ANSI.CYAN, false);
 		while (true) {
 			try {
-				ANSI.log("Listening at port :" + PORT + " - Connected Clients: " + Client.connectedClients().size(), ANSI.CYAN, false);
 				Socket socket = serverSocket.accept();
-				assignRandomThread(new Client(socket), threads);
+
+				ANSI.log("Connection from " + socket.getInetAddress());
+
+				Client client = new Client(socket);
+				assignThread(client, threads);
+				client.setOnDestruction(() -> {
+					ANSI.log("Client " + client.getNetNode().socket().getInetAddress() + " disconnected");
+				});
+				assignThread(new SendHello(client), threads);
 			} catch (IOException e) {
 				ANSI.logError(System.err, "Failed to accept client connection", e);
 			}
 		}
 	}
-	
-	private static void assignRandomThread(Client client, HandlingThread[] threads) {
-		int index = Random.generateRandomNumber(0, threads.length - 1);
-		threads[index].addClient(client);
+
+	// for testing
+	private static class SendHello implements Task {
+		private Client client;
+		private long last;
+		public SendHello(Client client) {
+			this.client = client;
+			last = System.currentTimeMillis();
+		}
+		@Override
+		public void run() {
+			long cur = System.currentTimeMillis();
+			if (cur - last < 2000)
+				return;
+			last = cur;
+			client.send(("\nHello from server\nkhobi? " + System.currentTimeMillis() + "\nnaa???\n").getBytes());
+		}
+		@Override
+		public boolean isDone() {
+			return client.isDone();
+		}
+	}
+
+	private static HandlingThread assignThread(Task task, HandlingThread[] threads) {
+		int index = Random.nextInt(0, threads.length);
+		threads[index].addTask(task);
+		return threads[index];
 	}
 }
