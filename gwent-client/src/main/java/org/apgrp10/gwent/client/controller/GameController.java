@@ -211,9 +211,7 @@ public class GameController {
 			if (card.ability == Ability.CLEAR) {
 				nextTurnDelay += 600;
 				new WaitExec(600, () -> {
-					List<Card> copy = new ArrayList<>();
-					copy.addAll(weather);
-					for (Card c : copy)
+					for (Card c : new ArrayList<>(weather))
 						moveCard(c, playerData[ownerOfCard(c)].usedCards);
 					gameMenu.redraw();
 				});
@@ -583,15 +581,11 @@ public class GameController {
 				playerData[p].leaderCancelled = false;
 			}
 			case 3 -> {
-				List<Card> copy = new ArrayList<>();
-				copy.addAll(weather);
-				for (Card card : copy)
+				for (Card card : new ArrayList<>(weather))
 					moveCard(card, playerData[ownerOfCard(card)].usedCards);
 			}
 			case 4 -> {
-				List<Card> copy = new ArrayList<>();
-				copy.addAll(playerData[p].usedCards);
-				for (Card card : copy)
+				for (Card card : new ArrayList<>(playerData[p].usedCards))
 					moveCard(card, playerData[p].handCards);
 			}
 			case 5 -> {
@@ -644,9 +638,7 @@ public class GameController {
 		}
 
 		// we make a deep copy because some listeners might remove themselves while we are iterating
-		List<CommandListener> copy = new ArrayList<>();
-		copy.addAll(commandListeners);
-		for (CommandListener cb : copy)
+		for (CommandListener cb : new ArrayList<>(commandListeners))
 			cb.call(cmd);
 	}
 
@@ -778,9 +770,7 @@ public class GameController {
 			}
 
 			case FOLTEST_STEELFORGED -> {
-				List<Card> copy = new ArrayList<>();
-				copy.addAll(weather);
-				for (Card card : copy)
+				for (Card card : new ArrayList<>(weather))
 					moveCard(card, playerData[ownerOfCard(card)].usedCards);
 			}
 
@@ -891,9 +881,7 @@ public class GameController {
 				for (int p = 0; p < 2; p++) {
 					PlayerData data = playerData[p];
 
-					List<Card> copy = new ArrayList<>();
-					copy.addAll(data.usedCards);
-					for (Card c : copy)
+					for (Card c : new ArrayList<>(data.usedCards))
 						moveCard(c, data.deck.getDeck());
 
 					data.deck.shuffle(rand);
