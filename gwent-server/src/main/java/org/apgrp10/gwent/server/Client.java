@@ -20,19 +20,11 @@ public class Client implements Task {
 
 	public Client(Socket socket) throws IOException {
 		node = new NetNode(socket, this::parsePacket);
-		node.setDefaultListener(new NetNode.ConnectionListener() {
-			@Override
-			public void onConnectionEstablished() {
-				loggedInUser = null;
-				ANSI.log("Client connected : " + socket.getInetAddress(), ANSI.CYAN, false);
-			}
-			
-			@Override
-			public void onConnectionLost() {
-				destruct();
-				ANSI.log("Client disconnected : " + socket.getInetAddress(), ANSI.CYAN, false);
-			}
+		node.addOnClose(() -> {
+			ANSI.log("Client disconnected : " + socket.getInetAddress(), ANSI.CYAN, false);
+			destruct();
 		});
+		ANSI.log("Client connected : " + socket.getInetAddress(), ANSI.CYAN, false);
 	}
 	
 	public NetNode getNetNode() { return node; }
@@ -50,15 +42,7 @@ public class Client implements Task {
 	}
 
 	private boolean destructed;
-	private void destruct() {
-		destructed = true;
-		if (onDestruction != null)
-			onDestruction.run();
-	}
-	
-	public void setOnDestruction(Runnable fn) {
-		onDestruction = fn;
-	}
+	private void destruct() { destructed = true; }
 
 	public void addCommand(Runnable cmd) {
 		synchronized (commandQueue) {

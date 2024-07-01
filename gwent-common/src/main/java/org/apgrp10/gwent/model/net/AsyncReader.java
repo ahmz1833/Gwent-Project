@@ -60,8 +60,13 @@ public class AsyncReader implements Runnable {
 		this.failure = onFailure;
 	}
 
+	public void setOnReceive(Callback cb) { receive = cb; }
+	public void setOnFailure(FailureCallback cb) { failure = cb; }
+
 	@Override
 	public void run() {
+		if (failure == null)
+			return; // return so that the possible error isn't lost if we don't have an failure callback
 		try {
 			int available = stream.available();
 			if (available == 0)
@@ -73,6 +78,9 @@ public class AsyncReader implements Runnable {
 				throw new IOException("read failed");
 
 			append(data, k);
+
+			if (receive == null)
+				return;
 
 			while (size >= 4) {
 				int len = bytesToInt(buf);

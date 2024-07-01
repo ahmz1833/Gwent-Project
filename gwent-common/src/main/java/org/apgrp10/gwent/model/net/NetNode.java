@@ -13,21 +13,10 @@ public class NetNode implements Closeable, Runnable {
 	protected final Socket socket;
 	protected final InputStream inputStream;
 	protected final OutputStream outputStream;
-	private final ArrayList<ConnectionListener> listeners = new ArrayList<>();
-	private ConnectionListener defaultListener;
-	private boolean lastConnectionState;
-
-	private void updateState(boolean alive) {
-		if (lastConnectionState == alive)
-			return;
-		for (ConnectionListener listener : listeners) {
-			if (alive) listener.onConnectionEstablished();
-			else listener.onConnectionLost();
-		}
-	};
+	private final ArrayList<Runnable> onClose = new ArrayList<>();
 
 	private AsyncReader asyncReader;
-	
+
 	public NetNode(Socket socket, AsyncReader.Callback onReceive) {
 		this.socket = socket;
 		try {
@@ -36,50 +25,39 @@ public class NetNode implements Closeable, Runnable {
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to create input/output streams for device", e);
 		}
-
+	
 		asyncReader = new AsyncReader(inputStream, onReceive, e -> {
 			// TODO: proper error handling
 			close();
-			updateState(false);
 		});
 	}
-	
-	public void setDefaultListener(ConnectionListener listener) {
-		defaultListener = listener;
-		if (!listeners.contains(listener)) listeners.add(listener);
-	}
-	
-	public void addListener(ConnectionListener listener) {
-		if (!listeners.contains(listener)) listeners.add(listener);
-	}
-	
-	public void clearListeners() {
-		listeners.clear();
-		if (defaultListener != null) listeners.add(defaultListener);
+	public NetNode(Socket socket) { this(socket, null); }
+
+	public void setOnReceive(AsyncReader.Callback cb) { asyncReader.setOnReceive(cb); }
+
+	public Runnable addOnClose(Runnable fn) { onClose.add(fn); return fn; }
+	public void removeOnClose(Runnable fn) { onClose.remove(fn); }
+
+	public boolean isClosed() {
+		return socket == null || socket.isClosed() || !socket.isConnected();
 	}
 	
 	@Override
 	public void close() {
-		if (socket == null || socket.isClosed() || !socket.isConnected())
+		if (isClosed())
 			return;
 		try {
 			socket.close();
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to close device", e);
 		}
+		for (Runnable fn : onClose)
+			fn.run();
 	}
 	
-	public InputStream in() {
-		return inputStream;
-	}
-	
-	public OutputStream out() {
-		return outputStream;
-	}
-	
-	public Socket socket() {
-		return socket;
-	}
+	public InputStream in() { return inputStream; }
+	public OutputStream out() { return outputStream; }
+	public Socket socket() { return socket; }
 	
 	// TODO: hopefully this doesn't block but we need to do something to guarantee it
 	public boolean send(byte[] data) {
@@ -91,20 +69,13 @@ public class NetNode implements Closeable, Runnable {
 		} catch (IOException e) {
 			// TODO: proper error handling
 			close();
-			updateState(false);
 			return false;
 		}
 	}
 	
-	public interface ConnectionListener {
-		void onConnectionEstablished();
-		
-		void onConnectionLost();
-	}
-
 	@Override
 	public void run() {
-		if (lastConnectionState)
+		if (!isClosed())
 			asyncReader.run();
 	}
 }

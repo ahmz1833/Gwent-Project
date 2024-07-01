@@ -57,13 +57,8 @@ public class ServerMain {
 			try {
 				Socket socket = serverSocket.accept();
 
-				ANSI.log("Connection from " + socket.getInetAddress());
-
 				Client client = new Client(socket);
 				assignThread(client, threads);
-				client.setOnDestruction(() -> {
-					ANSI.log("Client " + client.getNetNode().socket().getInetAddress() + " disconnected");
-				});
 				assignThread(new SendHello(client), threads);
 			} catch (IOException e) {
 				ANSI.logError(System.err, "Failed to accept client connection", e);
