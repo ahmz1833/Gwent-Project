@@ -79,7 +79,7 @@ public final class ANSI
 			log(time, stream,
 					"In Thread \"" + Thread.currentThread().getName() + "\" at " +
 					element + ":");
-		String timeStr = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss.SSS"));
+		String timeStr = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
 		stream.println(timeStr + " -> " + logMsg + ANSI.RST);
 	}
 	
@@ -94,7 +94,7 @@ public final class ANSI
 					"In Thread \"" + Thread.currentThread().getName() + "\" at " +
 					element + ":",
 					ANSI.fg(Color.GRAY));
-		String timeStr = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss.SSS"));
+		String timeStr = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
 		stream.println(ANSI.fg(Color.gray) + timeStr + " -> " + ANSI.RST + color + logMsg + ANSI.RST);
 	}
 	

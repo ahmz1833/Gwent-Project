@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import org.apgrp10.gwent.client.view.MainStage;
 import org.apgrp10.gwent.utils.ANSI;
+import org.apgrp10.gwent.utils.SecurityUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;

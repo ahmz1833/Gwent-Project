@@ -1,0 +1,116 @@
+[
+  {
+    "header": {
+      "type": "request",
+      "time": 123456789
+    },
+    "body": {}
+  },
+  {
+    "header": {
+      "type": "response",
+      "status": "200"
+    },
+    "body": {}
+  },
+  {
+    "header": {
+      "type": "request",
+      "time": 123456789
+    },
+    "body": {
+      "type": "get",
+      "target": "user",
+      "content": {
+        "id": "2"
+      }
+    }
+  },
+  {
+    "header": {
+      "type": "response",
+      "status": "200"
+    },
+    "body": {}
+  },
+  {
+    "header": {
+      "type": "request",
+      "time": 123456789
+    },
+    "body": {
+      "type": "get",
+      "target": "user",
+      "content": {
+        "id": "3"
+      }
+    }
+  },
+  {
+    "header": {
+      "type": "responseToClient",
+      "status": "200"
+    },
+    "body": {}
+  },
+  {
+    "header": {
+      "type": "requestFromServer",
+      "time": 123456789
+    },
+    "body": {
+      "type": "get",
+      "target": "user",
+      "content": {
+        "id": "4"
+      }
+    }
+  },
+  {
+    "header": {
+      "type": "responseToServer",
+      "status": "200"
+    },
+    "body": {}
+  },
+  {
+    "header": {
+      "type": "requestFromClient",
+      "time": 123456789
+    },
+    "body": {
+      "type": "get",
+      "target": "user",
+      "content": {
+        "id": "5"
+      }
+    }
+  },
+  {
+    "header": {
+      "type": "responseToClient",
+      "status": "200"
+    },
+    "body": {}
+  },
+  {
+    "header": {
+      "type": "requestFromServer",
+      "time": 123456789
+    },
+    "body": {
+      "type": "get",
+      "target": "user",
+      "content": {
+        "id": "6"
+      }
+    }
+  },
+  {
+    "header": {
+      "type": "responseToServer",
+      "status": "200"
+    },
+    "body": {}
+  }
+]
