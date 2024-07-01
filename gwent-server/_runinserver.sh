@@ -34,12 +34,15 @@ sshpass -P assphrase -p $PASSPHRASE ssh-add "$KEY_FILE" > /dev/null
 # Use rsync to upload the jar file to the server
 rsync -avz -e "ssh" --progress $LOCAL_FILES $REMOTE_USER@$REMOTE_IP:$REMOTE_DIR/ && \
 
+clear
+
 # Run java in a screen session
 ssh -t $REMOTE_USER@$REMOTE_IP "
   if screen -list | grep -q \"$SCREEN_SESSION_NAME\"; then
     screen -S $SCREEN_SESSION_NAME -X quit; # Quit existing session
   fi
   echo \"#!/bin/bash\" > $REMOTE_DIR/run.sh
+  echo \"clear\" >> $REMOTE_DIR/run.sh
   echo \"echo Starting the server... Press Ctrl-A + D for detaching the screen\" >> $REMOTE_DIR/run.sh
   echo \"echo\" >> $REMOTE_DIR/run.sh
   echo \"echo\" >> $REMOTE_DIR/run.sh

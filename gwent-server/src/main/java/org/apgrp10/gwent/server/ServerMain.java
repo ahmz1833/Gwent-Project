@@ -1,10 +1,14 @@
 package org.apgrp10.gwent.server;
 
 import org.apgrp10.gwent.utils.ANSI;
-import org.apgrp10.gwent.utils.RSA;
+import org.apgrp10.gwent.utils.Random;
+import org.apgrp10.gwent.utils.SecurityUtils;
 
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,7 +19,6 @@ public class ServerMain {
 	
 	public static final String SERVER_FOLDER = System.getProperty("user.home") + "/gwent-data/";
 	public static final int PORT = 12345;
-	public static final KeyPair keyPair = RSA.generateKeyPair();
 	
 	public static void main(String[] args) {
 		Locale.setDefault(Locale.ENGLISH);
@@ -34,6 +37,7 @@ public class ServerMain {
 		// Start the server
 		ServerSocket serverSocket = null;
 		try {
+//			serverSocket = SecurityUtils.getSSLServerSocketFactory().createServerSocket(PORT);
 			serverSocket = new ServerSocket(PORT);
 			ANSI.log("Server started on port " + PORT, ANSI.LYELLOW.bd(), false);
 		} catch (IOException e) {
@@ -41,14 +45,26 @@ public class ServerMain {
 			System.exit(1);
 		}
 		
+		// Initialize the thread pool
+		HandlingThread[] threads = new HandlingThread[10];
+		for (int i = 0; i < threads.length; i++) {
+			threads[i] = new HandlingThread(Client.connectedClients());
+			threads[i].start();
+		}
+		
 		while (true) {
 			try {
-				ANSI.log("Listening at port :" + PORT + " - Connected Clients: " + Client.connectedClients(), ANSI.CYAN, false);
-				Client client = Client.acceptConnection(serverSocket);
-				ANSI.log("Client Connected: " + client.getIdString(), ANSI.LCYAN.bd(), false);
+				ANSI.log("Listening at port :" + PORT + " - Connected Clients: " + Client.connectedClients().size(), ANSI.CYAN, false);
+				Socket socket = serverSocket.accept();
+				assignRandomThread(new Client(socket), threads);
 			} catch (IOException e) {
 				ANSI.logError(System.err, "Failed to accept client connection", e);
 			}
 		}
+	}
+	
+	private static void assignRandomThread(Client client, HandlingThread[] threads) {
+		int index = Random.generateRandomNumber(0, threads.length - 1);
+		threads[index].addClient(client);
 	}
 }

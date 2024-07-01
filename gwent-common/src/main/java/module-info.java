@@ -9,4 +9,5 @@ open module gwent.common {
 	exports org.apgrp10.gwent.model;
 	exports org.apgrp10.gwent.utils;
 	exports org.apgrp10.gwent.model.card;
+	exports org.apgrp10.gwent.model.net;
 }
