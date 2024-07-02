@@ -14,10 +14,10 @@ import java.nio.file.Paths;
 import java.util.Set;
 
 public class Gwent extends Application {
-	
+
 	public static final boolean USE_WINDOWS = System.getProperty("os.name").startsWith("Windows");
 	public static final String APP_DATA = System.getProperty("user.home") + "/.gwentdata/";
-	
+
 	public static void main(String[] args) {
 		System.out.println(ANSI.LGREEN.bd() + "Hello! Welcome to Gwent Game (Made by AP Group 10) !" + ANSI.RST);
 		Path path = Paths.get(APP_DATA);
@@ -31,7 +31,7 @@ public class Gwent extends Application {
 		}
 		launch(args);
 	}
-	
+
 	@Override
 	public void start(Stage primaryStage) {
 		// primaryStage.getIcons().add(R.icon.app_icon); // TODO: add icon
@@ -40,14 +40,14 @@ public class Gwent extends Application {
 		initMaterialTheme();
 		MainStage.getInstance().start();
 	}
-	
+
 	@Override
 	public void stop() throws Exception {
 		System.out.println();
 		System.out.println(ANSI.LCYAN.bd() + "Goodbye! Thank you for playing Gwent!" + ANSI.RST);
 		// TODO: disconnect from server
 	}
-	
+
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	private void initMaterialTheme() {
 		try {

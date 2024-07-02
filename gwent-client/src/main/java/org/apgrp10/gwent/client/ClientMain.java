@@ -17,15 +17,15 @@ public class ClientMain {
 			System.out.println("Received: " + new String(bytes));
 			System.out.println();
 		});
-		
+
 		new Thread(() -> {
 			while (true) {
 				Server.getInstance().run();
 				try {Thread.sleep(10);} catch (Exception e) {}
 			}
 		}).start();
-		
-		
+
+
 		// for test, sending each 1000 ms a message to the server
 //		new Thread(() -> {
 //			while (true) {
@@ -37,25 +37,25 @@ public class ClientMain {
 //				}
 //			}
 //		}).start();
-		
+
 		Gwent.main(args);
 	}
-	
-	
+
+
 	static class Server extends NetNode {
 		public static final String SERVER_IP = "37.152.181.45";
 		public static final int SERVER_PORT = 12345;
 		private static Server instance;
-		
+
 		private Server(Socket socket) {
 			super(socket);
 		}
-		
+
 		public static Server getInstance() {
 			if (instance == null) connect();
 			return instance;
 		}
-		
+
 		public static boolean connect() {
 			try {
 				if (instance != null && !instance.isClosed()) return true;
@@ -64,7 +64,7 @@ public class ClientMain {
 				instance.addOnClose(() -> {
 					ANSI.log("Connection to server lost.", ANSI.LRED, false);
 				});
-				
+
 				ANSI.log("Connected to server.", ANSI.LGREEN, false);
 				return true;
 			} catch (IOException e) {

@@ -639,7 +639,7 @@ public class GameController {
 	public List<Card> getRow(int i) { return row.get(i); }
 	public List<Card> getSpecial(int i) { return special.get(i); }
 	public List<Card> getWeather() { return weather; }
-	
+
 	public boolean canPlace(int player, int row, Card card) {
 		if (card.ability == Ability.SCORCH && card.row == Row.NON)
 			return true;
@@ -694,7 +694,7 @@ public class GameController {
 		if ((row == 0 || row == 5) && hasRain()) score = leaderAbilityInUse(-1, Ability.KING_BRAN)? score / 2: 1;
 		if ((row == 1 || row == 4) && hasFog()) score = leaderAbilityInUse(-1, Ability.KING_BRAN)? score / 2: 1;
 		if ((row == 2 || row == 3) && hasFrost()) score = leaderAbilityInUse(-1, Ability.KING_BRAN)? score / 2: 1;
-		
+
 		score += this.row.get(row).stream().filter(c -> c.ability == Ability.MORALE).count();
 		if (card.ability == Ability.MORALE)
 			score -= 1;

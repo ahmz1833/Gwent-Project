@@ -10,7 +10,7 @@ public class WaitExec extends Transition {
 		setOnFinished(e -> fn.run());
 		play();
 	}
-	
+
 	@Override
 	protected void interpolate(double frac) {}
 }

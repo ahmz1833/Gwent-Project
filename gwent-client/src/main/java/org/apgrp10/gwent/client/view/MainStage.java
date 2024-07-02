@@ -10,17 +10,17 @@ import org.apgrp10.gwent.model.User;
 
 public class MainStage extends AbstractStage {
 	private static MainStage INSTANCE;
-	
+
 	private MainStage() {
 		super("Gwent Main", null);// TODO: set icon
 		if (INSTANCE != null) throw new RuntimeException("Duplicate Instance of MainStage");
 	}
-	
+
 	public static MainStage getInstance() {
 		if (INSTANCE == null) INSTANCE = new MainStage();
 		return INSTANCE;
 	}
-	
+
 	@Override
 	protected boolean onCreate() {
 //		if(!UserController.isLoggedIn())
@@ -45,19 +45,19 @@ public class MainStage extends AbstractStage {
 		setScene(scene);
 		return true;
 	}
-	
+
 	@Override
 	protected void onCloseRequest(WindowEvent event) {
-	
+
 	}
-	
+
 	@Override
 	protected void onGetFocus() {
-	
+
 	}
-	
+
 	@Override
 	protected void onLostFocus() {
-	
+
 	}
 }

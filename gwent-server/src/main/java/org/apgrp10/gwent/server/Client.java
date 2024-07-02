@@ -16,7 +16,7 @@ public class Client implements Task {
 	private NetNode node;
 	private List<Runnable> commandQueue = new ArrayList<>();
 	private boolean destructed;
-	
+
 	public Client(Socket socket) throws IOException {
 		node = new NetNode(socket, this::parsePacket);
 		node.addOnClose(() -> {
@@ -25,9 +25,9 @@ public class Client implements Task {
 		});
 		ANSI.log("Client connected : " + socket.getInetAddress(), ANSI.CYAN, false);
 	}
-	
+
 	public NetNode getNetNode() {return node;}
-	
+
 	private void parsePacket(byte data[]) {
 		Packet packet;
 		try {
@@ -39,20 +39,20 @@ public class Client implements Task {
 		}
 		// TODO: handle packet
 	}
-	
+
 	private void destruct() {destructed = true;}
-	
+
 	public void addCommand(Runnable cmd) {
 		synchronized (commandQueue) {
 			commandQueue.add(cmd);
 		}
 	}
-	
+
 	@Override
 	public boolean isDone() {
 		return destructed;
 	}
-	
+
 	@Override
 	public void run() {
 		node.run();
@@ -64,7 +64,7 @@ public class Client implements Task {
 		for (Runnable fn : copy)
 			fn.run();
 	}
-	
+
 	public void send(byte b[]) {
 		addCommand(() -> {
 			boolean res = node.send(b);

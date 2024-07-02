@@ -13,7 +13,7 @@ public interface Command {
 			return null;
 		}
 	}
-	
+
 	default String toBase64() {
 		try {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -26,24 +26,24 @@ public interface Command {
 			return null;
 		}
 	}
-	
+
 	record VetoCard(int player, int cardId) implements Command, Serializable {}
-	
+
 	record PlayCard(int player, int cardId, int row) implements Command, Serializable {}
-	
+
 	record SwapCard(int player, int cardId1, int cardId2) implements Command, Serializable {}
-	
+
 	record PlayLeader(int player) implements Command, Serializable {}
-	
+
 	record MoveToHand(int player, int cardId) implements Command, Serializable {}
-	
+
 	record Pass(int player) implements Command, Serializable {}
-	
+
 	record SetActiveCard(int player, int cardId) implements Command, Serializable {}
-	
+
 	record PickResponse(int player, int cardId, String what) implements Command, Serializable {}
-	
+
 	record Cheat(int player, int cheatId) implements Command, Serializable {}
-	
+
 	record Sync() implements Command, Serializable {}
 }

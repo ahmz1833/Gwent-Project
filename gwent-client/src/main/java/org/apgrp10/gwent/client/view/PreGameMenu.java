@@ -45,8 +45,8 @@ public class PreGameMenu extends Application {
 	private String leaderName;
 	private ImageView leaderImage;
 	private int currentIndexOfLeader, currentFactionIndex;
-	
-	
+
+
 	public PreGameMenu(PreGameController preGameController, boolean isFirstOne, User user) {
 		isUserOne = isFirstOne;
 		this.user = user;
@@ -57,7 +57,7 @@ public class PreGameMenu extends Application {
 			primaryX = screenWidth / 2;
 		start(PreGameStage.getInstance());
 	}
-	
+
 	@Override
 	public void start(Stage stage) {
 		load();
@@ -70,7 +70,7 @@ public class PreGameMenu extends Application {
 		addLinkTexts();
 		PreGameStage.getInstance().start();
 	}
-	
+
 	private void addUserInfo() {
 		StackPane stackPane = getStackPane(200, 50, Pos.CENTER_LEFT);
 		Text text = new Text("Good luck \"" + user.getNickname() + "\"");
@@ -82,7 +82,7 @@ public class PreGameMenu extends Application {
 		stackPane.setLayoutY(3);
 		pane.getChildren().add(stackPane);
 	}
-	
+
 	private void addLinkTexts() {
 		pane.getChildren().remove(factionInfo);
 		factionInfo = new VBox();
@@ -92,7 +92,7 @@ public class PreGameMenu extends Application {
 		addLinksToFactionInfo(factionInfo);
 		pane.getChildren().add(factionInfo);
 	}
-	
+
 	private void setFactionInfo(VBox factionInfo) {
 		String text = "", address = "";
 		switch (faction) {
@@ -134,7 +134,7 @@ public class PreGameMenu extends Application {
 		main.getChildren().add(hBox);
 		factionInfo.getChildren().add(main);
 	}
-	
+
 	private void addFactionMassageToFactionInfo(VBox factionInfo) {
 		String text = "";
 		switch (faction) {
@@ -152,7 +152,7 @@ public class PreGameMenu extends Application {
 		main.getChildren().add(name);
 		factionInfo.getChildren().add(main);
 	}
-	
+
 	private void addLinksToFactionInfo(VBox factionInfo) {
 		StackPane stack2 = getStackPane(400, 20, Pos.CENTER);
 		HBox links = new HBox();
@@ -162,7 +162,7 @@ public class PreGameMenu extends Application {
 		stack2.getChildren().add(links);
 		factionInfo.getChildren().add(stack2);
 	}
-	
+
 	private Pane addCSSLinkedText(String text, EventHandler<? super MouseEvent> event) {
 		StackPane stackPane = getStackPane(133, 20, Pos.CENTER);
 		Text label = new Text(text);
@@ -172,8 +172,8 @@ public class PreGameMenu extends Application {
 		stackPane.getChildren().add(label);
 		return stackPane;
 	}
-	
-	
+
+
 	private void setSpoiler() {
 		ImageView imageView = new ImageView(R.getImage("icons/preGame_selectImage.png"));
 		imageView.setX(screenWidth / 2.0 - primaryX);
@@ -182,13 +182,13 @@ public class PreGameMenu extends Application {
 		imageView.setFitHeight(screenHeight);
 		pane.getChildren().add(imageView);
 	}
-	
+
 	private void load() {
 		pane = PreGameStage.getInstance().getPane();
 		pane.getStylesheets().add(R.get("css/preGame.css").toExternalForm());
 		setCursor();
 	}
-	
+
 	private void addGradePane() {
 		for (int i = 0; i < 2; i++) {
 			GridPane gridPane = new GridPane();
@@ -210,7 +210,7 @@ public class PreGameMenu extends Application {
 			deckLists[i] = gridPane;
 		}
 	}
-	
+
 	public void loadFactionDeck(Faction faction) {
 		switch (faction) {
 			case REALMS -> currentFactionIndex = 0;
@@ -224,7 +224,7 @@ public class PreGameMenu extends Application {
 		fivePlacePreGame.setFaction(faction);
 		deckLists[0].getChildren().clear();
 		deckLists[1].getChildren().clear();
-		
+
 		boolean hasLeader = false;
 		for (CardInfo card : CardInfo.allCards) {
 			if (card.faction.equals(faction) && card.row.equals(Row.LEADER) && !hasLeader) {
@@ -237,12 +237,12 @@ public class PreGameMenu extends Application {
 		}
 		updateInfo();
 	}
-	
+
 	private void setCursor() {
 		Image cursor = R.getImage("icons/cursor.png");
 		pane.setCursor(new ImageCursor(cursor));
 	}
-	
+
 	public void changeLeader(String name, int currentIndexOfLeader) {
 		this.currentIndexOfLeader = currentIndexOfLeader;
 		leaderName = name;
@@ -255,7 +255,7 @@ public class PreGameMenu extends Application {
 		}
 		leaderImage.setImage(R.getImage("lg/" + address + ".jpg"));
 	}
-	
+
 	//USE ADDRESS OF FILE INSTEAD OF NAME OF CARD!
 	private void addCardToGridPane(String cardName, boolean isGameDeck) {
 		int numberOfDeck = isGameDeck ? 1 : 0;
@@ -281,7 +281,7 @@ public class PreGameMenu extends Application {
 			sortDeck(deckLists[numberOfDeck]);
 		}
 	}
-	
+
 	//USE ADDRESS OF FILE INSTEAD OF NAME OF CARD!
 	private void deleteCardFromGridPane(String cardName, boolean isGameDeck) {
 		int numberOfDeck = isGameDeck ? 1 : 0;
@@ -296,13 +296,13 @@ public class PreGameMenu extends Application {
 		}
 		if (needSort) sortDeck(deckLists[numberOfDeck]);
 	}
-	
+
 	public void accessioningChangeFaction(Faction faction) {
 		if (this.faction != faction) {
 			new MessagePreGame(this, pane, faction, primaryX);
 		}
 	}
-	
+
 	private void sortDeck(GridPane pane) {
 		//This function throws an exception in the first time!
 		//So I have to try again! On the second try, it works correctly
@@ -335,7 +335,7 @@ public class PreGameMenu extends Application {
 			}
 		}
 	}
-	
+
 	private void addInfoBox() {
 		VBox infoVBox = new VBox();
 		infoVBox.setLayoutX(primaryX + 245);
@@ -373,7 +373,7 @@ public class PreGameMenu extends Application {
 		infoVBox.getChildren().add(buttonBorder);
 		pane.getChildren().add(infoVBox);
 	}
-	
+
 	private void textForInfo(VBox infoVBox, String text) {
 		Text label = new Text(text);
 		label.getStyleClass().add("textInfo");
@@ -382,7 +382,7 @@ public class PreGameMenu extends Application {
 		stackPane.getChildren().add(label);
 		infoVBox.getChildren().add(stackPane);
 	}
-	
+
 	private Text textWithImageInfo(VBox infoVBox, String imagePath) {
 		ImageView image = new ImageView(R.getImage("icons/" + imagePath + ".png"));
 		StackPane imagePane = getStackPane(75, 30, Pos.CENTER_RIGHT);
@@ -395,7 +395,7 @@ public class PreGameMenu extends Application {
 		infoVBox.getChildren().add(new HBox(imagePane, textPane));
 		return label;
 	}
-	
+
 	private StackPane getStackPane(int width, int height, Pos pos) {
 		StackPane stackPane = new StackPane();
 		stackPane.setAlignment(pos);
@@ -404,7 +404,7 @@ public class PreGameMenu extends Application {
 		stackPane.setMinHeight(height);
 		return stackPane;
 	}
-	
+
 	private void updateInfo() {
 		int totalCards = 0, totalUnitCads = 0, totalSpecialCards = 0, totalStrength = 0, totalHero = 0;
 		for (int i = 0; i < deckLists[1].getChildren().size(); i++) {
@@ -435,7 +435,7 @@ public class PreGameMenu extends Application {
 			totalSpecialCardsText.setFill(Color.rgb(182, 142, 70));
 		}
 	}
-	
+
 	private void uploadDeck(String path) {
 		Deck deck = Deck.loadDeckFromFile(path);
 		if (deck != null) {
@@ -457,11 +457,11 @@ public class PreGameMenu extends Application {
 			new MessagePreGame(pane, primaryX);
 		}
 	}
-	
+
 	private String downloadDeck() {
 		return createDeckFromPane(deckLists[1]).toJsonString();
 	}
-	
+
 	private void chooseFileToUpload() {
 		FileChooser fileChooser = new FileChooser();
 		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Gwent Files", "*.gwent"));
@@ -472,7 +472,7 @@ public class PreGameMenu extends Application {
 			uploadDeck(selectedFile.getAbsolutePath());
 		}
 	}
-	
+
 	private void choosePlaceToDownload() {
 		String downloadedFileName = "deck.gwent";
 		FileChooser fileChooser = new FileChooser();
@@ -493,7 +493,7 @@ public class PreGameMenu extends Application {
 			}
 		}
 	}
-	
+
 	private void startGame() {
 		int totalUnitCads = 0, totalSpecialCards = 0;
 		for (int i = 0; i < deckLists[1].getChildren().size(); i++) {
@@ -521,7 +521,7 @@ public class PreGameMenu extends Application {
 				preGameController.setDeck2(deck);
 		}
 	}
-	
+
 	public Deck createDeckFromPane(GridPane gridPane) {
 		Deck deck = new Deck(currentFactionIndex, leaderName, user);
 		for (int i = 0; i < gridPane.getChildren().size(); i++) {
