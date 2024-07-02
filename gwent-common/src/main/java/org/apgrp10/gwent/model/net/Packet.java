@@ -2,21 +2,12 @@ package org.apgrp10.gwent.model.net;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.MalformedJsonException;
-
-import java.io.DataOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.HashMap;
 
 public abstract class Packet {
 	protected final JsonObject header;
 	protected final JsonObject body;
-
-	public static interface Callback { public void call(Packet packet); }
 	
 	public Packet(JsonObject header, JsonObject body) {
 		this.header = header;
@@ -47,5 +38,9 @@ public abstract class Packet {
 	
 	public JsonObject getBody() {
 		return body;
+	}
+	
+	public static interface Callback {
+		public void call(Packet packet);
 	}
 }

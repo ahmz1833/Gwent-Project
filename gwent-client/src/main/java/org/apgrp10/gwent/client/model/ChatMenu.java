@@ -8,14 +8,16 @@ import javafx.scene.control.TextArea;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.ChatMenuController;
-import org.apgrp10.gwent.client.view.ReactionChat;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.utils.ANSI;
@@ -24,21 +26,21 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public class ChatMenu extends Pane {
+	public final static int width = 250, height = 720;
 	private final Text replyBox = new Text();
 	private final TextArea textInput = new TextArea();
 	private final VBox messagesBox = new VBox();
-	private MFXScrollPane messagesScroll;
-	public final static int width = 250, height = 720;
 	private final int screenWidth;
 	private final ChatMenuController controller;
 	private final HashMap<Integer, Integer> reactionList = new HashMap<>();
+	private final User user;
+	private final ImageView deleteReply = new ImageView(R.getImage("chat/clear.png"));
+	private MFXScrollPane messagesScroll;
 	//this is a map from each message id to reaction number
 	private int replyId = 0;
 	private int editID = 0;
-	private final User user;
 	private StackPane massageReplyViw = new StackPane();
-	private final ImageView deleteReply = new ImageView(R.getImage("chat/clear.png"));
-
+	
 	public ChatMenu(double screenWidth, ChatMenuController controller, User user) {
 		this.user = user;
 		this.screenWidth = (int) screenWidth;
@@ -48,7 +50,30 @@ public class ChatMenu extends Pane {
 		addTextInput();
 		addMessagesBox();
 	}
-
+	
+	public static StackPane getMessageReplyView(Message replyOn, User user, boolean isReply) {
+		String reply;
+		if (isReply)
+			reply = "reply on " + (replyOn.getOwner().equals(user) ? "you" : replyOn.getOwner().getNickname()) + ": " + replyOn.getText();
+		else reply = "edit: " + replyOn.getText();
+		if (reply.length() > 30) reply = reply.substring(0, 30) + "...";
+		Text text = new Text(reply);
+		text.setWrappingWidth(140);
+		text.setStyle("-fx-font-size: 10px");
+		text.setTextAlignment(TextAlignment.CENTER);
+		text.setFill(Color.BLACK);
+		Rectangle background = new Rectangle(140, 35, Color.LIGHTBLUE);
+		background.setArcWidth(10);
+		background.setArcHeight(10);
+		StackPane container = new StackPane();
+		container.setAlignment(Pos.CENTER);
+		container.getChildren().add(background);
+		container.getChildren().add(text);
+		container.setMaxWidth(140);
+		container.setMaxHeight(38);
+		return container;
+	}
+	
 	private void addMessagesBox() {
 		messagesBox.setLayoutX(0);
 		messagesBox.setLayoutY(0);
@@ -69,7 +94,7 @@ public class ChatMenu extends Pane {
 		messagesScroll.setLayoutX(5);
 		getChildren().add(messagesScroll);
 	}
-
+	
 	private void setSize(double screenWidth) {
 		this.setLayoutX(screenWidth - 250);
 		this.setLayoutY(0);
@@ -78,14 +103,14 @@ public class ChatMenu extends Pane {
 		this.getStyleClass().add("chatPane");
 		this.setOnMouseClicked(k -> this.requestFocus());
 	}
-
+	
 	private void setupDeleteReply() {
 		deleteReply.setFitWidth(20);
 		deleteReply.setFitHeight(20);
 		deleteReply.setLayoutX(150);
 		deleteReply.setLayoutY(height - 60 - 32 - 15);
 	}
-
+	
 	private void addTextInput() {
 		textInput.setPromptText("send message");
 		VBox container = new VBox();
@@ -97,15 +122,15 @@ public class ChatMenu extends Pane {
 		container.setLayoutX(5);
 		container.setLayoutY(height - 60 - 32);
 		this.getChildren().add(container);
-
+		
 	}
-
+	
 	private StackPane getStackPane() {
 		StackPane stackPane = getStackPane(40, Pos.BOTTOM_CENTER);
 		stackPane.setPrefHeight(60);
 		return stackPane;
 	}
-
+	
 	private StackPane getStackPane(int width, Pos pos) {
 		StackPane stackPane = new StackPane();
 		stackPane.setAlignment(pos);
@@ -113,7 +138,7 @@ public class ChatMenu extends Pane {
 		stackPane.setMaxWidth(width);
 		return stackPane;
 	}
-
+	
 	private StackPane setupText(Text text) {
 		StackPane container = getStackPane(240, Pos.CENTER);
 		container.getChildren().add(text);
@@ -121,7 +146,7 @@ public class ChatMenu extends Pane {
 		text.getStyleClass().add("replyText");
 		return container;
 	}
-
+	
 	private StackPane setupTextFiled(TextArea textField) {
 		StackPane container = getStackPane(200, Pos.CENTER);
 		container.getChildren().add(textField);
@@ -136,7 +161,7 @@ public class ChatMenu extends Pane {
 		textField.getStyleClass().add("input");
 		return container;
 	}
-
+	
 	private StackPane getImageToSend() {
 		StackPane container = getStackPane();
 		ImageView image = new ImageView(R.getImage("chat/send.png"));
@@ -150,7 +175,7 @@ public class ChatMenu extends Pane {
 		container.getChildren().add(image);
 		return container;
 	}
-
+	
 	private void sendMessage() {
 		if (textInput.getText().trim().equals("")) return;
 		if (editID == 0) {
@@ -162,12 +187,12 @@ public class ChatMenu extends Pane {
 		textInput.setText("");
 		scrollToEnd();
 	}
-
+	
 	private void scrollToEnd() {
 		messagesScroll.layout();
 		messagesScroll.setVvalue(1.0);
 	}
-
+	
 	public void addMessage(Message message) {
 		try {
 			if (message.getType() == (byte) 0) {
@@ -216,7 +241,7 @@ public class ChatMenu extends Pane {
 			ANSI.logError(System.err, null, e);
 		}
 	}
-
+	
 	private User getUserById(int id) {
 		try {
 			return Objects.requireNonNull(getMessageById(id)).getMessage().getOwner();
@@ -224,7 +249,7 @@ public class ChatMenu extends Pane {
 			return null;
 		}
 	}
-
+	
 	private MessageView getMessageById(int id) {
 		for (Node node : messagesBox.getChildren()) {
 			if (id == ((MessageView) (node)).getMessage().getId()) {
@@ -233,33 +258,33 @@ public class ChatMenu extends Pane {
 		}
 		return null;
 	}
-
+	
 	private void openNewWindow(double X, double Y, int id) {
 		new ReactionChat((int) (X - screenWidth + width), (int) Y, id, this, user.equals(getUserById(id)), reactionList.get(id));
 	}
-
+	
 	public void sendDeleteReaction(int id, int index) {
 		reactionList.put(id, -1);
 		controller.sendMessage(Message.deleteReactionMessage(id, index, user));
 	}
-
+	
 	public void sendNewReaction(int id, int index) {
 		reactionList.put(id, index);
 		controller.sendMessage(Message.newReactionMessage(id, index, user));
 	}
-
+	
 	public void changeReplyNumber(int id) {
 		this.replyId = id;
 		this.editID = 0;
 		addInfoTopInput(true, id);
 	}
-
+	
 	public void changeEditNumber(int id) {
 		this.editID = id;
 		this.replyId = 0;
 		addInfoTopInput(false, id);
 	}
-
+	
 	private void addInfoTopInput(boolean isReply, int id) {
 		try {
 			this.getChildren().remove(massageReplyViw);
@@ -281,30 +306,7 @@ public class ChatMenu extends Pane {
 			System.out.println(e.getStackTrace());
 		}
 	}
-
-	public static StackPane getMessageReplyView(Message replyOn, User user, boolean isReply) {
-		String reply;
-		if (isReply)
-			reply = "reply on " + (replyOn.getOwner().equals(user) ? "you" : replyOn.getOwner().getNickname()) + ": " + replyOn.getText();
-		else reply = "edit: " + replyOn.getText();
-		if (reply.length() > 30) reply = reply.substring(0, 30) + "...";
-		Text text = new Text(reply);
-		text.setWrappingWidth(140);
-		text.setStyle("-fx-font-size: 10px");
-		text.setTextAlignment(TextAlignment.CENTER);
-		text.setFill(Color.BLACK);
-		Rectangle background = new Rectangle(140, 35, Color.LIGHTBLUE);
-		background.setArcWidth(10);
-		background.setArcHeight(10);
-		StackPane container = new StackPane();
-		container.setAlignment(Pos.CENTER);
-		container.getChildren().add(background);
-		container.getChildren().add(text);
-		container.setMaxWidth(140);
-		container.setMaxHeight(38);
-		return container;
-	}
-
+	
 	public void deleteMessage(int id) {
 		controller.sendMessage(Message.deleteTextMessage(id, user));
 	}

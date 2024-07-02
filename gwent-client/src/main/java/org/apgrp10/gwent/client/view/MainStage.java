@@ -2,15 +2,10 @@ package org.apgrp10.gwent.client.view;
 
 import io.github.palexdev.materialfx.controls.MFXButton;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import org.apgrp10.gwent.client.controller.PreGameController;
-import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.model.User;
 
 public class MainStage extends AbstractStage {
@@ -27,7 +22,7 @@ public class MainStage extends AbstractStage {
 	}
 	
 	@Override
-	protected boolean onCreate(){
+	protected boolean onCreate() {
 //		if(!UserController.isLoggedIn())
 //		{
 //			LoginStage.getInstance().start();

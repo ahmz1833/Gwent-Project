@@ -44,7 +44,7 @@ public enum Ability {
 	SCORCH_S,
 	SPY,
 	NON;
-
+	
 	public static Ability getEnum(String name) {
 		if (name.equals("emhyr_imperial")) return EMHYR_IMPERIAL;
 		if (name.equals("foltest_lord")) return FOLTEST_LORD;

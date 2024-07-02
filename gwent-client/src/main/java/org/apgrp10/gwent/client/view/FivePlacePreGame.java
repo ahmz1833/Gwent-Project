@@ -4,7 +4,10 @@ import javafx.geometry.Pos;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
@@ -21,13 +24,13 @@ public class FivePlacePreGame extends Pane {
 	private final ImageView[] images = new ImageView[5];
 	private final Text textFiled;
 	private final PreGameMenu preGameMenu;
+	private final int primaryX;
 	private Faction faction;
 	private ArrayList<String> nameList = new ArrayList<>();
 	private ArrayList<Image> imageList = new ArrayList<>();
 	private int currentIndex = 0;
 	private boolean isLeaderChange;
-	private final int primaryX;
-
+	
 	public FivePlacePreGame(Pane pane, PreGameMenu preGameMenu, int primaryX) {
 		this.primaryX = primaryX;
 		gamePane = pane;
@@ -36,7 +39,7 @@ public class FivePlacePreGame extends Pane {
 		addImages(places);
 		textFiled = addText(places);
 	}
-
+	
 	private void addImages(HBox[] places) {
 		//adding size and place
 		for (int i = 0; i < 5; i++) {
@@ -51,7 +54,7 @@ public class FivePlacePreGame extends Pane {
 				case 4 ->
 						stackPane = getStackPane(PreGameMenu.screenWidth / 10.0, PreGameMenu.screenHeight / 10.0 * 6, Pos.TOP_LEFT);
 			}
-
+			
 			images[i] = new ImageView(R.getImage("lg/faction_monsters.jpg"));
 			images[i].setFitWidth(PreGameMenu.screenWidth / 12.0 - 20 * (Math.abs(i - 2)));
 			images[i].setFitHeight(PreGameMenu.screenHeight / 2.5 - 60 * (Math.abs(i - 2)));
@@ -77,7 +80,7 @@ public class FivePlacePreGame extends Pane {
 			});
 		}
 	}
-
+	
 	private HBox[] addPlaces() {
 		VBox box = new VBox();
 		this.getChildren().add(box);
@@ -105,7 +108,7 @@ public class FivePlacePreGame extends Pane {
 		box.getChildren().addAll(place1, place2, space, place3);
 		return new HBox[]{place1, place2, place3};
 	}
-
+	
 	private StackPane getStackPane(double width, double height, Pos pos) {
 		StackPane stackPane = new StackPane();
 		stackPane.setAlignment(pos);
@@ -115,7 +118,7 @@ public class FivePlacePreGame extends Pane {
 		stackPane.setMaxHeight(height);
 		return stackPane;
 	}
-
+	
 	private Text addText(HBox[] places) {
 		StackPane stackPane = getStackPane(PreGameMenu.screenWidth / 2.0, PreGameMenu.screenHeight / 5.0, Pos.TOP_CENTER);
 		Text text = new Text("\n");
@@ -133,7 +136,7 @@ public class FivePlacePreGame extends Pane {
 		places[2].getChildren().add(stackPane);
 		return text;
 	}
-
+	
 	public void show(boolean isLeaderChange, int index) {
 		this.isLeaderChange = isLeaderChange;
 		nameList = new ArrayList<>();
@@ -164,14 +167,14 @@ public class FivePlacePreGame extends Pane {
 		} catch (Exception ignored) {
 		}
 	}
-
+	
 	private void endShow() {
 		try {
 			gamePane.getChildren().remove(this);
 		} catch (Exception ignored) {
 		}
 	}
-
+	
 	private void clickedOn(int index) {
 		currentIndex += index - 2;
 		setCurrentImage(currentIndex);
@@ -190,7 +193,7 @@ public class FivePlacePreGame extends Pane {
 			endShow();
 		}
 	}
-
+	
 	private void changeText() {
 		String text = nameList.get(currentIndex);
 		switch (nameList.get(currentIndex).trim()) {
@@ -236,29 +239,29 @@ public class FivePlacePreGame extends Pane {
 					text = "Leader Ability\nMove agile units to whichever valid row maximizes their strength " + "(don't move units already in optimal row).";
 			case "Crach an Craite" ->
 					text = "Leader Ability\nShuffle all cards from each player's graveyard back into their decks.";
-			case "King Bran" ->
-					text = "Leader Ability\nUnits only lose half their Strength in bad weather conditions.";
+			case "King Bran" -> text = "Leader Ability\nUnits only lose half their Strength in bad weather conditions.";
 			case "REALMS" -> text = "Northern Realms\nDraw a card from your deck whenever you win a round.";
 			case "NILFGAARD" -> text = "Nilfgaardian Empire\nWins any round that ends in a draw.";
 			case "MONSTERS" -> text = "Monsters\nKeeps a random Unit Card out after each round.";
 			case "SCOIATAEL" -> text = "Scoia'tael\nDecides who takes first turn.";
-			case "SKELLIGE" -> text = "Skellige\n2 random cards from the graveyard are placed on the battlefield at the start of the third round.";
+			case "SKELLIGE" ->
+					text = "Skellige\n2 random cards from the graveyard are placed on the battlefield at the start of the third round.";
 		}
 		textFiled.setText("\n" + text);
 	}
-
+	
 	public void setFaction(Faction faction) {
 		currentIndex = 0;
 		this.faction = faction;
 	}
-
+	
 	private void setCurrentImage(int index) {
 		for (int i = -2; i <= 2; i++) {
 			addImageToIndex(index + i, 2 + i);
 		}
 		changeText();
 	}
-
+	
 	private void addImageToIndex(int arrayIndex, int placeIndex) {
 		try {
 			images[placeIndex].setImage(null);
@@ -266,5 +269,5 @@ public class FivePlacePreGame extends Pane {
 		} catch (Exception ignored) {
 		}
 	}
-
+	
 }

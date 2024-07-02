@@ -6,8 +6,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
-public final class ANSI
-{
+public final class ANSI {
 	public static final ANSI RST = new ANSI("\u001B[0m");
 	public static final ANSI BOLD = new ANSI("\u001B[1m");
 	public static final ANSI DIM = new ANSI("\u001B[2m");
@@ -37,44 +36,19 @@ public final class ANSI
 	
 	private final String ansi;
 	
-	private ANSI(String ansi)
-	{
+	private ANSI(String ansi) {
 		this.ansi = ansi;
 	}
 	
-	public ANSI bd()
-	{
-		return append(BOLD);
-	}
-	
-	public static ANSI fg(Color color)
-	{
+	public static ANSI fg(Color color) {
 		return new ANSI("\u001B[38;2;" + color.getRed() + ";" + color.getGreen() + ";" + color.getBlue() + "m");
 	}
 	
-	public static ANSI bg(Color color)
-	{
+	public static ANSI bg(Color color) {
 		return new ANSI("\u001B[48;2;" + color.getRed() + ";" + color.getGreen() + ";" + color.getBlue() + "m");
 	}
 	
-	public ANSI setBg(Color color)
-	{
-		return append(bg(color));
-	}
-	
-	public ANSI append(ANSI toBeAppended)
-	{
-		return new ANSI(this.ansi + toBeAppended.ansi);
-	}
-	
-	@Override
-	public String toString()
-	{
-		return this.ansi;
-	}
-	
-	public static void log(long time, PrintStream stream, String logMsg, StackTraceElement... stackTraceElements)
-	{
+	public static void log(long time, PrintStream stream, String logMsg, StackTraceElement... stackTraceElements) {
 		for (StackTraceElement element : stackTraceElements)
 			log(time, stream,
 					"In Thread \"" + Thread.currentThread().getName() + "\" at " +
@@ -83,8 +57,7 @@ public final class ANSI
 		stream.println(timeStr + " -> " + logMsg + ANSI.RST);
 	}
 	
-	public static void log(long time, PrintStream stream, String logMsg, ANSI color, StackTraceElement... stackTraceElements)
-	{
+	public static void log(long time, PrintStream stream, String logMsg, ANSI color, StackTraceElement... stackTraceElements) {
 		if (!stream.equals(System.out) && !stream.equals(System.err)) {
 			log(time, stream, logMsg, stackTraceElements);
 			return;
@@ -98,8 +71,7 @@ public final class ANSI
 		stream.println(ANSI.fg(Color.gray) + timeStr + " -> " + ANSI.RST + color + logMsg + ANSI.RST);
 	}
 	
-	public static void logError(PrintStream stream, String errorMessage, Throwable... optional)
-	{
+	public static void logError(PrintStream stream, String errorMessage, Throwable... optional) {
 		long time = System.currentTimeMillis();
 		boolean emptyMsg = errorMessage == null || errorMessage.isEmpty();
 		if (!emptyMsg) log(time, stream, errorMessage, ANSI.LRED.bd(), Thread.currentThread().getStackTrace()[2]);
@@ -117,16 +89,31 @@ public final class ANSI
 		}
 	}
 	
-	public static void log(String message)
-	{
+	public static void log(String message) {
 		log(System.currentTimeMillis(), System.err, message, ANSI.DEF_FG);
 	}
 	
-	public static void log(String message, ANSI color, boolean printLineNumber)
-	{
+	public static void log(String message, ANSI color, boolean printLineNumber) {
 		if (printLineNumber)
 			log(System.currentTimeMillis(), System.err, message, color, Thread.currentThread().getStackTrace()[2]);
 		else
 			log(System.currentTimeMillis(), System.err, message, color);
+	}
+	
+	public ANSI bd() {
+		return append(BOLD);
+	}
+	
+	public ANSI setBg(Color color) {
+		return append(bg(color));
+	}
+	
+	public ANSI append(ANSI toBeAppended) {
+		return new ANSI(this.ansi + toBeAppended.ansi);
+	}
+	
+	@Override
+	public String toString() {
+		return this.ansi;
 	}
 }

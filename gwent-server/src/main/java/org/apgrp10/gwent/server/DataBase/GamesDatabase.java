@@ -57,8 +57,8 @@ public class GamesDatabase extends DatabaseTable {
 				getValue(id, GameDBColumn.player2),
 				getValue(id, GameDBColumn.seed),
 				Deck.fromBase64(getValue(id, GameDBColumn.deck1)),
-				Deck.fromBase64String(getValue(id, GameDBColumn.deck2)),
-				Command.parse(getValue(id, GameDBColumn.commands)),
+				Deck.fromBase64(getValue(id, GameDBColumn.deck2)),
+				Command.fromBase64(getValue(id, GameDBColumn.commands)),
 				getEachSetResult(id, 1)[0], getEachSetResult(id, 1)[1],
 				getEachSetResult(id, 2)[0], getEachSetResult(id, 2)[1],
 				getEachSetResult(id, 3)[0], getEachSetResult(id, 3)[1]);

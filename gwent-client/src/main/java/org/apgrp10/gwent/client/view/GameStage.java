@@ -2,8 +2,7 @@ package org.apgrp10.gwent.client.view;
 
 import javafx.stage.WindowEvent;
 
-public class GameStage extends AbstractStage
-{
+public class GameStage extends AbstractStage {
 	private static GameStage INSTANCE;
 	
 	private GameStage() {
