@@ -19,7 +19,10 @@ import org.apgrp10.gwent.client.controller.PreGameController;
 import org.apgrp10.gwent.client.model.CardView;
 import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.User;
-import org.apgrp10.gwent.model.card.*;
+import org.apgrp10.gwent.model.card.Card;
+import org.apgrp10.gwent.model.card.CardInfo;
+import org.apgrp10.gwent.model.card.Faction;
+import org.apgrp10.gwent.model.card.Row;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -456,8 +459,7 @@ public class PreGameMenu extends Application {
 	}
 	
 	private String downloadDeck() {
-		Deck deck = createDeckFromPane(deckLists[1]);
-		return Deck.deckToString(deck);
+		return createDeckFromPane(deckLists[1]).toJsonString();
 	}
 	
 	private void chooseFileToUpload() {

@@ -1,16 +1,5 @@
 package org.apgrp10.gwent.client.view;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apgrp10.gwent.client.R;
-import org.apgrp10.gwent.client.controller.GameController;
-import org.apgrp10.gwent.client.controller.GameController.PlayerData;
-import org.apgrp10.gwent.model.card.Card;
-import org.apgrp10.gwent.client.model.CardView;
-
 import javafx.animation.Transition;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
@@ -24,7 +13,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
@@ -32,7 +20,16 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.apgrp10.gwent.client.R;
+import org.apgrp10.gwent.client.controller.GameController;
+import org.apgrp10.gwent.client.controller.GameController.PlayerData;
+import org.apgrp10.gwent.client.model.CardView;
+import org.apgrp10.gwent.model.card.Card;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GameMenu extends Application {
 	private GameController controller;
@@ -43,7 +40,7 @@ public class GameMenu extends Application {
 	private static final int WIDTH = 1280, HEIGHT = 720;
 
 	private static class Position {
-		public static record RectPos(double posX, double posY, double posX2, double posY2) {
+		public record RectPos(double posX, double posY, double posX2, double posY2) {
 			public double x() { return posX * WIDTH; }
 			public double y() { return posY * HEIGHT; }
 			public double w() { return (posX2 - posX) * WIDTH; }
@@ -393,7 +390,7 @@ public class GameMenu extends Application {
 		redraw();
 	}
 
-	public static interface Callback { public void call(Object object); }
+	public interface Callback { void call(Object object); }
 	private final List<Callback> cardListeners = new ArrayList<>();
 	private final List<Callback> buttonListeners = new ArrayList<>();
 	private final List<Callback> rowListeners = new ArrayList<>();

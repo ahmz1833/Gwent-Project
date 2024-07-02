@@ -2,17 +2,13 @@ package org.apgrp10.gwent.server;
 
 import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.Random;
-import org.apgrp10.gwent.utils.SecurityUtils;
 
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyPair;
 import java.util.Locale;
 
 public class ServerMain {
@@ -56,7 +52,7 @@ public class ServerMain {
 		while (true) {
 			try {
 				Socket socket = serverSocket.accept();
-
+				
 				Client client = new Client(socket);
 				assignThread(client, threads);
 				assignThread(new SendHello(client), threads);
@@ -65,15 +61,23 @@ public class ServerMain {
 			}
 		}
 	}
-
+	
+	private static HandlingThread assignThread(Task task, HandlingThread[] threads) {
+		int index = Random.nextInt(0, threads.length);
+		threads[index].addTask(task);
+		return threads[index];
+	}
+	
 	// for testing
 	private static class SendHello implements Task {
 		private Client client;
 		private long last;
+		
 		public SendHello(Client client) {
 			this.client = client;
 			last = System.currentTimeMillis();
 		}
+		
 		@Override
 		public void run() {
 			long cur = System.currentTimeMillis();
@@ -82,15 +86,10 @@ public class ServerMain {
 			last = cur;
 			client.send(("\nHello from server\nkhobi? " + System.currentTimeMillis() + "\nnaa???\n").getBytes());
 		}
+		
 		@Override
 		public boolean isDone() {
 			return client.isDone();
 		}
-	}
-
-	private static HandlingThread assignThread(Task task, HandlingThread[] threads) {
-		int index = Random.nextInt(0, threads.length);
-		threads[index].addTask(task);
-		return threads[index];
 	}
 }

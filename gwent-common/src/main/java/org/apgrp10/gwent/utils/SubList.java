@@ -9,8 +9,7 @@ package org.apgrp10.gwent.utils;
 
 import java.util.*;
 
-public class SubList<E> implements List<E>
-{
+public class SubList<E> implements List<E> {
 	private final ArrayList<E> source;
 	private final ArrayList<E> sublist;
 	
@@ -191,9 +190,8 @@ public class SubList<E> implements List<E>
 		return sublist.subList(fromIndex, toIndex);
 	}
 	
-	public void checkSource()
-	{
-		for(E e:new ArrayList<>(sublist))
-			if(!source.contains(e)) sublist.remove(e);
+	public void checkSource() {
+		for (E e : new ArrayList<>(sublist))
+			if (!source.contains(e)) sublist.remove(e);
 	}
 }

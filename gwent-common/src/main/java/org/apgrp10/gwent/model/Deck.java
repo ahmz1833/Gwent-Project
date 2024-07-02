@@ -2,23 +2,23 @@ package org.apgrp10.gwent.model;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apgrp10.gwent.model.card.*;
+import org.apgrp10.gwent.model.card.Card;
+import org.apgrp10.gwent.model.card.CardInfo;
+import org.apgrp10.gwent.model.card.Faction;
+import org.apgrp10.gwent.model.card.Row;
 import org.apgrp10.gwent.utils.ANSI;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Random;
+import java.util.*;
 
 public class Deck {
 	private final User user;
 	private final ArrayList<Card> deck = new ArrayList<>();
 	private final Faction faction;
 	private final Card leader;
-
+	
 	public Deck(int factionId, String leaderName, User user) {
 		this.user = user;
 		switch (factionId) {
@@ -38,27 +38,7 @@ public class Deck {
 		}
 		leader = leaderCopy;
 	}
-
-
-
-	public Card convertCortInfoToCard(CardInfo cardInfo) {
-		return new Card(cardInfo.name, cardInfo.pathAddress, cardInfo.strength, cardInfo.row, cardInfo.faction, cardInfo.ability, cardInfo.isHero);
-	}
-
-	public void addCard(Card card) {
-		deck.add(card);
-	}
-
-	public void removeCard(Card card) {
-		deck.remove(card);
-	}
-
-	public void addCard(CardInfo cardInfo) {
-		addCard(convertCortInfoToCard(cardInfo));
-	}
-	public User getUser(){
-		return user;
-	}
+	
 	public static boolean isCorrectDeck(Deck deck) {
 		if (deck == null) return false;
 		if (deck.leader == null || deck.faction == null) {
@@ -89,7 +69,7 @@ public class Deck {
 					if (getSimilarCountInDeck(deck, card.pathAddress) > cardInfo.count) return false;
 		return true;
 	}
-
+	
 	private static int getSimilarCountInDeck(Deck deck, String path) {
 		int count = 0;
 		for (Card card : deck.deck) {
@@ -97,19 +77,7 @@ public class Deck {
 		}
 		return count;
 	}
-
-	public Card getLeader() {
-		return leader;
-	}
-
-	public ArrayList<Card> getDeck() {
-		return deck;
-	}
-
-	public Faction getFaction() {
-		return faction;
-	}
-
+	
 	public static Deck loadDeckFromFile(String fileAddress) {
 		try {
 			File file = new File(fileAddress);
@@ -120,99 +88,143 @@ public class Deck {
 				text.append(line).append("\n");
 			}
 			br.close();
-			return DeckToSave.loadFromJson(text.toString());
+			Deck deck = fromJsonString(text.toString());
+			assert deck != null;
+			return deck;
 		} catch (Exception e) {
 			ANSI.logError(System.err, "Error in loading deck from " + fileAddress, e);
 			return null;
 		}
 	}
-	public static Deck stringToDeck(String string){
+	
+	public static Deck fromJsonString(String string) {
 		Deck deckLoaded = DeckToSave.loadFromJson(string);
-		if(deckLoaded == null)
+		if (deckLoaded == null)
 			ANSI.logError(System.err, "Error in loading deck", new RuntimeException());
 		return deckLoaded;
 	}
-
-	public static String deckToString(Deck deck) {
+	
+	public static Deck fromBase64(String base64) {
+		return fromJsonString(new String(Base64.getDecoder().decode(base64)));
+	}
+	
+	public Card convertCortInfoToCard(CardInfo cardInfo) {
+		return new Card(cardInfo.name, cardInfo.pathAddress, cardInfo.strength, cardInfo.row, cardInfo.faction, cardInfo.ability, cardInfo.isHero);
+	}
+	
+	public void addCard(Card card) {
+		deck.add(card);
+	}
+	
+	public void removeCard(Card card) {
+		deck.remove(card);
+	}
+	
+	public void addCard(CardInfo cardInfo) {
+		addCard(convertCortInfoToCard(cardInfo));
+	}
+	
+	public User getUser() {
+		return user;
+	}
+	
+	public Card getLeader() {
+		return leader;
+	}
+	
+	public ArrayList<Card> getDeck() {
+		return deck;
+	}
+	
+	public Faction getFaction() {
+		return faction;
+	}
+	
+	public String toJsonString() {
 		DeckToSave deckToSave = new DeckToSave();
-		deckToSave.changeFaction(deck.faction);
-		deckToSave.changeLeader(deck.leader);
-		for (Card card : deck.deck) {
+		deckToSave.changeFaction(this.faction);
+		deckToSave.changeLeader(this.leader);
+		for (Card card : this.deck) {
 			deckToSave.addCard(card.pathAddress);
 		}
 		return deckToSave.getJson();
 	}
-
+	
+	public String toBase64() {
+		return Base64.getEncoder().encodeToString(toJsonString().getBytes());
+	}
+	
 	public int assignGameIds(int startingId) {
 		int id = startingId;
 		for (Card card : deck)
 			card.setGameId(id++);
 		return id;
 	}
-
+	
 	public void shuffle(Random random) {
 		Collections.shuffle(deck, random);
 	}
-}
-
-
-class DeckToSave {
-	private final HashMap<String, Integer> deck = new HashMap<>();
-	private String faction = "";
-	private String leader = "";
-
-	public void addCard(String path) {
-		deck.putIfAbsent(path, 0);
-		deck.put(path, deck.get(path) + 1);
-	}
-
-	public void changeLeader(Card leader) {
-		this.leader = leader.pathAddress;
-	}
-
-	public void changeFaction(Faction faction) {
-		this.faction = faction.name();
-	}
-
-	public String getJson() {
-		Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
-		return gson.toJson(this);
-	}
-
-	private static CardInfo convertPathToCardInfo(String path) {
-		for (CardInfo cardInfo : CardInfo.allCards) {
-			if (cardInfo.pathAddress.equals(path)) {
-				return cardInfo;
-			}
-		}
-		return null;
-	}
-
-	public static Deck loadFromJson(String json) {
-		try {
-			Gson gson = new Gson();
-			DeckToSave deckToSave = gson.fromJson(json, DeckToSave.class);
-			int factionIndex = -1;
-			switch (deckToSave.faction) {
-				case "REALMS" -> factionIndex = 0;
-				case "NILFGAARD" -> factionIndex = 1;
-				case "MONSTERS" -> factionIndex = 2;
-				case "SCOIATAEL" -> factionIndex = 3;
-				case "SKELLIGE" -> factionIndex = 4;
-			}
-			Deck outputDeck = new Deck(factionIndex, deckToSave.leader, null);
-			for (String path : deckToSave.deck.keySet()) {
-				CardInfo cardInfo = convertPathToCardInfo(path);
-				if (cardInfo == null) return null;
-				if (deckToSave.deck.get(path) < 0) return null;
-				for (int i = 0; i < deckToSave.deck.get(path); i++) {
-					outputDeck.addCard(cardInfo);
+	
+	static class DeckToSave {
+		private final HashMap<String, Integer> deck = new HashMap<>();
+		private String faction = "";
+		private String leader = "";
+		
+		private static CardInfo convertPathToCardInfo(String path) {
+			for (CardInfo cardInfo : CardInfo.allCards) {
+				if (cardInfo.pathAddress.equals(path)) {
+					return cardInfo;
 				}
 			}
-			if (!Deck.isCorrectDeck(outputDeck)) return null;
-			return outputDeck;
-		} catch (Exception ignored) {
 			return null;
+		}
+		
+		public static Deck loadFromJson(String json) {
+			try {
+				Gson gson = new Gson();
+				DeckToSave deckToSave = gson.fromJson(json, DeckToSave.class);
+				int factionIndex = -1;
+				switch (deckToSave.faction) {
+					case "REALMS" -> factionIndex = 0;
+					case "NILFGAARD" -> factionIndex = 1;
+					case "MONSTERS" -> factionIndex = 2;
+					case "SCOIATAEL" -> factionIndex = 3;
+					case "SKELLIGE" -> factionIndex = 4;
+				}
+				Deck outputDeck = new Deck(factionIndex, deckToSave.leader, null);
+				for (String path : deckToSave.deck.keySet()) {
+					CardInfo cardInfo = convertPathToCardInfo(path);
+					if (cardInfo == null) return null;
+					if (deckToSave.deck.get(path) < 0) return null;
+					for (int i = 0; i < deckToSave.deck.get(path); i++) {
+						outputDeck.addCard(cardInfo);
+					}
+				}
+				if (!isCorrectDeck(outputDeck)) return null;
+				return outputDeck;
+			} catch (Exception ignored) {
+				return null;
+			}
+		}
+		
+		public void addCard(String path) {
+			deck.putIfAbsent(path, 0);
+			deck.put(path, deck.get(path) + 1);
+		}
+		
+		public void changeLeader(Card leader) {
+			this.leader = leader.pathAddress;
+		}
+		
+		public void changeFaction(Faction faction) {
+			this.faction = faction.name();
+		}
+		
+		public String getJson() {
+			Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
+			return gson.toJson(this);
 		}
 	}
 }
+
+

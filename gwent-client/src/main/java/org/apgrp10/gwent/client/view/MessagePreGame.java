@@ -18,7 +18,7 @@ public class MessagePreGame extends Pane {
 	private final Pane gamePane;
 	private final int cornerX = PreGameMenu.screenWidth / 4 - 200;
 	private final int cornerY = PreGameMenu.screenHeight / 2 - 80;
-
+	
 	//this constructor is for confirming new faction
 	public MessagePreGame(PreGameMenu preGameMenu, Pane gamePane, Faction faction, int primaryX) {
 		this.gamePane = gamePane;
@@ -36,7 +36,7 @@ public class MessagePreGame extends Pane {
 		addButton("Cancel", Color.RED, 330, k -> endShow());
 		addTextFaction();
 	}
-
+	
 	//this constructor is for "deck is not formatted correctly"
 	public MessagePreGame(Pane gamePane, int primaryX) {
 		this.gamePane = gamePane;
@@ -50,7 +50,7 @@ public class MessagePreGame extends Pane {
 		addTextUpload();
 		addButton("OK", Color.LIGHTSKYBLUE, 300, k -> endShow());
 	}
-
+	
 	private void addTextFaction() {
 		Text text = new Text("Changing factions will clear the current deck.\nContinue? ");
 		text.setStyle("-fx-font-size: 19px");
@@ -60,7 +60,7 @@ public class MessagePreGame extends Pane {
 		text.setY(cornerY + 35);
 		this.getChildren().add(text);
 	}
-
+	
 	private void addTextUpload() {
 		Text text = new Text("Uploaded deck is not formatted correctly!");
 		text.setStyle("-fx-font-size: 19px");
@@ -70,7 +70,7 @@ public class MessagePreGame extends Pane {
 		text.setY(cornerY + 50);
 		this.getChildren().add(text);
 	}
-
+	
 	private void addBackground(boolean alert) {
 		DropShadow dropShadow = new DropShadow();
 		dropShadow.setOffsetX(0);
@@ -89,7 +89,7 @@ public class MessagePreGame extends Pane {
 		this.getChildren().add(background);
 		background.setOnMouseClicked(Event::consume);
 	}
-
+	
 	private void addButton(String text, Color color, int x, EventHandler<? super MouseEvent> event) {
 		Button button = new Button(text);
 		button.setTextFill(Color.WHITE);
@@ -101,7 +101,7 @@ public class MessagePreGame extends Pane {
 		button.setOnMouseClicked(event);
 		this.getChildren().add(button);
 	}
-
+	
 	private void endShow() {
 		gamePane.getChildren().remove(this);
 	}

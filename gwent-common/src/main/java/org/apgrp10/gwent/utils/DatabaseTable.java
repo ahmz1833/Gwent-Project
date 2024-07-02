@@ -1,6 +1,9 @@
 package org.apgrp10.gwent.utils;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -67,8 +70,7 @@ public class DatabaseTable {
 		try {
 			ResultSet table = getRow(condition);
 			return table.next() ? table.getLong("id") : -1;
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			return -1;
 		}
 	}

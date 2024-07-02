@@ -1,7 +1,6 @@
 package org.apgrp10.gwent.client.view;
 
 import io.github.palexdev.materialfx.controls.MFXButton;
-import io.github.palexdev.materialfx.dialogs.MFXDialogs;
 import io.github.palexdev.materialfx.dialogs.MFXGenericDialogBuilder;
 import io.github.palexdev.materialfx.dialogs.MFXStageDialog;
 import io.github.palexdev.materialfx.enums.ScrimPriority;
@@ -10,7 +9,6 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -158,7 +156,7 @@ public abstract class AbstractStage extends Stage {
 	public void showAlert(MFXGenericDialogBuilder base, String title, String message) {
 		showDialogAndWait(base, title, message, Map.entry("#*OK", e -> {}));
 	}
-	
+
 //	public void showExitDialog() {
 //		if (UserController.getCurrentUser() != null) {
 //			User user = UserController.getCurrentUser();

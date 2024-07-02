@@ -1,26 +1,15 @@
 package org.apgrp10.gwent.client.controller;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.stream.Collectors;
-
+import javafx.stage.Stage;
 import org.apgrp10.gwent.client.model.WaitExec;
 import org.apgrp10.gwent.client.view.GameMenu;
 import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.User;
-import org.apgrp10.gwent.model.card.Ability;
-import org.apgrp10.gwent.model.card.Card;
-import org.apgrp10.gwent.model.card.CardInfo;
-import org.apgrp10.gwent.model.card.Faction;
-import org.apgrp10.gwent.model.card.Row;
+import org.apgrp10.gwent.model.card.*;
 
-import javafx.stage.Stage;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class GameController {
 	public static class PlayerData {
@@ -598,7 +587,7 @@ public class GameController {
 		}
 	}
 
-	public static interface CommandListener { public void call(Command cmd); }
+	public interface CommandListener { public void call(Command cmd); }
 	private final List<CommandListener> commandListeners = new ArrayList<>();
 	public void addCommandListener(CommandListener cb) { commandListeners.add(cb); }
 	public void removeCommandListener(CommandListener cb) { commandListeners.remove(cb); }

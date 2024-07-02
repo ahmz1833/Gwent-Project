@@ -1,6 +1,5 @@
 package org.apgrp10.gwent.client.view;
 
-import javafx.scene.image.Image;
 import javafx.stage.WindowEvent;
 
 public class ProfileStage extends AbstractStage {
