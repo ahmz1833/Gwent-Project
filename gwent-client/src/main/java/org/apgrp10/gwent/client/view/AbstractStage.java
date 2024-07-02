@@ -35,11 +35,11 @@ public abstract class AbstractStage extends Stage {
 		}));
 		this.setOnCloseRequest(AbstractStage.this::onCloseRequest);
 	}
-	
+
 	protected static MouseEvent emptyMouseEvent() {
 		return new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, null, 0, false, false, false, false, false, false, false, false, false, false, null);
 	}
-	
+
 	public void start() {
 		if (onCreate()) {
 			setOpacity(1.0);
@@ -50,12 +50,12 @@ public abstract class AbstractStage extends Stage {
 			show();
 		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	protected <T> T lookup(String id) {
 		return (T) getScene().lookup(id);
 	}
-	
+
 	public void setOnPressListener(String buttonID, EventHandler<Event> handler) {
 		MFXButton button = lookup(buttonID);
 		button.setOnMouseClicked(handler);
@@ -63,10 +63,10 @@ public abstract class AbstractStage extends Stage {
 			if (e.getCode().getName().equals("Enter")) handler.handle(e);
 		});
 	}
-	
+
 	private MFXStageDialog makeDialog(MFXGenericDialogBuilder base) {
 		base.addStylesheets(getScene().getStylesheets().toArray(new String[0]));
-		
+
 		MFXStageDialog dialog = MFXGenericDialogBuilder.build(base.get())
 				.toStageDialogBuilder()
 				.initOwner(this)
@@ -78,17 +78,17 @@ public abstract class AbstractStage extends Stage {
 				.setCenterInOwnerNode(true)
 				.setOverlayClose(false)
 				.get();
-		
+
 		Pane actionPane = (Pane) base.get().getBottom();
 		actionPane.getChildren().forEach(c -> {
 			if (c.equals(actionPane)) return;
 			c.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> dialog.close());
 		});
-		
+
 		dialog.setIconified(false);
 		return dialog;
 	}
-	
+
 	@SafeVarargs
 	public final void showDialogAndWait(MFXGenericDialogBuilder base, String title, Node content, Map.Entry<String, EventHandler<? super MouseEvent>>... actions) {
 		ArrayList<Node> actionsBtns = new ArrayList<>();
@@ -110,7 +110,7 @@ public abstract class AbstractStage extends Stage {
 			button.setOnMouseClicked(action.getValue());
 			actionsBtns.add(button);
 		}
-		
+
 		final Button finalDefaultBtn = defaultBtn;
 		final Button finalCancelBtn = cancelBtn;
 		for (Node button : actionsBtns) {
@@ -129,14 +129,14 @@ public abstract class AbstractStage extends Stage {
 		}
 		dialog.showAndWait();
 	}
-	
+
 	@SafeVarargs
 	public final void showDialogAndWait(MFXGenericDialogBuilder base, String title, String content, Map.Entry<String, EventHandler<? super MouseEvent>>... actions) {
 		Label contentLabel = new Label(content);
 		contentLabel.setId("dialog_label");
 		showDialogAndWait(base, title, contentLabel, actions);
 	}
-	
+
 	public boolean showConfirmDialog(MFXGenericDialogBuilder base, String title, Node content, String posBtn, String negBtn) {
 		AtomicBoolean result = new AtomicBoolean(false);
 		showDialogAndWait(base, title, content,
@@ -144,7 +144,7 @@ public abstract class AbstractStage extends Stage {
 				Map.entry("*" + negBtn, e1 -> {}));
 		return result.get();
 	}
-	
+
 	public boolean showConfirmDialog(MFXGenericDialogBuilder base, String title, String contentMsg, String posBtn, String negBtn) {
 		AtomicBoolean result = new AtomicBoolean(false);
 		showDialogAndWait(base, title, contentMsg,
@@ -152,7 +152,7 @@ public abstract class AbstractStage extends Stage {
 				Map.entry("*" + negBtn, e1 -> {}));
 		return result.get();
 	}
-	
+
 	public void showAlert(MFXGenericDialogBuilder base, String title, String message) {
 		showDialogAndWait(base, title, message, Map.entry("#*OK", e -> {}));
 	}
@@ -169,12 +169,12 @@ public abstract class AbstractStage extends Stage {
 //				"Are you sure you want to exit?", "Yes", "No"))
 //			Platform.exit();
 //	}
-	
+
 	protected abstract boolean onCreate();
-	
+
 	protected abstract void onCloseRequest(WindowEvent event);
-	
+
 	protected abstract void onGetFocus();
-	
+
 	protected abstract void onLostFocus();
 }

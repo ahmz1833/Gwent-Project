@@ -241,7 +241,7 @@ public class GameMenu extends Application {
 		rootPane.getChildren().add(rect);
 		rootPane.getChildren().add(scroller);
 	}
-	
+
 	public void addWeatherOverlay(Position.RectPos pos, Image image) {
 		Rectangle rect = new Rectangle(pos.x(), pos.y(), pos.w(), pos.h());
 		rect.setMouseTransparent(true);

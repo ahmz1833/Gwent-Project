@@ -33,7 +33,7 @@ public class MessageView extends HBox {
 	boolean edited = false;
 	private VBox messageBox;
 	private Message replyOn;
-	
+
 	public MessageView(Message message, User user, Message replyOn) {
 		this.replyOn = replyOn;
 		this.message = message;
@@ -49,7 +49,7 @@ public class MessageView extends HBox {
 		messageBox.getChildren().add(allReactions);
 		setupTime();
 	}
-	
+
 	private void setupTime() {
 		try {
 			StackPane pane = new StackPane();
@@ -69,7 +69,7 @@ public class MessageView extends HBox {
 			System.out.println(e.getStackTrace());
 		}
 	}
-	
+
 	private void fillReactions() {
 		for (int i = 0; i < 4; i++) {
 			reactions[i] = new HBox();
@@ -85,13 +85,13 @@ public class MessageView extends HBox {
 			reactions[i].setMaxWidth(40);
 		}
 	}
-	
+
 	private void addReply() {
 		if (replyOn != null) {
 			messageBox.getChildren().add(ChatMenu.getMessageReplyView(replyOn, user, true));
 		}
 	}
-	
+
 	public void deleteReply(int id) {
 		if (replyOn != null) {
 			if (replyOn.getId() == id) {
@@ -100,7 +100,7 @@ public class MessageView extends HBox {
 			}
 		}
 	}
-	
+
 	public void editReply(int id, String text) {
 		if (replyOn != null) {
 			try {
@@ -116,7 +116,7 @@ public class MessageView extends HBox {
 			}
 		}
 	}
-	
+
 	private void updateReactions() {
 		allReactions.getChildren().clear();
 		allReactions.setSpacing(7);
@@ -135,11 +135,11 @@ public class MessageView extends HBox {
 				allReactions.getChildren().add(reaction);
 		}
 	}
-	
+
 	public Message getMessage() {
 		return message;
 	}
-	
+
 	private Node getImage() {
 		//TODO set avatar image of message.getOwner in here instead of sample image
 		ImageView imageView = new ImageView(R.getImage("icons/card_ability_frost.png"));
@@ -147,7 +147,7 @@ public class MessageView extends HBox {
 		imageView.setFitHeight(30);
 		return imageView;
 	}
-	
+
 	private void addImage() {
 		StackPane stackPane = new StackPane();
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
@@ -155,7 +155,7 @@ public class MessageView extends HBox {
 		this.getChildren().add(stackPane);
 		this.setSpacing(5);
 	}
-	
+
 	private void addMessage() {
 		messageBox = new VBox();
 		Rectangle background = new Rectangle();
@@ -178,13 +178,13 @@ public class MessageView extends HBox {
 		dropShadow.setOffsetY(5);
 		background.setEffect(dropShadow);
 	}
-	
+
 	private void addUserName() {
 		Text username;
 		if (user.equals(message.getOwner())) {
 			username = new Text("you:");
 			username.setFill(Color.RED);
-			
+
 		} else {
 			username = new Text(message.getOwner().getNickname() + ":");
 			username.setFill(Color.GREEN);
@@ -193,7 +193,7 @@ public class MessageView extends HBox {
 		username.setStyle("-fx-font-size: 14px");
 		messageBox.getChildren().add(username);
 	}
-	
+
 	private void addText() {
 		messageText.setText(message.getText().trim() + "\n");
 		messageText.setWrappingWidth(150);
@@ -201,14 +201,14 @@ public class MessageView extends HBox {
 		messageText.setStyle("-fx-font-size: 12px");
 		messageBox.getChildren().add(messageText);
 	}
-	
+
 	public void increaseReaction(int index) {
 		int count = Integer.parseInt(((Text) (reactions[index].getChildren().get(1))).getText());
 		count++;
 		((Text) (reactions[index].getChildren().get(1))).setText(String.valueOf(count));
 		updateReactions();
 	}
-	
+
 	public void decreaseReaction(int index) {
 		int count = Integer.parseInt(((Text) (reactions[index].getChildren().get(1))).getText());
 		count--;
@@ -218,7 +218,7 @@ public class MessageView extends HBox {
 		mainPain.requestLayout();
 		backPane.requestLayout();
 	}
-	
+
 	public void changeText(String text) {
 		messageText.setText(text.trim() + "\n");
 		message.setText(text.trim());

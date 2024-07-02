@@ -33,21 +33,21 @@ public final class ANSI {
 	public static final ANSI LYELLOW = new ANSI("\u001B[93m");
 	public static final ANSI LCYAN = new ANSI("\u001B[96m");
 	public static final ANSI LMAGENTA = new ANSI("\u001B[95m");
-	
+
 	private final String ansi;
-	
+
 	private ANSI(String ansi) {
 		this.ansi = ansi;
 	}
-	
+
 	public static ANSI fg(Color color) {
 		return new ANSI("\u001B[38;2;" + color.getRed() + ";" + color.getGreen() + ";" + color.getBlue() + "m");
 	}
-	
+
 	public static ANSI bg(Color color) {
 		return new ANSI("\u001B[48;2;" + color.getRed() + ";" + color.getGreen() + ";" + color.getBlue() + "m");
 	}
-	
+
 	public static void log(long time, PrintStream stream, String logMsg, StackTraceElement... stackTraceElements) {
 		for (StackTraceElement element : stackTraceElements)
 			log(time, stream,
@@ -56,7 +56,7 @@ public final class ANSI {
 		String timeStr = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
 		stream.println(timeStr + " -> " + logMsg + ANSI.RST);
 	}
-	
+
 	public static void log(long time, PrintStream stream, String logMsg, ANSI color, StackTraceElement... stackTraceElements) {
 		if (!stream.equals(System.out) && !stream.equals(System.err)) {
 			log(time, stream, logMsg, stackTraceElements);
@@ -70,7 +70,7 @@ public final class ANSI {
 		String timeStr = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
 		stream.println(ANSI.fg(Color.gray) + timeStr + " -> " + ANSI.RST + color + logMsg + ANSI.RST);
 	}
-	
+
 	public static void logError(PrintStream stream, String errorMessage, Throwable... optional) {
 		long time = System.currentTimeMillis();
 		boolean emptyMsg = errorMessage == null || errorMessage.isEmpty();
@@ -88,30 +88,30 @@ public final class ANSI {
 				log(time, stream, element.toString(), ANSI.RED);
 		}
 	}
-	
+
 	public static void log(String message) {
 		log(System.currentTimeMillis(), System.err, message, ANSI.DEF_FG);
 	}
-	
+
 	public static void log(String message, ANSI color, boolean printLineNumber) {
 		if (printLineNumber)
 			log(System.currentTimeMillis(), System.err, message, color, Thread.currentThread().getStackTrace()[2]);
 		else
 			log(System.currentTimeMillis(), System.err, message, color);
 	}
-	
+
 	public ANSI bd() {
 		return append(BOLD);
 	}
-	
+
 	public ANSI setBg(Color color) {
 		return append(bg(color));
 	}
-	
+
 	public ANSI append(ANSI toBeAppended) {
 		return new ANSI(this.ansi + toBeAppended.ansi);
 	}
-	
+
 	@Override
 	public String toString() {
 		return this.ansi;

@@ -12,7 +12,7 @@ public class ReactionChat extends Pane {
 	private final boolean isForOwner;
 	private final int reaction;
 	private final VBox menu = new VBox();
-	
+
 	public ReactionChat(int X, int Y, int id, ChatMenu chatMenu, boolean isForOwner, int reaction) {
 		this.isForOwner = isForOwner;
 		this.reaction = reaction;
@@ -27,7 +27,7 @@ public class ReactionChat extends Pane {
 			setDeleteButton();
 		}
 	}
-	
+
 	private void setDeleteButton() {
 		ImageView imageView = new ImageView(R.getImage("chat/delete.png"));
 		imageView.setFitWidth(80);
@@ -35,7 +35,7 @@ public class ReactionChat extends Pane {
 		imageView.setOnMouseClicked(k -> chatMenu.deleteMessage(id));
 		menu.getChildren().add(imageView);
 	}
-	
+
 	private void setEditButton() {
 		ImageView imageView = new ImageView(R.getImage("chat/edit.png"));
 		imageView.setFitWidth(80);
@@ -43,7 +43,7 @@ public class ReactionChat extends Pane {
 		imageView.setOnMouseClicked(k -> chatMenu.changeEditNumber(id));
 		menu.getChildren().add(imageView);
 	}
-	
+
 	private void setReplyButton() {
 		ImageView imageView = new ImageView(R.getImage("chat/reply.png"));
 		imageView.setFitWidth(80);
@@ -51,7 +51,7 @@ public class ReactionChat extends Pane {
 		imageView.setOnMouseClicked(k -> chatMenu.changeReplyNumber(id));
 		menu.getChildren().add(imageView);
 	}
-	
+
 	private void setSize() {
 		this.setMinWidth(ChatMenu.width);
 		this.setMinHeight(ChatMenu.height);
@@ -60,7 +60,7 @@ public class ReactionChat extends Pane {
 		chatMenu.getChildren().add(this);
 		this.setOnMouseClicked(k -> endShow());
 	}
-	
+
 	private void setupMenu(int X, int Y) {
 		menu.setPrefHeight(isForOwner ? 86 : 42);
 		menu.setPrefWidth(80);
@@ -70,7 +70,7 @@ public class ReactionChat extends Pane {
 		menu.setLayoutY(Y + menu.getPrefHeight() > ChatMenu.height ? ChatMenu.height - menu.getPrefHeight() - 5 : Y);
 		this.getChildren().add(menu);
 	}
-	
+
 	private void setReactions() {
 		HBox hBox = new HBox();
 		hBox.setPrefHeight(20);
@@ -94,16 +94,16 @@ public class ReactionChat extends Pane {
 		}
 		menu.getChildren().add(hBox);
 	}
-	
-	
+
+
 	private void endShow() {
 		chatMenu.getChildren().remove(this);
 	}
-	
+
 	private void createReaction(int index) {
 		chatMenu.sendNewReaction(id, index);
 	}
-	
+
 	private void removeReaction(int index) {
 		if (index != -1) {
 			chatMenu.sendDeleteReaction(id, index);

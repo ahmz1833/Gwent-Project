@@ -5,11 +5,11 @@ import java.util.List;
 
 public class HandlingThread extends Thread {
 	private final List<Task> tasks = new ArrayList<>();
-	
+
 	public void removeTask(Task task) {synchronized (tasks) {tasks.remove(task);}}
-	
+
 	public void addTask(Task task) {synchronized (tasks) {tasks.add(task);}}
-	
+
 	@Override
 	public void run() {
 		while (true) {

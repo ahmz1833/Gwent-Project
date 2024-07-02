@@ -28,7 +28,7 @@ public class CardView extends Pane {
 	private boolean simpleEquals;
 	private Row row;
 	private Ability ability;
-	
+
 	private CardView(String address, boolean large, boolean withCount, boolean simpleEquals, int strength, boolean showStrength, double width, double height) {
 		this.address = address;
 		this.width = width;
@@ -55,27 +55,27 @@ public class CardView extends Pane {
 			addWeatherScore();
 		}
 		if (showStrength && faction == Faction.SPECIAL) {
-		
+
 		}
 		this.strength = strength;
 	}
-	
+
 	public static CardView newSelection(String address, double width, double height) {
 		return new CardView(address, true, true, false, -1, false, width, height);
 	}
-	
+
 	public static CardView newHand(String address, double width, double height) {
 		return new CardView(address, false, false, true, -1, true, width, height);
 	}
-	
+
 	public static CardView newInBoard(String address, int strength, double width, double height) {
 		return new CardView(address, false, false, true, strength, true, width, height);
 	}
-	
+
 	public static CardView newInfo(String address, double width, double height) {
 		return new CardView(address, true, false, true, -1, false, width, height);
 	}
-	
+
 	private void addWeatherScore() {
 		String path = "icons/" + switch (name) {
 			case "Torrential Rain" -> "power_rain.png";
@@ -87,7 +87,7 @@ public class CardView extends Pane {
 		};
 		getChildren().add(getImageView(width / 2 + 13, height / 2 + 5, path));
 	}
-	
+
 	private void addScoreText(int strength) {
 		getChildren().add(getImageView(width / 2 + 13, height / 2 + 5, "icons/" + (isHero() ? "power_hero.png" : "power_normal.png")));
 		StackPane numberContainer = getStackPane(16, 16, 3, 3, Pos.CENTER);
@@ -104,7 +104,7 @@ public class CardView extends Pane {
 		numberContainer.getChildren().add(text);
 		getChildren().add(numberContainer);
 	}
-	
+
 	private void addPlaceImage() {
 		ImageView image = getImageView(17, 17, "icons/" + switch (row) {
 			case RANGED -> "card_row_ranged.png";
@@ -117,7 +117,7 @@ public class CardView extends Pane {
 		image.setY(height - 17);
 		getChildren().add(image);
 	}
-	
+
 	private void addAbilityImage() {
 		String name = switch (ability) {
 			case SPY -> "card_ability_spy.png";
@@ -138,7 +138,7 @@ public class CardView extends Pane {
 		image.setY(height - 17);
 		getChildren().add(image);
 	}
-	
+
 	private ImageView getImageView(double width, double height, String path) {
 		ImageView image = new ImageView(R.getImage(path));
 		image.setFitWidth(width);
@@ -147,7 +147,7 @@ public class CardView extends Pane {
 		image.setX(-2);
 		return image;
 	}
-	
+
 	private StackPane getStackPane(double width, double height, double x, double y, Pos pos) {
 		StackPane pane = new StackPane();
 		pane.setPrefWidth(width);
@@ -157,7 +157,7 @@ public class CardView extends Pane {
 		pane.setAlignment(pos);
 		return pane;
 	}
-	
+
 	private void fillInfoByName() {
 		for (CardInfo cardInfo : CardInfo.allCards) {
 			if (cardInfo.pathAddress.equals(address)) {
@@ -170,7 +170,7 @@ public class CardView extends Pane {
 			}
 		}
 	}
-	
+
 	private void addBackground() {
 		Rectangle image = new Rectangle(width, height);
 		image.setFill(new ImagePattern(R.getImage(rootPath + address + ".jpg")));
@@ -178,14 +178,14 @@ public class CardView extends Pane {
 		image.setY(0);
 		this.getChildren().add(image);
 	}
-	
+
 	private void addSymbol() {
 		ImageView image = new ImageView(R.getImage("icons/preview_count.png"));
 		image.setX(width - 52);
 		image.setY(height - 30);
 		this.getChildren().add(image);
 	}
-	
+
 	private void addCountLabel() {
 		countLabel = new Text(String.valueOf(count));
 		countLabel.setStyle("-fx-font-size: 22px;");
@@ -194,23 +194,23 @@ public class CardView extends Pane {
 		countLabel.setY(height - 10);
 		this.getChildren().add(countLabel);
 	}
-	
+
 	public void countPlusPlus() {
 		countLabel.setText(String.valueOf(++count));
 	}
-	
+
 	public void countMinusMinus() {
 		countLabel.setText(String.valueOf(--count));
 	}
-	
+
 	public int getCount() {
 		return count;
 	}
-	
+
 	public String getAddress() {
 		return address;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (simpleEquals)
@@ -219,19 +219,19 @@ public class CardView extends Pane {
 			return false;
 		return ((CardView) obj).address.equals(this.address);
 	}
-	
+
 	public String getName() {
 		return name;
 	}
-	
+
 	public int getStrength() {
 		return strength;
 	}
-	
+
 	public Faction getFaction() {
 		return faction;
 	}
-	
+
 	public boolean isHero() {
 		return hero;
 	}

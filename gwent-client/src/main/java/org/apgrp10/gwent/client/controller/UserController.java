@@ -4,8 +4,8 @@ public class UserController {
 	public static boolean isLoggedIn() {
 		return false;
 	}
-	
+
 	public void login(String username, String password) {
-	
+
 	}
 }

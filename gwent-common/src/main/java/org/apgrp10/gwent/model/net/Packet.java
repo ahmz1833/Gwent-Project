@@ -8,12 +8,12 @@ import com.google.gson.stream.MalformedJsonException;
 public abstract class Packet {
 	protected final JsonObject header;
 	protected final JsonObject body;
-	
+
 	public Packet(JsonObject header, JsonObject body) {
 		this.header = header;
 		this.body = body;
 	}
-	
+
 	public static Packet parse(String string) throws MalformedJsonException {
 		JsonObject full = new GsonBuilder().create().fromJson(string, JsonObject.class);
 		JsonObject header = full.get("header").getAsJsonObject();
@@ -23,7 +23,7 @@ public abstract class Packet {
 		else if (header.get("type").getAsString().equals("response")) return new Response(header, body);
 		else throw new MalformedJsonException("Invalid type");
 	}
-	
+
 	@Override
 	public String toString() {
 		JsonObject full = new JsonObject();
@@ -31,15 +31,15 @@ public abstract class Packet {
 		full.add("body", body);
 		return new Gson().toJson(full);
 	}
-	
+
 	public JsonObject getHeader() {
 		return header;
 	}
-	
+
 	public JsonObject getBody() {
 		return body;
 	}
-	
+
 	public static interface Callback {
 		public void call(Packet packet);
 	}

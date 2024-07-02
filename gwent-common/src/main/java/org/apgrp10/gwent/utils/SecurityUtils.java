@@ -7,7 +7,7 @@ import java.security.*;
 
 public class SecurityUtils {
 	private static final String ALGORITHM_RSA = "RSA";
-	
+
 	public static KeyPair generateKeyPair() {
 		KeyPairGenerator keyGen = null;
 		try {
@@ -18,21 +18,21 @@ public class SecurityUtils {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	public static byte[] encrypt(PublicKey key, String message)
 			throws Exception {
 		Cipher cipher = Cipher.getInstance(ALGORITHM_RSA);
 		cipher.init(Cipher.ENCRYPT_MODE, key);
 		return cipher.doFinal(message.getBytes());
 	}
-	
+
 	public static byte[] decrypt(PrivateKey key, byte[] encryptMessage)
 			throws Exception {
 		Cipher cipher = Cipher.getInstance(ALGORITHM_RSA);
 		cipher.init(Cipher.DECRYPT_MODE, key);
 		return cipher.doFinal(encryptMessage);
 	}
-	
+
 	public static String sha256Hash(String input) {
 		MessageDigest digest = null;
 		try {
@@ -49,11 +49,11 @@ public class SecurityUtils {
 		}
 		return hexString.toString();
 	}
-	
+
 	public static SSLServerSocketFactory getSSLServerSocketFactory() {
 		return (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
 	}
-	
+
 	public static SSLSocketFactory getSSLSocketFactory() {
 		return (SSLSocketFactory) SSLSocketFactory.getDefault();
 	}

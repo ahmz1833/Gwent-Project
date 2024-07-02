@@ -15,11 +15,11 @@ import java.util.Map;
 public class GamesDatabase extends DatabaseTable {
 	private static final String tableName = "games";
 	private static GamesDatabase instance;
-	
+
 	private GamesDatabase() throws Exception {
 		super(ServerMain.SERVER_FOLDER + "gwent.db", tableName, System::currentTimeMillis, GameDBColumn.values());
 	}
-	
+
 	public static GamesDatabase getInstance() {
 		if (instance == null) {
 			try {
@@ -31,7 +31,7 @@ public class GamesDatabase extends DatabaseTable {
 		}
 		return instance;
 	}
-	
+
 	public GameRecord addGame(boolean isPublic, long player1ID, long player2ID, long seed, Deck deck1, Deck deck2, List<Command> commands,
 	                          int set1P1Sc, int set1P2Sc, int set2P1Sc, int set2P2Sc, int set3P1Sc, int set3P2Sc) throws Exception {
 		long id = insert(Map.entry(GameDBColumn.isPublic, isPublic),
@@ -47,7 +47,7 @@ public class GamesDatabase extends DatabaseTable {
 		return new GameRecord(id, isPublic, player1ID, player2ID, seed, deck1, deck2, commands,
 				set1P1Sc, set1P2Sc, set2P1Sc, set2P2Sc, set3P1Sc, set3P2Sc);
 	}
-	
+
 	public GameRecord getGameById(long id) throws Exception {
 		if (!isIdTaken(id))
 			throw new IllegalArgumentException("Game with id " + id + " does not exist");
@@ -63,7 +63,7 @@ public class GamesDatabase extends DatabaseTable {
 				getEachSetResult(id, 2)[0], getEachSetResult(id, 2)[1],
 				getEachSetResult(id, 3)[0], getEachSetResult(id, 3)[1]);
 	}
-	
+
 	public Long[] getAllIds() {
 		try {
 			ArrayList<Long> allUsers = new ArrayList<>();
@@ -76,37 +76,37 @@ public class GamesDatabase extends DatabaseTable {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	public int[] getPlayersId(long id) {
 		int[] list = new int[2];
 		list[0] = getIntValueOfGame(id, GamesDataBaseColumn.player1.name());
 		list[1] = getIntValueOfGame(id, GamesDataBaseColumn.player2.name());
 		return list;
 	}
-	
+
 	public String[] getDecks(long id) {
 		String[] list = new String[2];
 		list[0] = getStringValueOfGame(id, GamesDataBaseColumn.deck1.name());
 		list[1] = getStringValueOfGame(id, GamesDataBaseColumn.deck2.name());
 		return list;
 	}
-	
+
 	public int getSeed(long id) {
 		return getIntValueOfGame(id, GamesDataBaseColumn.seed.name());
 	}
-	
+
 	public boolean isPublic(long id) {
 		return ge
 	}
-	
+
 	public String getCommands(long id) {
 		return getStringValueOfGame(id, GameDBColumn.commands);
 	}
-	
+
 	public void setCommands(long id, String commands) throws SQLException {
 		updateInfo("games", "id = " + id, commands, GameDBColumn.commands);
 	}
-	
+
 	public int[] getEachSetResult(long id, int setNum) {
 		if (setNum > 3 || setNum < 1)
 			throw new RuntimeException("set number out of range");
@@ -116,14 +116,14 @@ public class GamesDatabase extends DatabaseTable {
 		result[1] = Integer.parseInt(text.substring(text.indexOf("-") + 1));
 		return result;
 	}
-	
+
 	public void setEachSetResult(long id, int setNum, int player1Score, int player2Score) {
 		if (setNum > 3 || setNum < 1)
 			throw new RuntimeException("set number out of range");
 		updateInfo("games", "id = " + id, player1Score + "-" + player2Score,
 				"set" + setNum);
 	}
-	
+
 	public Long[] allGamesByPlayer(int playerId) {
 		try {
 			ArrayList<Long> allUsers = new ArrayList<>();
@@ -137,7 +137,7 @@ public class GamesDatabase extends DatabaseTable {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	public enum GameDBColumn implements DBColumn {
 		isPublic("BIT"),
 		player1("BIGINT"),
@@ -149,13 +149,13 @@ public class GamesDatabase extends DatabaseTable {
 		set1("TEXT"),
 		set2("TEXT"),
 		set3("TEXT");
-		
+
 		private final String type;
-		
+
 		GameDBColumn(String type) {
 			this.type = type;
 		}
-		
+
 		@Override
 		public String type() {
 			return type;

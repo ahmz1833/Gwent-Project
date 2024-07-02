@@ -18,7 +18,7 @@ public class Deck {
 	private final ArrayList<Card> deck = new ArrayList<>();
 	private final Faction faction;
 	private final Card leader;
-	
+
 	public Deck(int factionId, String leaderName, User user) {
 		this.user = user;
 		switch (factionId) {
@@ -38,7 +38,7 @@ public class Deck {
 		}
 		leader = leaderCopy;
 	}
-	
+
 	public static boolean isCorrectDeck(Deck deck) {
 		if (deck == null) return false;
 		if (deck.leader == null || deck.faction == null) {
@@ -69,7 +69,7 @@ public class Deck {
 					if (getSimilarCountInDeck(deck, card.pathAddress) > cardInfo.count) return false;
 		return true;
 	}
-	
+
 	private static int getSimilarCountInDeck(Deck deck, String path) {
 		int count = 0;
 		for (Card card : deck.deck) {
@@ -77,7 +77,7 @@ public class Deck {
 		}
 		return count;
 	}
-	
+
 	public static Deck loadDeckFromFile(String fileAddress) {
 		try {
 			File file = new File(fileAddress);
@@ -96,50 +96,50 @@ public class Deck {
 			return null;
 		}
 	}
-	
+
 	public static Deck fromJsonString(String string) {
 		Deck deckLoaded = DeckToSave.loadFromJson(string);
 		if (deckLoaded == null)
 			ANSI.logError(System.err, "Error in loading deck", new RuntimeException());
 		return deckLoaded;
 	}
-	
+
 	public static Deck fromBase64(String base64) {
 		return fromJsonString(new String(Base64.getDecoder().decode(base64)));
 	}
-	
+
 	public Card convertCortInfoToCard(CardInfo cardInfo) {
 		return new Card(cardInfo.name, cardInfo.pathAddress, cardInfo.strength, cardInfo.row, cardInfo.faction, cardInfo.ability, cardInfo.isHero);
 	}
-	
+
 	public void addCard(Card card) {
 		deck.add(card);
 	}
-	
+
 	public void removeCard(Card card) {
 		deck.remove(card);
 	}
-	
+
 	public void addCard(CardInfo cardInfo) {
 		addCard(convertCortInfoToCard(cardInfo));
 	}
-	
+
 	public User getUser() {
 		return user;
 	}
-	
+
 	public Card getLeader() {
 		return leader;
 	}
-	
+
 	public ArrayList<Card> getDeck() {
 		return deck;
 	}
-	
+
 	public Faction getFaction() {
 		return faction;
 	}
-	
+
 	public String toJsonString() {
 		DeckToSave deckToSave = new DeckToSave();
 		deckToSave.changeFaction(this.faction);
@@ -149,27 +149,27 @@ public class Deck {
 		}
 		return deckToSave.getJson();
 	}
-	
+
 	public String toBase64() {
 		return Base64.getEncoder().encodeToString(toJsonString().getBytes());
 	}
-	
+
 	public int assignGameIds(int startingId) {
 		int id = startingId;
 		for (Card card : deck)
 			card.setGameId(id++);
 		return id;
 	}
-	
+
 	public void shuffle(Random random) {
 		Collections.shuffle(deck, random);
 	}
-	
+
 	static class DeckToSave {
 		private final HashMap<String, Integer> deck = new HashMap<>();
 		private String faction = "";
 		private String leader = "";
-		
+
 		private static CardInfo convertPathToCardInfo(String path) {
 			for (CardInfo cardInfo : CardInfo.allCards) {
 				if (cardInfo.pathAddress.equals(path)) {
@@ -178,7 +178,7 @@ public class Deck {
 			}
 			return null;
 		}
-		
+
 		public static Deck loadFromJson(String json) {
 			try {
 				Gson gson = new Gson();
@@ -206,20 +206,20 @@ public class Deck {
 				return null;
 			}
 		}
-		
+
 		public void addCard(String path) {
 			deck.putIfAbsent(path, 0);
 			deck.put(path, deck.get(path) + 1);
 		}
-		
+
 		public void changeLeader(Card leader) {
 			this.leader = leader.pathAddress;
 		}
-		
+
 		public void changeFaction(Faction faction) {
 			this.faction = faction.name();
 		}
-		
+
 		public String getJson() {
 			Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
 			return gson.toJson(this);
