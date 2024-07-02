@@ -23,6 +23,7 @@ temp/
 .idea/misc.xml
 .idea/vcs.xml
 .idea/workspace.xml
+.idea/uiDesigner.xml
 .idea/j.*
 *.iws
 *.iml
