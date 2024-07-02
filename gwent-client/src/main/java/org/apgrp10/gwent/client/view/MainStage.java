@@ -1,19 +1,19 @@
 package org.apgrp10.gwent.client.view;
 
+import io.github.palexdev.materialfx.controls.MFXButton;
+import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
+import javafx.stage.WindowEvent;
 import org.apgrp10.gwent.client.Server;
 import org.apgrp10.gwent.client.controller.PreGameController;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
 
-import io.github.palexdev.materialfx.controls.MFXButton;
-import javafx.application.Platform;
-import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
-import javafx.stage.WindowEvent;
-
 public class MainStage extends AbstractStage {
 	private static MainStage INSTANCE;
+	private int playerId = -1;
+	private boolean start;
 
 	private MainStage() {
 		super("Gwent Main", null);// TODO: set icon
@@ -25,17 +25,8 @@ public class MainStage extends AbstractStage {
 		return INSTANCE;
 	}
 
-	private int playerId = -1;
-	private boolean start;
-
 	@Override
 	protected boolean onCreate() {
-		// TODO
-		// if(!UserController.isLoggedIn())
-		// {
-		// 	LoginStage.getInstance().start();
-		// 	return false;
-		// }
 		Pane pane = new Pane();
 		Scene scene = new Scene(pane);
 		pane.setPrefWidth(400);
