@@ -21,15 +21,17 @@ public class R {
 	private static Map<String, Image> imageCache = new HashMap<>();
 
 	static {
-		loadFont("Comfortaa", "Regular", "SemiBold", "Light", "Bold", "Medium", "Variable");
-		loadFont("OpenSans", "Regular", "Bold", "BoldItalic", "ExtraBold", "Italic", "Light", "LightItalic", "SemiBold", "SemiBoldItalic");
-		loadFont("Roboto", "Regular", "Thin", "Black", "Bold", "Bold", "Light", "Medium");
-		loadFont("VarelaRound", "Regular");
-		loadFont("VisbyRoundCF", "Regular", "SemiBold", "Light", "Bold", "ExtraBold", "ExtraLight", "Medium", "Variable");
+		loadFont("Comfortaa", "Regular", "Light", "Medium", "SemiBold", "Bold");
+		loadFont("OpenSans", "Regular", "Italic", "Light", "LightItalic", "SemiBold", "SemiBoldItalic", "Bold", "BoldItalic", "ExtraBold", "ExtraBoldItalic");
+		loadFont("Roboto", "Regular", "Italic", "Thin", "ThinItalic", "Light", "LightItalic", "Medium", "MediumItalic", "Bold", "BoldItalic", "Black", "BlackItalic");
+		loadFont("Vazirmatn", "Regular", "Thin", "ExtraLight", "Light", "Medium", "SemiBold", "Bold", "ExtraBold", "Black");
+		loadFont("VisbyRoundCF", "Regular", "ExtraLight", "Light", "Medium", "DemiBold", "Bold", "ExtraBold", "Heavy");
+		loadFont("Yrsa", "Regular", "Italic", "Light", "Medium", "SemiBold", "Bold");
 	}
 
-	private R() {}
 
+	private R() {}
+	
 	public static <T> T getFXML(String name) {
 		try {
 			return FXMLLoader.load(get("fxml/" + name));
@@ -37,7 +39,7 @@ public class R {
 			throw new RuntimeException("Failed in fetching Resource with name " + name, e);
 		}
 	}
-
+	
 	public static Image getImage(String name) {
 		Image ans = imageCache.get(name);
 		if (ans == null) {
@@ -46,36 +48,36 @@ public class R {
 		}
 		return ans;
 	}
-
+	
 	public static AudioClip getAudio(String name) {
 		return new AudioClip(get("sound/" + name).toExternalForm());
 	}
-
+	
 	public static Media getMedia(String name) {
 		return new Media(get("sound/" + name).toExternalForm());
 	}
-
+	
 	public static URL get(String path) {
 		return R.class.getResource(path);
 	}
-
+	
 	public static String getAbsPath(String resource) {
 		return URLDecoder.decode(get(resource).getFile(), StandardCharsets.UTF_8);
 	}
-
+	
 	public static InputStream getAsStream(String path) {
 		return R.class.getResourceAsStream(path);
 	}
-
-	public static Font loadFont(String family, String attr) {
-		return Font.loadFont(getAsStream("fonts/" + family + "/" + family + "-" + attr + ".ttf"), 16);
+	
+	public static void loadFont(String family, String attr) {
+		Font.loadFonts(getAsStream("fonts/" + family + "/" + family + "-" + attr + ".ttf"), 16);
 	}
-
+	
 	public static void loadFont(String family, String... attrs) {
 		for (String attr : attrs)
 			loadFont(family, attr);
 	}
-
+	
 	public static class scene {
 		public static final Scene login = getFXML("login.fxml");
 	}
@@ -88,11 +90,11 @@ public class R {
 		public static final Image scorch = getImage("icons/anim_scorch.png");
 		public static final Image gem_on = getImage("icons/icon_gem_on.png");
 	}
-
+	
 	public static class icon {
 //		public static final Image app_icon = getImage("ic_app.png");
 	}
-
+	
 	public static class sound {
 //		public static AudioClip nuclear_explosion = R.getAudio("nuclear_explosion.wav");
 	}
