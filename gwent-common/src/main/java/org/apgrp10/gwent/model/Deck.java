@@ -2,7 +2,6 @@ package org.apgrp10.gwent.model;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import javafx.scene.layout.GridPane;
 import org.apgrp10.gwent.model.card.*;
 import org.apgrp10.gwent.utils.ANSI;
 
@@ -111,7 +110,7 @@ public class Deck {
 		return faction;
 	}
 
-	public static Deck loadDeck(String fileAddress) {
+	public static Deck loadDeckFromFile(String fileAddress) {
 		try {
 			File file = new File(fileAddress);
 			BufferedReader br = new BufferedReader(new FileReader(file));
@@ -127,8 +126,14 @@ public class Deck {
 			return null;
 		}
 	}
+	public static Deck stringToDeck(String string){
+		Deck deckLoaded = DeckToSave.loadFromJson(string);
+		if(deckLoaded == null)
+			ANSI.logError(System.err, "Error in loading deck", new RuntimeException());
+		return deckLoaded;
+	}
 
-	public static String saveDeck(Deck deck) {
+	public static String deckToString(Deck deck) {
 		DeckToSave deckToSave = new DeckToSave();
 		deckToSave.changeFaction(deck.faction);
 		deckToSave.changeLeader(deck.leader);

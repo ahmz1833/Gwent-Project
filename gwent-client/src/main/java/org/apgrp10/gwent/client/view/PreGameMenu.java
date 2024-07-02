@@ -14,21 +14,15 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import org.apgrp10.gwent.client.Gwent;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.PreGameController;
 import org.apgrp10.gwent.client.model.CardView;
 import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.card.*;
-import org.apgrp10.gwent.utils.ANSI;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 
@@ -440,7 +434,7 @@ public class PreGameMenu extends Application {
 	}
 	
 	private void uploadDeck(String path) {
-		Deck deck = Deck.loadDeck(path);
+		Deck deck = Deck.loadDeckFromFile(path);
 		if (deck != null) {
 			loadFactionDeck(deck.getFaction());
 			int index = 0;
@@ -463,7 +457,7 @@ public class PreGameMenu extends Application {
 	
 	private String downloadDeck() {
 		Deck deck = createDeckFromPane(deckLists[1]);
-		return Deck.saveDeck(deck);
+		return Deck.deckToString(deck);
 	}
 	
 	private void chooseFileToUpload() {
