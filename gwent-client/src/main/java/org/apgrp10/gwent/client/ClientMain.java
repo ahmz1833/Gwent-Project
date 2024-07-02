@@ -20,21 +20,21 @@ import java.util.Locale;
 
 public class ClientMain {
 	public static void main(String[] args) {
-		Locale.setDefault(Locale.ENGLISH);
-		if (!Server.connect())
-			System.exit(0);
-		Server.getInstance().addOnClose(() -> System.exit(0));
-		Server.getInstance().setOnReceive(bytes -> {
-			System.out.println("Received: " + new String(bytes));
-			System.out.println();
-		});
-
-		new Thread(() -> {
-			while (true) {
-				Server.getInstance().run();
-				try { Thread.sleep(10); } catch (Exception e) { }
-			}
-		}).start();
+//		Locale.setDefault(Locale.ENGLISH);
+//		if (!Server.connect())
+//			System.exit(0);
+//		Server.getInstance().addOnClose(() -> System.exit(0));
+//		Server.getInstance().setOnReceive(bytes -> {
+//			System.out.println("Received: " + new String(bytes));
+//			System.out.println();
+//		});
+//
+//		new Thread(() -> {
+//			while (true) {
+//				Server.getInstance().run();
+//				try { Thread.sleep(10); } catch (Exception e) { }
+//			}
+//		}).start();
 
 
 		// for test, sending each 1000 ms a message to the server
