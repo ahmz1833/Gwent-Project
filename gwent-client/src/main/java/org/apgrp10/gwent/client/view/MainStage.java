@@ -4,8 +4,13 @@ import io.github.palexdev.materialfx.controls.MFXButton;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.stage.WindowEvent;
+import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.PreGameController;
+import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.model.User;
 
 public class MainStage extends AbstractStage {
@@ -23,11 +28,11 @@ public class MainStage extends AbstractStage {
 	
 	@Override
 	protected boolean onCreate() {
-//		if(!UserController.isLoggedIn())
-//		{
-//			LoginStage.getInstance().start();
-//			return false;
-//		}
+		if(!UserController.isLoggedIn())
+		{
+			LoginStage.getInstance().start();
+			return false;
+		}
 		Pane pane = new Pane();
 		Scene scene = new Scene(pane);
 		pane.setPrefWidth(400);

@@ -51,7 +51,7 @@
             <HBox alignment="CENTER" prefHeight="34.0" prefWidth="400.0" spacing="10.0">
                <MFXButton fx:id="login" defaultButton="true" depthLevel="LEVEL3" mnemonicParsing="false"
                           prefHeight="40.0"
-                          prefWidth="200.0" text="Login"/>
+                          prefWidth="200.0" text="ورود"/>
                <MFXButton fx:id="register" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="40.0"
                           prefWidth="200.0"
                           text="Register"/>
