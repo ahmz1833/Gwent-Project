@@ -33,9 +33,13 @@ public class SecurityUtils {
 		return cipher.doFinal(encryptMessage);
 	}
 	
-	public static String sha256Hash(String input)
-			throws NoSuchAlgorithmException {
-		MessageDigest digest = MessageDigest.getInstance("SHA-256");
+	public static String sha256Hash(String input) {
+		MessageDigest digest = null;
+		try {
+			digest = MessageDigest.getInstance("SHA-256");
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
 		byte[] hash = digest.digest(input.getBytes());
 		StringBuilder hexString = new StringBuilder();
 		for (byte b : hash) {

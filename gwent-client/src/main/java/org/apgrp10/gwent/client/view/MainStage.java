@@ -40,7 +40,9 @@ public class MainStage extends AbstractStage {
 		MFXButton btn = new MFXButton("Salam");
 		Platform.runLater(() -> {
 			btn.setOnMouseClicked(event -> {
-				new PreGameController(new User("a", "a", "a", "a"), new User("b", "b", "b", "b"));
+				User user2 = new User(2, "user2", "pass2", "nick2", "email2", "secQ2", null);
+				User user1 = new User(1, "user1", "pass1", "nick1", "email1", "secQ1", null);
+				new PreGameController(user1, user2);
 				this.close();
 			});
 		});
