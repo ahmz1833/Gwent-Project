@@ -1,15 +1,16 @@
 package org.apgrp10.gwent.server.DataBase;
 
 import org.apgrp10.gwent.model.Avatar;
-import org.apgrp10.gwent.model.SecurityQuestion;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.server.ServerMain;
 import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.DatabaseTable;
+import org.apgrp10.gwent.utils.Random;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 
 public class UserDatabase extends DatabaseTable {
@@ -17,7 +18,7 @@ public class UserDatabase extends DatabaseTable {
 	private static UserDatabase instance;
 	
 	private UserDatabase() throws Exception {
-		super(ServerMain.SERVER_FOLDER + "gwent.db", tableName, () -> null, UserDBColumns.values());
+		super(ServerMain.SERVER_FOLDER + "gwent.db", tableName, Random::nextUid, UserDBColumns.values());
 	}
 	
 	public static UserDatabase getInstance() {
@@ -33,124 +34,98 @@ public class UserDatabase extends DatabaseTable {
 	}
 	
 	public User addUser(String username, String nickname, String email, String passHash,
-	                    SecurityQuestion securityQuestion, Avatar avatar) {
+	                    String securityQuestion, Avatar avatar) throws Exception {
 		long id = insert(Map.entry(UserDBColumns.username, username),
 				Map.entry(UserDBColumns.nickname, nickname),
 				Map.entry(UserDBColumns.email, email),
 				Map.entry(UserDBColumns.passHash, passHash),
-				Map.entry(UserDBColumns.securityQuestion, securityQuestion.toString()),
-				Map.entry(UserDBColumns.avatar, avatar.toBase64String()),
+				Map.entry(UserDBColumns.securityQuestion, securityQuestion),
+				Map.entry(UserDBColumns.avatar, avatar.toBase64()),
 				Map.entry(UserDBColumns.friends, ""));
 		return new User(id, username, nickname, email, passHash, securityQuestion, avatar);
 	}
 	
-	private ResultSet getRowPerson(int id) {
-		return getRow("users", "id = " + id);
+	public User getUserByUsername(String username) throws Exception {
+		long id = getUserId(username);
+		return getUserById(id);
 	}
 	
-	private ResultSet getRowPerson(String username) {
-		return getRow("users", "username = ('" + username + "')");
+	public User getUserById(long id) throws Exception {
+		if (!isIdTaken(id))
+			throw new IllegalArgumentException("User with id " + id + " does not exist");
+		return new User(id,
+				getValue(id, UserDBColumns.username),
+				getValue(id, UserDBColumns.nickname),
+				getValue(id, UserDBColumns.email),
+				getValue(id, UserDBColumns.passHash),
+				getValue(id, UserDBColumns.securityQuestion),
+				Avatar.fromBase64(getValue(id, UserDBColumns.avatar)));
 	}
 	
-	private String getValueOfPerson(int id, String value) {
-		return getValue(getRowPerson(id), value);
+	public boolean isUsernameTaken(String username) {
+		return getUserId(username) != -1;
 	}
 	
-	private String getValueOfPerson(String username, String value) {
-		return getValue(getRowPerson(username), value);
+	public long getUserId(String username) {
+		return getId("WHERE username = ('" + username + "')");
 	}
 	
-	public String getUserInfo(int id, UserDBColumns column) {
-		return getValueOfPerson(id, column.name());
+	public long[] getFriendsIds(long id) throws Exception {
+		return Arrays.stream(((String) getValue(id, UserDBColumns.friends)).split(",")) // split by comma
+				.map(String::trim).mapToLong(Long::parseLong).toArray();
 	}
 	
-	public int getId(String username) {
-		ResultSet result = getRow("users", "username = ('" + username + "')");
-		try {
-			return result.getInt("id");
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
-	}
-	
-	public String getUserInfo(String username, UserDBColumns column) {
-		return getValueOfPerson(username, column.name());
-	}
-	
-	public int[] getFriendsIds(int id) {
-		String friendsText = getValueOfPerson(id, "friends");
-		String[] friendsString = friendsText.split(",");
-		int[] friends = new int[friendsString.length];
-		for (int i = 0; i < friendsString.length; i++) {
+	public String[] getFriendsUsernames(String username) throws Exception {
+		return (String[]) Arrays.stream(getFriendsIds(getUserId(username))).mapToObj(id -> {
 			try {
-				friends[i] = Integer.parseInt(friendsString[i].trim());
-			} catch (Exception ignored) {
+				return (String) getValue(id, UserDBColumns.username);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
 			}
-		}
-		return friends;
+		}).toArray();
 	}
 	
-	public String[] getFriendsUsernames(String username) {
-		int[] intList = getFriendsIds(getId(username));
-		String[] friendsString = new String[intList.length];
-		for (int i = 0; i < intList.length; i++) {
-			friendsString[i] = getValueOfPerson(intList[i], UserDBColumns.username.name());
-		}
-		return friendsString;
+	private void addNewFriend(long idOwner, long idFriend) throws Exception {
+		String newData = (String) getValue(idOwner, UserDBColumns.friends) + idFriend + ",";
+		updateInfo(idOwner, UserDBColumns.friends, newData);
 	}
 	
-	public void updateInfo(int id, UserDBColumns column, String newData) {
-		updateInfo("users", "id = " + id, newData, column.name());
-	}
-	
-	public void updateInfo(String username, UserDBColumns column, String newData) {
-		updateInfo("users", "username = ('" + username + "')", newData, column.name());
-		
-	}
-	
-	private void addNewFriend(int idOwner, int idFriend) {
-		String newData = getValueOfPerson(idOwner, "friends");
-		updateInfo("users", "id = " + idOwner, newData + idFriend + ",", "friends");
-	}
-	
-	public boolean haveFriendShip(int id1, int id2) {
-		for (int id : getFriendsIds(id1))
-			if (id == id2)
-				return true;
+	public boolean haveFriendShip(long id1, long id2) throws Exception {
+		for (long id : getFriendsIds(id1)) if (id == id2) return true;
 		return false;
 	}
 	
-	public void addFriendShip(int id1, int id2) {
+	public void addFriendShip(long id1, long id2) throws Exception {
 		if (haveFriendShip(id1, id2))
 			return;
 		addNewFriend(id1, id2);
 		addNewFriend(id2, id1);
 	}
 	
-	public void deleteFriendShip(int id1, int id2) {
+	public void deleteFriendShip(long id1, long id2) throws Exception {
 		deleteFriendShipOfOne(id1, id2);
 		deleteFriendShipOfOne(id2, id1);
 	}
 	
-	private void deleteFriendShipOfOne(int id1, int id2) {
+	private void deleteFriendShipOfOne(long id1, long id2) throws Exception {
 		StringBuilder newData = new StringBuilder();
-		for (int id : getFriendsIds(id1))
-			if (id != id2)
-				newData.append(id).append(",");
-		updateInfo("users", "id = " + id1, newData.toString(), "friends");
+		for (long id : getFriendsIds(id1)) if (id != id2) newData.append(id).append(",");
+		updateInfo(id1, UserDBColumns.friends, newData.toString());
 	}
 	
-	public String[] getAllUsernames() throws SQLException {
-		ArrayList<String> allUsers = new ArrayList<>();
-		ResultSet table = stmt.executeQuery("SELECT * FROM users");
-		while (table.next())
-			allUsers.add(table.getString("username"));
-		return allUsers.toArray(new String[0]);
+	public ArrayList<User> getAllUsers() throws Exception {
+		ArrayList<User> users = new ArrayList<>();
+		try {
+			ResultSet table = getRow("");
+			while (table.next()) users.add(getUserById(table.getLong("id")));
+		} catch (SQLException e) {
+			ANSI.logError(System.err, "A Failure occurred while getting all users", e);
+		}
+		return users;
 	}
 	
 	public enum UserDBColumns implements DBColumn {
-		id("INTEGER PRIMARY KEY"),
-		username("TEXT NOT NULL UNIQUE"),
+		username("TEXT"),
 		nickname("TEXT"),
 		email("TEXT"),
 		passHash("TEXT"),

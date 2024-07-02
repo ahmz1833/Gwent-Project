@@ -1,7 +1,11 @@
 package org.apgrp10.gwent.model;
 
 public class Avatar {
-	public String toBase64String() {
+	public static Avatar fromBase64(String avatar) {
+	
+	}
+	
+	public String toBase64() {
 	
 	}
 }

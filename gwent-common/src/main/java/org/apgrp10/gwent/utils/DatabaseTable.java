@@ -26,7 +26,7 @@ public class DatabaseTable {
 	}
 	
 	protected <T> T getValue(long id, DBColumn col) throws Exception {
-		return getValue(getRow("id = " + id), col);
+		return getValue(getRow("WHERE id = " + id), col);
 	}
 	
 	@SafeVarargs
@@ -40,22 +40,46 @@ public class DatabaseTable {
 			                    ") VALUES (" + Arrays.stream(values).collect(Collectors.joining(", ")) + ")");
 		else
 			assert stmt.execute("INSERT INTO " + tableName + " (id, " + Arrays.stream(keys).collect(Collectors.joining(", ")) +
-			                    ") VALUES (" + idGenerator.get() + ", " + Arrays.stream(values).collect(Collectors.joining(", ")) + ")");
+			                    ") VALUES (" + genId() + ", " + Arrays.stream(values).collect(Collectors.joining(", ")) + ")");
 		
-		return stmt.executeQuery("SELECT * FROM " + tableName + " ORDER BY ROWID DESC LIMIT 1").getLong("id");
+		return getId("ORDER BY ROWID DESC LIMIT 1");
+	}
+	
+	public boolean isIdTaken(long id) {
+		try {
+			return stmt.executeQuery("SELECT * FROM " + tableName + " WHERE id = " + id).next();
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
+	private long genId() {
+		long id;
+		do id = idGenerator.get(); while (isIdTaken(id));
+		return id;
 	}
 	
 	protected ResultSet getRow(String condition) throws Exception {
-		return stmt.executeQuery("SELECT * FROM " + tableName + " WHERE " + condition);
+		return stmt.executeQuery("SELECT * FROM " + tableName + " " + condition);
 	}
 	
-	protected void updateInfo(String condition, Object newData, DBColumn column) throws Exception {
+	public long getId(String condition) {
+		try {
+			ResultSet table = getRow(condition);
+			return table.next() ? table.getLong("id") : -1;
+		}
+		catch (Exception e) {
+			return -1;
+		}
+	}
+	
+	protected void updateInfo(String condition, DBColumn column, Object newData) throws Exception {
 		String command = "UPDATE " + tableName + " SET " + column.name() + " = " + column.valueToString(newData) + " WHERE " + condition;
 		assert stmt.execute(command);
 	}
 	
-	protected void updateInfo(long id, Object newData, DBColumn column) throws Exception {
-		updateInfo("id = " + id, newData, column);
+	protected void updateInfo(long id, DBColumn column, Object newData) throws Exception {
+		updateInfo("id = " + id, column, newData);
 	}
 	
 	private String getColumnsSyntax(DBColumn[] columns) {

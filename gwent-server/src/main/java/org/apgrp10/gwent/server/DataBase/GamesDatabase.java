@@ -1,49 +1,68 @@
 package org.apgrp10.gwent.server.DataBase;
 
+import org.apgrp10.gwent.model.Command;
+import org.apgrp10.gwent.model.Deck;
+import org.apgrp10.gwent.model.GameRecord;
+import org.apgrp10.gwent.server.ServerMain;
+import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.DatabaseTable;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class GamesDatabase extends DatabaseTable {
+	private static final String tableName = "games";
 	private static GamesDatabase instance;
 	
-	private GamesDatabase() throws SQLException {
-		super("gwent.db", "games", GameDBColumn.values());
+	private GamesDatabase() throws Exception {
+		super(ServerMain.SERVER_FOLDER + "gwent.db", tableName, System::currentTimeMillis, GameDBColumn.values());
 	}
 	
 	public static GamesDatabase getInstance() {
-		if (instance == null) instance = new GamesDatabase();
+		if (instance == null) {
+			try {
+				instance = new GamesDatabase();
+			} catch (Exception e) {
+				ANSI.logError(System.err, "Failed to create GamesDatabase instance", e);
+				return null;
+			}
+		}
 		return instance;
 	}
 	
-	public void addGame(long id, boolean isPublic, int player1ID, int player2ID, int seed, String deck1, String deck2) {
-		
-		String command = "INSERT INTO games (id, isPublic, player1, player2, seed, deck1, deck2, commands, set1, set2, set3)" +
-		                 " VALUES (" + id + "," +
-		                 (isPublic ? 1 : 0) + "," +
-		                 player1ID + "," +
-		                 player2ID + "," +
-		                 seed + "," +
-		                 "'" + deck1 + "' ," +
-		                 "'" + deck2 + "' ," +
-		                 " '', '0-0', '0-0', '0-0')";
-		executeCommand(command);
+	public GameRecord addGame(boolean isPublic, long player1ID, long player2ID, long seed, Deck deck1, Deck deck2, List<Command> commands,
+	                          int set1P1Sc, int set1P2Sc, int set2P1Sc, int set2P2Sc, int set3P1Sc, int set3P2Sc) throws Exception {
+		long id = insert(Map.entry(GameDBColumn.isPublic, isPublic),
+				Map.entry(GameDBColumn.player1, player1ID),
+				Map.entry(GameDBColumn.player2, player2ID),
+				Map.entry(GameDBColumn.seed, seed),
+				Map.entry(GameDBColumn.deck1, deck1),
+				Map.entry(GameDBColumn.deck2, deck2),
+				Map.entry(GameDBColumn.commands, ""),
+				Map.entry(GameDBColumn.set1, set1P1Sc + "-" + set1P2Sc),
+				Map.entry(GameDBColumn.set2, set2P1Sc + "-" + set2P2Sc),
+				Map.entry(GameDBColumn.set3, set3P1Sc + "-" + set3P2Sc));
+		return new GameRecord(id, isPublic, player1ID, player2ID, seed, deck1, deck2, commands,
+				set1P1Sc, set1P2Sc, set2P1Sc, set2P2Sc, set3P1Sc, set3P2Sc);
 	}
 	
-	private ResultSet getRowById(long id) {
-		return getRow("id = " + id);
+	public GameRecord getGameById(long id) throws Exception {
+		if (!isIdTaken(id))
+			throw new IllegalArgumentException("Game with id " + id + " does not exist");
+		return new GameRecord(id,
+				getValue(id, GameDBColumn.isPublic),
+				getValue(id, GameDBColumn.player1),
+				getValue(id, GameDBColumn.player2),
+				getValue(id, GameDBColumn.seed),
+				Deck.fromBase64(getValue(id, GameDBColumn.deck1)),
+				Deck.fromBase64String(getValue(id, GameDBColumn.deck2)),
+				Command.parse(getValue(id, GameDBColumn.commands)),
+				getEachSetResult(id, 1)[0], getEachSetResult(id, 1)[1],
+				getEachSetResult(id, 2)[0], getEachSetResult(id, 2)[1],
+				getEachSetResult(id, 3)[0], getEachSetResult(id, 3)[1]);
 	}
-	
-	private int getIntValueOfGame(long id, String value) {
-			return getRowById(id).getInt(value);
-	}
-	
-	private String getStringValueOfGame(long id, String value) throws SQLException {
-		return getValue(getRowById(id), value);
-	}
-	
-	
 	
 	public Long[] getAllIds() {
 		try {
@@ -121,9 +140,9 @@ public class GamesDatabase extends DatabaseTable {
 	
 	public enum GameDBColumn implements DBColumn {
 		isPublic("BIT"),
-		player1("INTEGER"),
-		player2("INTEGER"),
-		seed("INTEGER"),
+		player1("BIGINT"),
+		player2("BIGINT"),
+		seed("BIGINT"),
 		deck1("TEXT"),
 		deck2("TEXT"),
 		commands("TEXT"),
