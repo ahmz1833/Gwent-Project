@@ -1,29 +1,40 @@
 package org.apgrp10.gwent.client;
 
+import org.apgrp10.gwent.model.net.AsyncReader;
 import org.apgrp10.gwent.model.net.NetNode;
+import org.apgrp10.gwent.model.net.Packet;
 import org.apgrp10.gwent.utils.ANSI;
+import org.apgrp10.gwent.utils.SecurityUtils;
 
+import javax.net.ssl.SSLSocket;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class ClientMain {
 	public static void main(String[] args) {
-		Locale.setDefault(Locale.ENGLISH);
-		if (!Server.connect())
-			System.exit(0);
-		Server.getInstance().addOnClose(() -> System.exit(0));
-		Server.getInstance().setOnReceive(bytes -> {
-			System.out.println("Received: " + new String(bytes));
-			System.out.println();
-		});
-
-		new Thread(() -> {
-			while (true) {
-				Server.getInstance().run();
-				try {Thread.sleep(10);} catch (Exception e) {}
-			}
-		}).start();
+//		Locale.setDefault(Locale.ENGLISH);
+//		if (!Server.connect())
+//			System.exit(0);
+//		Server.getInstance().addOnClose(() -> System.exit(0));
+//		Server.getInstance().setOnReceive(bytes -> {
+//			System.out.println("Received: " + new String(bytes));
+//			System.out.println();
+//		});
+//
+//		new Thread(() -> {
+//			while (true) {
+//				Server.getInstance().run();
+//				try { Thread.sleep(10); } catch (Exception e) { }
+//			}
+//		}).start();
 
 
 		// for test, sending each 1000 ms a message to the server
