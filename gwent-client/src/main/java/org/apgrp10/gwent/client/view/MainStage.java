@@ -38,9 +38,11 @@ public class MainStage extends AbstractStage {
 		pane.setPrefWidth(400);
 		pane.setPrefHeight(300);
 		MFXButton btn = new MFXButton("Salam");
-		Platform.runLater(()->{
-			btn.setOnMouseClicked(event -> new PreGameController(new User("a", "a", "a", "a"),
-					new User("b", "b", "b", "b")));
+		Platform.runLater(() -> {
+			btn.setOnMouseClicked(event -> {
+				new PreGameController(new User("a", "a", "a", "a"), new User("b", "b", "b", "b"));
+				this.close();
+			});
 		});
 		pane.getChildren().add(btn);
 		setScene(scene);
