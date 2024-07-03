@@ -4,7 +4,7 @@
 KEY_FILE="$HOME/.ssh/apgrp10_key"
 PASSPHRASE="14032024apgrp10"
 REMOTE_USER="ubuntu"
-REMOTE_IP="37.152.181.45"
+REMOTE_IP="37.152.178.57"
 SCREEN_SESSION_NAME="gwent-server"
 
 MAIN_CLASS="org.apgrp10.gwent.server.ServerMain"
