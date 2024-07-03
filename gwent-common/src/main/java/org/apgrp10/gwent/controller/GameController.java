@@ -60,7 +60,18 @@ public class GameController {
 		return lastPassed;
 	}
 
-	public GameController(InputController c0, InputController c1, Deck d0, Deck d1, long seed, GameMenuInterface gameMenu) {
+	private Runnable onEnd;
+
+	public GameController(
+			InputController c0,
+			InputController c1,
+			Deck d0,
+			Deck d1,
+			long seed,
+			GameMenuInterface gameMenu,
+			Runnable onEnd
+	) {
+		this.onEnd = onEnd;
 		playerData[0] = new PlayerData(d0, c0);
 		playerData[1] = new PlayerData(d1, c1);
 		turn = 0;
@@ -430,8 +441,8 @@ public class GameController {
 			end |= playerData[i].hp == 0;
 		}
 		if (end) {
-			// TODO
-			System.exit(0);
+			onEnd.run();
+			return;
 		}
 
 		lastPassed = false;
@@ -601,9 +612,18 @@ public class GameController {
 	}
 
 	public interface CommandListener { public void call(Command cmd); }
-	private final List<CommandListener> commandListeners = new ArrayList<>();
-	public void addCommandListener(CommandListener cb) { commandListeners.add(cb); }
-	public void removeCommandListener(CommandListener cb) { commandListeners.remove(cb); }
+
+	private final List<List<CommandListener>> commandListeners; {
+		commandListeners = new ArrayList<>();
+		commandListeners.add(new ArrayList<>());
+		commandListeners.add(new ArrayList<>());
+	}
+
+	public void addCommandListener(int player, CommandListener cb) { commandListeners.get(player).add(cb); }
+	public void removeCommandListener(CommandListener cb) {
+		commandListeners.get(0).remove(cb);
+		commandListeners.get(1).remove(cb);
+	}
 
 	private List<Command> commandQueue = new ArrayList<>();
 
@@ -630,7 +650,7 @@ public class GameController {
 			gameMenu.redraw();
 	}
 
-	public void sendCommand(Command cmd) {
+	public void sendCommand(int player, Command cmd) {
 		System.out.println(cmd);
 
 		if (cmd instanceof Command.Sync) {
@@ -641,7 +661,7 @@ public class GameController {
 		}
 
 		// we make a deep copy because some listeners might remove themselves while we are iterating
-		for (CommandListener cb : new ArrayList<>(commandListeners))
+		for (CommandListener cb : new ArrayList<>(commandListeners.get(player)))
 			cb.call(cmd);
 	}
 

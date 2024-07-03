@@ -1,17 +1,16 @@
 package org.apgrp10.gwent.client.view;
 
+import org.apgrp10.gwent.client.Server;
+import org.apgrp10.gwent.client.controller.PreGameController;
+import org.apgrp10.gwent.model.User;
+import org.apgrp10.gwent.model.net.Request;
+import org.apgrp10.gwent.model.net.Response;
+
 import io.github.palexdev.materialfx.controls.MFXButton;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
-import javafx.scene.text.FontWeight;
 import javafx.stage.WindowEvent;
-import org.apgrp10.gwent.client.R;
-import org.apgrp10.gwent.client.controller.PreGameController;
-import org.apgrp10.gwent.client.controller.UserController;
-import org.apgrp10.gwent.model.User;
 
 public class MainStage extends AbstractStage {
 	private static MainStage INSTANCE;
@@ -26,6 +25,9 @@ public class MainStage extends AbstractStage {
 		return INSTANCE;
 	}
 
+	private int playerId = -1;
+	private boolean start;
+
 	@Override
 	protected boolean onCreate() {
 		// TODO
@@ -39,13 +41,22 @@ public class MainStage extends AbstractStage {
 		pane.setPrefWidth(400);
 		pane.setPrefHeight(300);
 		MFXButton btn = new MFXButton("Salam");
-		Platform.runLater(() -> {
-			btn.setOnMouseClicked(event -> {
-				User user2 = new User(2, "user2", "pass2", "nick2", "email2", "secQ2", null);
-				User user1 = new User(1, "user1", "pass1", "nick1", "email1", "secQ1", null);
-				new PreGameController(user1, user2);
-				this.close();
-			});
+		Server.instance().sendRequest(new Request("fastPlay"), res -> {
+			playerId = res.getBody().get("player").getAsInt();
+			System.out.println("we are player " + playerId);
+		});
+		Server.instance().setListener("makeDeck", req -> {
+			start = true;
+			Server.instance().sendResponse(new Response(req.getId(), 200));
+			Server.instance().setListener("makeDeck", null);
+		});
+		btn.setOnMouseClicked(event -> {
+			if (!start)
+				return;
+			this.close();
+			User user2 = new User(2, "user2", "pass2", "nick2", "email2", "secQ2", null);
+			User user1 = new User(1, "user1", "pass1", "nick1", "email1", "secQ1", null);
+			new PreGameController(user1, user2, playerId != 1, playerId != 0);
 		});
 		pane.getChildren().add(btn);
 		setScene(scene);

@@ -272,11 +272,7 @@ public class GameMenu extends Application implements GameMenuInterface {
 		final int player = controller.getActivePlayer();
 		activeCardView = null;
 
-		for (Card card : controller.getPlayer(0).handCards) {
-			CardView view = cardMap.get(card);
-			if (view == null)
-				continue;
-		}
+		cardMap.clear();
 		rootPane.getChildren().clear();
 
 		addBackground(R.image.board[controller.getActivePlayer()]);

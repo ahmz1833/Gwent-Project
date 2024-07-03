@@ -6,11 +6,11 @@ import org.apgrp10.gwent.model.net.Request;
 
 public class ClientMain {
 	public static void main(String[] args) {
-		//Locale.setDefault(Locale.ENGLISH);
-		//if (!Server.connect())
-		//	System.exit(1);
-		//Server.instance().addOnClose(() -> System.exit(1));
-		//Server.instance().startThread();
+		Locale.setDefault(Locale.ENGLISH);
+		if (!Server.connect())
+			System.exit(1);
+		Server.instance().addOnClose(() -> System.exit(1));
+		Server.instance().startThread();
 
 		//while (true) {
 		//	Server.instance().sendRequest(new Request("hello"), res -> {

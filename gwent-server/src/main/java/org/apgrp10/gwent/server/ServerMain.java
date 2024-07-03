@@ -55,26 +55,27 @@ public class ServerMain {
 				Socket socket = serverSocket.accept();
 
 				Client client = new Client(socket);
-				// for test
-				client.setListener("hello", (Request req) -> {
-					JsonObject body = new JsonObject();
-					body.add("msg", new JsonPrimitive(
-						"""
-						According to all known laws of aviation, there is no way a bee should be able to fly.
-						Its wings are too small to get its fat little body off the ground.
-						The bee, of course, flies anyway because bees don't care what humans think is impossible.
-						Yellow, black. Yellow, black. Yellow, black. Yellow, black.
-						Ooh, black and yellow!
-						Let's shake it up a little.
-						Barry! Breakfast is ready!
-						Coming!
-						"""
-					));
-					client.sendResponse(new Response(
-						req.getId(),
-						200,
-						body
-					));
+				client.setListener("fastPlay", req -> {
+					synchronized (lock) {
+						JsonObject json = new JsonObject();
+						if (fastPlayed == null) {
+							json.add("player", new JsonPrimitive(0));
+							client.sendResponse(new Response(req.getId(), 200, json));
+							fastPlayed = client;
+						} else {
+							json.add("player", new JsonPrimitive(1));
+							client.sendResponse(new Response(req.getId(), 200, json));
+							TaskManager.submit(new GameTask(fastPlayed, client));
+							fastPlayed = null;
+						}
+						client.setListener("fastPlay", null);
+					}
+				});
+				client.getNetNode().addOnClose(() -> {
+					synchronized (lock) {
+						if (fastPlayed == client)
+							fastPlayed = null;
+					}
 				});
 				TaskManager.submit(client);
 			} catch (IOException e) {
@@ -82,4 +83,7 @@ public class ServerMain {
 			}
 		}
 	}
+
+	private static Client fastPlayed;
+	private static Object lock = new Object();
 }

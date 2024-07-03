@@ -1,17 +1,26 @@
 package org.apgrp10.gwent.model;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
+
 import org.apgrp10.gwent.model.card.Card;
 import org.apgrp10.gwent.model.card.CardInfo;
 import org.apgrp10.gwent.model.card.Faction;
 import org.apgrp10.gwent.model.card.Row;
+import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.utils.ANSI;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 public class Deck {
 	private final User user;
@@ -166,7 +175,7 @@ public class Deck {
 	}
 
 	static class DeckToSave {
-		private final HashMap<String, Integer> deck = new HashMap<>();
+		private final List<String> deck = new ArrayList<>();
 		private String faction = "";
 		private String leader = "";
 
@@ -192,13 +201,10 @@ public class Deck {
 					case "SKELLIGE" -> factionIndex = 4;
 				}
 				Deck outputDeck = new Deck(factionIndex, deckToSave.leader, null);
-				for (String path : deckToSave.deck.keySet()) {
+				for (String path : deckToSave.deck) {
 					CardInfo cardInfo = convertPathToCardInfo(path);
 					if (cardInfo == null) return null;
-					if (deckToSave.deck.get(path) < 0) return null;
-					for (int i = 0; i < deckToSave.deck.get(path); i++) {
-						outputDeck.addCard(cardInfo);
-					}
+					outputDeck.addCard(cardInfo);
 				}
 				if (!isCorrectDeck(outputDeck)) return null;
 				return outputDeck;
@@ -208,8 +214,7 @@ public class Deck {
 		}
 
 		public void addCard(String path) {
-			deck.putIfAbsent(path, 0);
-			deck.put(path, deck.get(path) + 1);
+			deck.add(path);
 		}
 
 		public void changeLeader(Card leader) {
@@ -224,6 +229,14 @@ public class Deck {
 			Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
 			return gson.toJson(this);
 		}
+	}
+
+	// TODO: move this to a better place
+	public static Request deckRequest(int player, Deck deck) {
+		JsonObject json = new JsonObject();
+		json.add("player", new JsonPrimitive(player));
+		json.add("deck", new JsonPrimitive(deck.toJsonString()));
+		return new Request("deck", json);
 	}
 }
 

@@ -27,6 +27,6 @@ public abstract class Task {
 		iterate();
 	}
 
-	protected abstract void iterate();
+	protected void iterate() {}
 	public abstract boolean isDone();
 }
