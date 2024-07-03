@@ -1,8 +1,7 @@
-package org.apgrp10.gwent.client.controller;
+package org.apgrp10.gwent.controller;
 
-import javafx.stage.Stage;
-import org.apgrp10.gwent.client.model.WaitExec;
-import org.apgrp10.gwent.client.view.GameMenu;
+import org.apgrp10.gwent.utils.WaitExec;
+import org.apgrp10.gwent.view.GameMenuInterface;
 import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.User;
@@ -31,8 +30,7 @@ public class GameController {
 			this.controller = controller;
 		}
 	}
-	private final Stage stage;
-	private final GameMenu gameMenu;
+	private final GameMenuInterface gameMenu;
 	private final PlayerData playerData[] = new PlayerData[2];
 	private final List<List<Card>> row = new ArrayList<>();
 	private final List<List<Card>> special = new ArrayList<>();
@@ -44,7 +42,7 @@ public class GameController {
 	private boolean lastPassed;
 	private Random rand;
 	private int currentRound = 0;
-	private boolean cheatAllowd = true;
+	public final WaitExec waitExec;
 
 	public boolean leaderAbilityInUse(int player, Ability ability) {
 		boolean ans = false;
@@ -62,10 +60,9 @@ public class GameController {
 		return lastPassed;
 	}
 
-	public GameController(Stage stage, InputController c0, InputController c1, Deck d0, Deck d1, long seed) {
+	public GameController(InputController c0, InputController c1, Deck d0, Deck d1, long seed, GameMenuInterface gameMenu) {
 		playerData[0] = new PlayerData(d0, c0);
 		playerData[1] = new PlayerData(d1, c1);
-		this.stage = stage;
 		turn = 0;
 
 		for (int i = 0; i < 6; i++) {
@@ -93,8 +90,14 @@ public class GameController {
 			}
 		}
 
+		this.waitExec = new WaitExec(gameMenu == null);
+
 		// must be last so GameController initialization is complete
-		gameMenu = new GameMenu(this, stage);
+		this.gameMenu = gameMenu;
+		if (gameMenu != null) {
+			gameMenu.setController(this);
+			gameMenu.start();
+		}
 
 		// must be after instanciating GameMenu
 		c0.start(this, 0);
@@ -155,7 +158,7 @@ public class GameController {
 		return -1;
 	}
 
-	public GameMenu getGameMenu() { return gameMenu; }
+	public GameMenuInterface getGameMenu() { return gameMenu; }
 
 	public PlayerData getPlayer(int player) { return playerData[player]; }
 
@@ -163,16 +166,18 @@ public class GameController {
 		if (card == null)
 			return;
 
-		for (int p = 0; p < 2; p++) {
-			if (to == playerData[p].deck.getDeck()) gameMenu.animationToDeck(card, p);
-			if (to == playerData[p].handCards && activePlayer == p) gameMenu.animationToHand(card);
-			if (to == playerData[p].usedCards) gameMenu.animationToUsed(card, p);
+		if (gameMenu != null) {
+			for (int p = 0; p < 2; p++) {
+				if (to == playerData[p].deck.getDeck()) gameMenu.animationToDeck(card, p);
+				if (to == playerData[p].handCards && activePlayer == p) gameMenu.animationToHand(card);
+				if (to == playerData[p].usedCards) gameMenu.animationToUsed(card, p);
+			}
+			for (int i = 0; i < 6; i++) {
+				if (to == row.get(i)) gameMenu.animationToRow(card, i);
+				if (to == special.get(i)) gameMenu.animationToSpecial(card, i);
+			}
+			if (to == weather) gameMenu.animationToWeather(card);
 		}
-		for (int i = 0; i < 6; i++) {
-			if (to == row.get(i)) gameMenu.animationToRow(card, i);
-			if (to == special.get(i)) gameMenu.animationToSpecial(card, i);
-		}
-		if (to == weather) gameMenu.animationToWeather(card);
 
 		for (int p = 0; p < 2; p++) {
 			playerData[p].deck.removeCard(card);
@@ -199,10 +204,11 @@ public class GameController {
 
 			if (card.ability == Ability.CLEAR) {
 				nextTurnDelay += 600;
-				new WaitExec(600, () -> {
+				waitExec.run(600, () -> {
 					for (Card c : new ArrayList<>(weather))
 						moveCard(c, playerData[ownerOfCard(c)].usedCards);
-					gameMenu.redraw();
+					if (gameMenu != null)
+						gameMenu.redraw();
 				});
 			}
 		}
@@ -236,14 +242,18 @@ public class GameController {
 
 	private void scorchWithDelay(List<Card> list, long delay) {
 		nextTurnDelay += 1000 + delay;
-		new WaitExec(delay, () -> {
-			gameMenu.setScorchCards(list);
-			gameMenu.redraw();
-			new WaitExec(1000, () -> {
-				gameMenu.setScorchCards(new ArrayList<>());
+		waitExec.run(delay, () -> {
+			if (gameMenu != null) {
+				gameMenu.setScorchCards(list);
+				gameMenu.redraw();
+			}
+			waitExec.run(1000, () -> {
+				if (gameMenu != null)
+					gameMenu.setScorchCards(new ArrayList<>());
 				for (Card card : list)
 					moveCard(card, playerData[ownerOfCard(card)].usedCards);
-				gameMenu.redraw();
+				if (gameMenu != null)
+					gameMenu.redraw();
 			});
 		});
 	}
@@ -339,9 +349,10 @@ public class GameController {
 			if (card.ability == Ability.SCORCH_S && calcRowScore(5) >= 10) scorchWhenPlaced(strongestRow(5));
 		}
 		if (card.ability == Ability.SCORCH) {
-			if (card.row == Row.NON) new WaitExec(600, () -> {
+			if (card.row == Row.NON) waitExec.run(600, () -> {
 				moveCard(card, playerData[player].usedCards);
-				gameMenu.redraw();
+				if (gameMenu != null)
+					gameMenu.redraw();
 			});
 		}
 
@@ -361,21 +372,22 @@ public class GameController {
 		}
 		if (!lastPassed) {
 			playerData[turn].controller.endTurn();
-			new WaitExec(nextTurnDelay, () -> {
+			waitExec.run(nextTurnDelay, () -> {
 				turn = 1 - turn;
 				playerData[turn].controller.beginTurn();
 			});
 			nextTurnDelay = 1000;
 		} else if (nextTurnDelay > 1000) {
 			playerData[turn].controller.pauseTurn();
-			new WaitExec(nextTurnDelay, () -> { playerData[turn].controller.resumeTurn(); });
+			waitExec.run(nextTurnDelay, () -> { playerData[turn].controller.resumeTurn(); });
 		}
 	}
 
 	private void swapCard(Command.SwapCard cmd) {
 		Card c1 = cardById(cmd.cardId1());
 		Card c2 = cardById(cmd.cardId2());
-		gameMenu.animationSwap(c1, c2);
+		if (gameMenu != null)
+			gameMenu.animationSwap(c1, c2);
 
 		// there are some guarantees because of canSwap and we rely on them
 		int player = cmd.player();
@@ -442,7 +454,7 @@ public class GameController {
 					.filter(i -> i.strength == 8)
 					.filter(i -> !i.isHero)
 					.collect(Collectors.toList()));
-				new WaitExec(500, () -> transformCard(card, info));
+				waitExec.run(500, () -> transformCard(card, info));
 				it.remove();
 			}
 		}
@@ -461,8 +473,9 @@ public class GameController {
 		for (Card card : toBeRemoved)
 			moveCard(card, playerData[ownerOfCard(card)].usedCards);
 
-		gameMenu.redraw();
-		new WaitExec(600, () -> beginRound());
+		if (gameMenu != null)
+			gameMenu.redraw();
+		waitExec.run(600, () -> beginRound());
 	}
 
 	private void pass(Command.Pass cmd) {
@@ -613,7 +626,8 @@ public class GameController {
 		}
 		syncLock = false;
 		commandQueue.clear();
-		gameMenu.redraw();
+		if (gameMenu != null)
+			gameMenu.redraw();
 	}
 
 	public void sendCommand(Command cmd) {
@@ -631,7 +645,11 @@ public class GameController {
 			cb.call(cmd);
 	}
 
-	public void setActivePlayer(int player) { activePlayer = player; gameMenu.redraw(); }
+	public void setActivePlayer(int player) {
+		activePlayer = player;
+		if (gameMenu != null)
+			gameMenu.redraw();
+	}
 	public int getActivePlayer() { return activePlayer; }
 	public int getTurn() { return turn; }
 	public Card getActiveCard() { return activeCard; }

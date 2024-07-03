@@ -1,7 +1,10 @@
 package org.apgrp10.gwent.client.controller;
 
+import org.apgrp10.gwent.client.view.GameMenu;
 import org.apgrp10.gwent.client.view.PreGameMenu;
 import org.apgrp10.gwent.client.view.PreGameStage;
+import org.apgrp10.gwent.controller.GameController;
+import org.apgrp10.gwent.controller.InputController;
 import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.User;
 
@@ -26,6 +29,7 @@ public class PreGameController {
 		// TODO: deck 1 and 2 is ready. call game menu with stage and deck 1 and deck2
 		// for now we just set a random game up;
 		InputController c1 = new MouseInputController(), c2 = new MouseInputController();
-		new GameController(PreGameStage.getInstance(), c1, c2, deck1, deck2, System.currentTimeMillis());
+		GameMenu gameMenu = new GameMenu(PreGameStage.getInstance());
+		new GameController(c1, c2, deck1, deck2, System.currentTimeMillis(), gameMenu);
 	}
 }

@@ -1,9 +1,11 @@
 package org.apgrp10.gwent.client.controller;
 
-import org.apgrp10.gwent.client.model.WaitExec;
 import org.apgrp10.gwent.client.view.GameMenu;
+import org.apgrp10.gwent.controller.GameController;
+import org.apgrp10.gwent.controller.InputController;
 import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.card.Card;
+import org.apgrp10.gwent.utils.Callback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,10 +57,9 @@ public class MouseInputController implements InputController {
 		// TODO: this function is pure shit! maybe do something better?
 		// also note that if it's a local game player 2 needs to wait for player 1 before choosing
 
-		GameMenu.Callback pickCb = obj1 -> {
-			Card card1 = (Card) obj1;
+		Callback<Card> pickCb = card1 -> {
 			if (card1 == null) {
-				new WaitExec(1000, () -> {
+				controller.waitExec.run(1000, () -> {
 					controller.sendCommand(new Command.VetoCard(player, -1));
 					controller.sendCommand(new Command.Sync());
 				});
@@ -67,14 +68,13 @@ public class MouseInputController implements InputController {
 			controller.sendCommand(new Command.VetoCard(player, card1.getGameId()));
 			controller.sendCommand(new Command.Sync());
 
-			controller.getGameMenu().pickCard(controller.getPlayer(player).handCards, obj2 -> {
-				Card card2 = (Card) obj2;
+			controller.getGameMenu().pickCard(controller.getPlayer(player).handCards, card2 -> {
 				if (card2 != null) {
 					controller.sendCommand(new Command.VetoCard(player, card2.getGameId()));
 					controller.sendCommand(new Command.Sync());
 				}
 
-				new WaitExec(1000, () -> {
+				controller.waitExec.run(1000, () -> {
 					controller.sendCommand(new Command.VetoCard(player, -1));
 					controller.sendCommand(new Command.Sync());
 				});
@@ -102,8 +102,7 @@ public class MouseInputController implements InputController {
 	@Override
 	public void pick(List<Card> list, String what) {
 		boolean nullPossible = what.equals("view_enemy_hand") || what.equals("cheat_enemy_hand");
-		controller.getGameMenu().pickCard(list, obj -> {
-			Card card = (Card) obj;
+		controller.getGameMenu().pickCard(list, card -> {
 			controller.sendCommand(new Command.PickResponse(player, card != null ? card.getGameId() : -1, what));
 			controller.sendCommand(new Command.Sync());
 		}, nullPossible);

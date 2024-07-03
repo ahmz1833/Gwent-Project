@@ -1,4 +1,4 @@
-package org.apgrp10.gwent.client.controller;
+package org.apgrp10.gwent.controller;
 
 import org.apgrp10.gwent.model.card.Card;
 

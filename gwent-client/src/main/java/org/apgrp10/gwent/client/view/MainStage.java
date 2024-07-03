@@ -28,11 +28,12 @@ public class MainStage extends AbstractStage {
 
 	@Override
 	protected boolean onCreate() {
-		if(!UserController.isLoggedIn())
-		{
-			LoginStage.getInstance().start();
-			return false;
-		}
+		// TODO
+		// if(!UserController.isLoggedIn())
+		// {
+		// 	LoginStage.getInstance().start();
+		// 	return false;
+		// }
 		Pane pane = new Pane();
 		Scene scene = new Scene(pane);
 		pane.setPrefWidth(400);

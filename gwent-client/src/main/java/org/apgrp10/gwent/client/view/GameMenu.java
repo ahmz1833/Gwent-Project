@@ -1,5 +1,18 @@
 package org.apgrp10.gwent.client.view;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apgrp10.gwent.client.R;
+import org.apgrp10.gwent.client.model.CardView;
+import org.apgrp10.gwent.controller.GameController;
+import org.apgrp10.gwent.controller.GameController.PlayerData;
+import org.apgrp10.gwent.model.card.Card;
+import org.apgrp10.gwent.utils.Callback;
+import org.apgrp10.gwent.view.GameMenuInterface;
+
 import javafx.animation.Transition;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
@@ -20,23 +33,12 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import org.apgrp10.gwent.client.R;
-import org.apgrp10.gwent.client.controller.GameController;
-import org.apgrp10.gwent.client.controller.GameController.PlayerData;
-import org.apgrp10.gwent.client.model.CardView;
-import org.apgrp10.gwent.model.card.Card;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-public class GameMenu extends Application {
+public class GameMenu extends Application implements GameMenuInterface {
 	private GameController controller;
 	private Stage stage;
 	private Pane rootPane;
 
-	public static GameMenu currentMenu;
 	private static final int WIDTH = 1280, HEIGHT = 720;
 
 	private static class Position {
@@ -110,12 +112,15 @@ public class GameMenu extends Application {
 		};
 	}
 
-
-	public GameMenu(GameController gameController, Stage stage) {
-		controller = gameController;
-		currentMenu = this;
-		start(stage);
+	public GameMenu(Stage stage) {
+		this.stage = stage;
 	}
+
+	public void setController(GameController controller) {
+		this.controller = controller;
+	}
+
+	public void start() { start(stage); }
 
 	@Override
 	public void start(Stage stage) {
@@ -372,10 +377,10 @@ public class GameMenu extends Application {
 
 	private List<Card> pickList;
 	private int pickIdx;
-	private Callback pickFn;
+	private Callback<Card> pickFn;
 	private boolean pickNullPossible;
 
-	public void pickCard(List<Card> list, Callback cb, boolean nullPossible) {
+	public void pickCard(List<Card> list, Callback<Card> cb, boolean nullPossible) {
 		assert pickList == null;
 
 		if (list.isEmpty()) {
@@ -390,16 +395,15 @@ public class GameMenu extends Application {
 		redraw();
 	}
 
-	public interface Callback { void call(Object object); }
-	private final List<Callback> cardListeners = new ArrayList<>();
-	private final List<Callback> buttonListeners = new ArrayList<>();
-	private final List<Callback> rowListeners = new ArrayList<>();
-	private final List<Callback> bgListeners = new ArrayList<>();
+	private final List<Callback<Object>> cardListeners = new ArrayList<>();
+	private final List<Callback<Object>> buttonListeners = new ArrayList<>();
+	private final List<Callback<Object>> rowListeners = new ArrayList<>();
+	private final List<Callback<Object>> bgListeners = new ArrayList<>();
 
-	public Object addCardListener(Callback cb) { cardListeners.add(cb); return cb; }
-	public Object addButtonListener(Callback cb) { buttonListeners.add(cb); return cb; }
-	public Object addRowListener(Callback cb) { rowListeners.add(cb); return cb; }
-	public Object addBgListener(Callback cb) { bgListeners.add(cb); return cb; }
+	public Object addCardListener(Callback<Object> cb) { cardListeners.add(cb); return cb; }
+	public Object addButtonListener(Callback<Object> cb) { buttonListeners.add(cb); return cb; }
+	public Object addRowListener(Callback<Object> cb) { rowListeners.add(cb); return cb; }
+	public Object addBgListener(Callback<Object> cb) { bgListeners.add(cb); return cb; }
 
 	public void removeListener(Object obj) {
 		cardListeners.remove(obj);
@@ -408,9 +412,9 @@ public class GameMenu extends Application {
 		bgListeners.remove(obj);
 	}
 
-	private void notifyListeners(List<Callback> callbacks, Object obj) {
+	private void notifyListeners(List<Callback<Object>> callbacks, Object obj) {
 		// we make a deep copy because someone might remove their listeners while we are iterating
-		for (Callback cb : new ArrayList<>(callbacks))
+		for (Callback<Object> cb : new ArrayList<>(callbacks))
 			cb.call(obj);
 	}
 
