@@ -34,16 +34,17 @@ public class UserDatabase extends DatabaseTable {
 		return instance;
 	}
 
-	public User addUser(String username, String nickname, String email, String passHash,
-	                    String securityQuestion, Avatar avatar) throws Exception {
-		long id = insert(Map.entry(UserDBColumns.username, username),
-				Map.entry(UserDBColumns.nickname, nickname),
-				Map.entry(UserDBColumns.email, email),
-				Map.entry(UserDBColumns.passHash, passHash),
-				Map.entry(UserDBColumns.securityQuestion, securityQuestion),
-				Map.entry(UserDBColumns.avatar, avatar.toBase64()),
+	public User addUser(User.UserInfo userInfo) throws Exception {
+		if (isUsernameTaken(userInfo.username()))
+			throw new IllegalArgumentException("Username " + userInfo.username() + " is already taken");
+		long id = insert(Map.entry(UserDBColumns.username, userInfo.username()),
+				Map.entry(UserDBColumns.nickname, userInfo.nickname()),
+				Map.entry(UserDBColumns.email, userInfo.email()),
+				Map.entry(UserDBColumns.passHash, userInfo.passHash()),
+				Map.entry(UserDBColumns.securityQuestion, userInfo.securityQ()),
+				Map.entry(UserDBColumns.avatar, userInfo.avatar().toBase64()),
 				Map.entry(UserDBColumns.friends, ""));
-		return new User(id, username, nickname, email, passHash, securityQuestion, avatar);
+		return new User(id, userInfo);
 	}
 
 	public User getUserByUsername(String username) throws Exception {
@@ -55,12 +56,12 @@ public class UserDatabase extends DatabaseTable {
 		if (!isIdTaken(id))
 			throw new IllegalArgumentException("User with id " + id + " does not exist");
 		return new User(id,
-				getValue(id, UserDBColumns.username),
-				getValue(id, UserDBColumns.nickname),
-				getValue(id, UserDBColumns.email),
-				getValue(id, UserDBColumns.passHash),
-				getValue(id, UserDBColumns.securityQuestion),
-				Avatar.fromBase64(getValue(id, UserDBColumns.avatar)));
+				new User.UserInfo(getValue(id, UserDBColumns.username),
+						getValue(id, UserDBColumns.nickname),
+						getValue(id, UserDBColumns.email),
+						getValue(id, UserDBColumns.passHash),
+						getValue(id, UserDBColumns.securityQuestion),
+						Avatar.fromBase64(getValue(id, UserDBColumns.avatar))));
 	}
 
 	public boolean isUsernameTaken(String username) {

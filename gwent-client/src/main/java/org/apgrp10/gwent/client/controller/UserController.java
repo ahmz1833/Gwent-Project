@@ -23,23 +23,23 @@ public class UserController
 			throw new IllegalArgumentException("Password confirm does not match with password!");
 		if (userExists(username))
 			throw new IllegalArgumentException("The entered username already exists!");
-		allUsers.add(new User(username, password));
+//		allUsers.add(new User(username, password));
 	}
 	
 	public static void login(String username, String password)
 	{
-		if (!userExists(username))
-			throw new IllegalArgumentException("The entered username does not exist!");
-		if (allUsers.stream().noneMatch(user -> user.getUsername().equals(username) && user.checkPassword(password)))
-			throw new IllegalArgumentException("The entered password is incorrect!");
-		currentUser = allUsers.stream().filter(user -> user.getUsername().equals(username)).findFirst().get();
+//		if (!userExists(username))
+//			throw new IllegalArgumentException("The entered username does not exist!");
+//		if (allUsers.stream().noneMatch(user -> user.getUsername().equals(username) && user.checkPassword(password)))
+//			throw new IllegalArgumentException("The entered password is incorrect!");
+//		currentUser = allUsers.stream().filter(user -> user.getUsername().equals(username)).findFirst().get();
 	}
 	
 	public static void logout()
 	{
-		currentUser = null;
-		LoginMenu.open();
-		MainMenu.close();
+//		currentUser = null;
+//		LoginMenu.open();
+//		MainMenu.close();
 	}
 	
 	public static User getCurrentUser()

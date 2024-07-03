@@ -45,8 +45,8 @@ public class MainStage extends AbstractStage {
 			if (!start)
 				return;
 			this.close();
-			User user2 = new User(2, "user2", "pass2", "nick2", "email2", "secQ2", null);
-			User user1 = new User(1, "user1", "pass1", "nick1", "email1", "secQ1", null);
+			User user2 = new User(2, new User.UserInfo("user2", "pass2", "nick2", "email2", "secQ2", null));
+			User user1 = new User(1, new User.UserInfo("user1", "pass1", "nick1", "email1", "secQ1", null));
 			new PreGameController(user1, user2, playerId != 1, playerId != 0);
 		});
 		pane.getChildren().add(btn);
