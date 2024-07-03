@@ -31,7 +31,6 @@ public class Client extends Task {
 	}
 
 	public NetNode getNetNode() {return packetHandler.getNetNode();}
-	public PacketHandler getPacketHandler() {return packetHandler;}
 
 	private void destruct() {
 		if (destructed)
@@ -67,6 +66,12 @@ public class Client extends Task {
 		});
 	}
 	public void sendRequest(Request req) { sendRequest(req, res -> {}); }
+
+	public void sendResponse(Response res) {
+		addCommand(() -> {
+			packetHandler.sendResponse(res);
+		});
+	}
 
 	public void setListener(String action, Callback<Request> onReceive) {
 		addCommand(() -> {

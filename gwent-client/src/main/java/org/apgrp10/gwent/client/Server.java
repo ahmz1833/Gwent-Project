@@ -33,6 +33,10 @@ public class Server {
 	}
 	public void sendRequest(Request req) { sendRequest(req, res -> {}); }
 
+	public void sendResponse(Response res) {
+		synchronized (packetHandler) { packetHandler.sendResponse(res); }
+	}
+
 	public void setListener(String action, Callback<Request> onReceive) {
 		synchronized (packetHandler) { packetHandler.setListener(action, onReceive); }
 	}

@@ -70,7 +70,7 @@ public class ServerMain {
 						Coming!
 						"""
 					));
-					client.getPacketHandler().sendResponse(new Response(
+					client.sendResponse(new Response(
 						req.getId(),
 						200,
 						body
