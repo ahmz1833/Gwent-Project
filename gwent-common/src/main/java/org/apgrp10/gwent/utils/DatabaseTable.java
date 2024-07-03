@@ -4,8 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.Arrays;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -48,6 +47,19 @@ public class DatabaseTable {
 		return getId("ORDER BY ROWID DESC LIMIT 1");
 	}
 
+
+	public List<Long> getAllIds() {
+		try {
+			ResultSet table = getRow("");
+			List<Long> ids = new ArrayList<>();
+			while (table.next())
+				ids.add(table.getLong("id"));
+			return ids;
+		} catch (Exception e) {
+			return new ArrayList<>();
+		}
+	}
+
 	public boolean isIdTaken(long id) {
 		try {
 			return stmt.executeQuery("SELECT * FROM " + tableName + " WHERE id = " + id).next();
@@ -82,6 +94,12 @@ public class DatabaseTable {
 
 	protected void updateInfo(long id, DBColumn column, Object newData) throws Exception {
 		updateInfo("id = " + id, column, newData);
+	}
+
+	@SafeVarargs
+	protected final void update(long id, Map.Entry<DBColumn, Object>... data) throws Exception {
+		for (Map.Entry<DBColumn, Object> entry : data)
+			updateInfo(id, entry.getKey(), entry.getValue());
 	}
 
 	private String getColumnsSyntax(DBColumn[] columns) {

@@ -12,13 +12,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class UserDatabase extends DatabaseTable {
 	private static final String tableName = "users";
 	private static UserDatabase instance;
 
 	private UserDatabase() throws Exception {
-		super(ServerMain.SERVER_FOLDER + "gwent.db", tableName, Random::nextUid, UserDBColumns.values());
+		super(ServerMain.SERVER_FOLDER + "gwent.db", tableName, Random::nextId, UserDBColumns.values());
 	}
 
 	public static UserDatabase getInstance() {
@@ -113,15 +114,14 @@ public class UserDatabase extends DatabaseTable {
 		updateInfo(id1, UserDBColumns.friends, newData.toString());
 	}
 
-	public ArrayList<User> getAllUsers() throws Exception {
-		ArrayList<User> users = new ArrayList<>();
-		try {
-			ResultSet table = getRow("");
-			while (table.next()) users.add(getUserById(table.getLong("id")));
-		} catch (SQLException e) {
-			ANSI.logError(System.err, "A Failure occurred while getting all users", e);
-		}
-		return users;
+	public ArrayList<User> getAllUsers() {
+		return (ArrayList<User>) getAllIds().stream().map(id -> {
+			try {
+				return getUserById(id);
+			} catch (Exception e) {
+				return null;
+			}
+		}).collect(Collectors.toList());
 	}
 
 	public enum UserDBColumns implements DBColumn {

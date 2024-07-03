@@ -1,12 +1,9 @@
 package org.apgrp10.gwent.server;
 
-import org.apgrp10.gwent.model.net.Request;
-import org.apgrp10.gwent.model.net.Response;
-import org.apgrp10.gwent.utils.ANSI;
-import org.apgrp10.gwent.utils.Random;
-
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.apgrp10.gwent.model.net.Response;
+import org.apgrp10.gwent.utils.ANSI;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -17,9 +14,10 @@ import java.nio.file.Paths;
 import java.util.Locale;
 
 public class ServerMain {
-
 	public static final String SERVER_FOLDER = System.getProperty("user.home") + "/gwent-data/";
 	public static final int PORT = 12345;
+	private static Client fastPlayed;
+	private static Object lock = new Object();
 
 	public static void main(String[] args) {
 		Locale.setDefault(Locale.ENGLISH);
@@ -38,7 +36,6 @@ public class ServerMain {
 		// Start the server
 		ServerSocket serverSocket = null;
 		try {
-//			serverSocket = SecurityUtils.getSSLServerSocketFactory().createServerSocket(PORT);
 			serverSocket = new ServerSocket(PORT);
 			ANSI.log("Server started on port " + PORT, ANSI.LYELLOW.bd(), false);
 		} catch (IOException e) {
@@ -83,7 +80,4 @@ public class ServerMain {
 			}
 		}
 	}
-
-	private static Client fastPlayed;
-	private static Object lock = new Object();
 }
