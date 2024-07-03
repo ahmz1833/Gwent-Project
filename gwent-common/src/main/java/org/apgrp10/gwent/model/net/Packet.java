@@ -32,15 +32,6 @@ public abstract class Packet {
 		return new Gson().toJson(full);
 	}
 
-	public JsonObject getHeader() {
-		return header;
-	}
-
-	public JsonObject getBody() {
-		return body;
-	}
-
-	public static interface Callback {
-		public void call(Packet packet);
-	}
+	public JsonObject getHeader() { return header; }
+	public JsonObject getBody() { return body; }
 }

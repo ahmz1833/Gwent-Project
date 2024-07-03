@@ -24,10 +24,12 @@ temp/
 .idea/vcs.xml
 .idea/workspace.xml
 .idea/uiDesigner.xml
-.idea/j.*
 *.iws
 *.iml
 *.ipr
+
+### j ###
+**/j.*
 
 ### NetBeans ###
 /nbproject/private/

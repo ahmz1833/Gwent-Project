@@ -1,54 +1,47 @@
 package org.apgrp10.gwent.client;
 
-import org.apgrp10.gwent.model.net.NetNode;
-import org.apgrp10.gwent.utils.ANSI;
-
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Locale;
+
+import org.apgrp10.gwent.model.net.PacketHandler;
+import org.apgrp10.gwent.model.net.Request;
+import org.apgrp10.gwent.model.net.Response;
+import org.apgrp10.gwent.utils.ANSI;
 
 public class ClientMain {
 	public static void main(String[] args) {
 		Locale.setDefault(Locale.ENGLISH);
 		if (!Server.connect())
 			System.exit(0);
-		Server.getInstance().addOnClose(() -> System.exit(0));
-		Server.getInstance().setOnReceive(bytes -> {
-			System.out.println("Received: " + new String(bytes));
-			System.out.println();
-		});
-
+		Server.getInstance().getPacketHandler().getNetNode().addOnClose(() -> System.exit(0));
 		new Thread(() -> {
 			while (true) {
-				Server.getInstance().run();
-				try {Thread.sleep(10);} catch (Exception e) {}
+				Server.getInstance().getPacketHandler().sendRequest(new Request("hello"), res -> {
+					System.out.println(res.getBody().get("msg").getAsString());
+				});
+				try {Thread.sleep(2000);} catch (Exception e) {}
+				Server.getInstance().getPacketHandler().run();
 			}
 		}).start();
 
-
-		// for test, sending each 1000 ms a message to the server
-//		new Thread(() -> {
-//			while (true) {
-//				try {
-//					Thread.sleep(1000);
-//					Server.getInstance().send("Hello from client");
-//				} catch (Exception e) {
-//					ANSI.logError(System.err, "Failed to send message to server", e);
-//				}
-//			}
-//		}).start();
-
-		Gwent.main(args);
+		// Gwent.main(args);
 	}
 
 
-	static class Server extends NetNode {
-		public static final String SERVER_IP = "37.152.181.45";
+	// TODO: this is just for testing. we will need a more sophisticated class
+	static class Server {
+		public static final String SERVER_IP = "127.0.0.1";
 		public static final int SERVER_PORT = 12345;
 		private static Server instance;
+		private PacketHandler packetHandler;
+
+		public PacketHandler getPacketHandler() {
+			return packetHandler;
+		}
 
 		private Server(Socket socket) {
-			super(socket);
+			packetHandler = new PacketHandler(socket);
 		}
 
 		public static Server getInstance() {
@@ -58,10 +51,10 @@ public class ClientMain {
 
 		public static boolean connect() {
 			try {
-				if (instance != null && !instance.isClosed()) return true;
+				if (instance != null && !instance.packetHandler.getNetNode().isClosed()) return true;
 				Socket socket = new Socket(SERVER_IP, SERVER_PORT);
 				instance = new Server(socket);
-				instance.addOnClose(() -> {
+				instance.packetHandler.getNetNode().addOnClose(() -> {
 					ANSI.log("Connection to server lost.", ANSI.LRED, false);
 				});
 

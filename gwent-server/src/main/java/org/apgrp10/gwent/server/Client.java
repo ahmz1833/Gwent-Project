@@ -3,49 +3,42 @@ package org.apgrp10.gwent.server;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.net.NetNode;
 import org.apgrp10.gwent.model.net.Packet;
+import org.apgrp10.gwent.model.net.PacketHandler;
+import org.apgrp10.gwent.model.net.Request;
+import org.apgrp10.gwent.model.net.Response;
 import org.apgrp10.gwent.utils.ANSI;
+import org.apgrp10.gwent.utils.Callback;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Client implements Task {
+public class Client extends Task {
 	private User loggedInUser; // may be null if not logged in
 	private Runnable onDestruction;
-	private NetNode node;
-	private List<Runnable> commandQueue = new ArrayList<>();
 	private boolean destructed;
+	private PacketHandler packetHandler;
+	private long lastPing;
+	private boolean lastPingReceived;
 
 	public Client(Socket socket) throws IOException {
-		node = new NetNode(socket, this::parsePacket);
-		node.addOnClose(() -> {
-			ANSI.log("Client disconnected : " + socket.getInetAddress(), ANSI.CYAN, false);
-			destruct();
-		});
+		packetHandler = new PacketHandler(socket);
+		packetHandler.addOnClose(this::destruct);
+		lastPing = System.currentTimeMillis();
+		lastPingReceived = true;
 		ANSI.log("Client connected : " + socket.getInetAddress(), ANSI.CYAN, false);
 	}
 
-	public NetNode getNetNode() {return node;}
+	public NetNode getNetNode() {return packetHandler.getNetNode();}
+	public PacketHandler getPacketHandler() {return packetHandler;}
 
-	private void parsePacket(byte data[]) {
-		Packet packet;
-		try {
-			packet = Packet.parse(new String(data));
-		} catch (Exception e) {
-			// TODO: proper error handling
-			destruct();
+	private void destruct() {
+		if (destructed)
 			return;
-		}
-		// TODO: handle packet
-	}
-
-	private void destruct() {destructed = true;}
-
-	public void addCommand(Runnable cmd) {
-		synchronized (commandQueue) {
-			commandQueue.add(cmd);
-		}
+		destructed = true;
+		getNetNode().close();
+		ANSI.log("Client disconnected : " + getNetNode().socket().getInetAddress(), ANSI.CYAN, false);
 	}
 
 	@Override
@@ -54,22 +47,29 @@ public class Client implements Task {
 	}
 
 	@Override
-	public void run() {
-		node.run();
-		List<Runnable> copy;
-		synchronized (commandQueue) {
-			copy = new ArrayList<>(commandQueue);
-			commandQueue.clear();
+	public void iterate() {
+		long time = System.currentTimeMillis();
+		if (time - lastPing >= 5000) {
+			if (!lastPingReceived) {
+				destruct();
+				return;
+			}
+			lastPing = time;
+			lastPingReceived = false;
+			packetHandler.ping(() -> { lastPingReceived = true; });
 		}
-		for (Runnable fn : copy)
-			fn.run();
+		packetHandler.run();
 	}
 
-	public void send(byte b[]) {
+	public void sendRequest(Request req, Callback<Response> onReceive) {
 		addCommand(() -> {
-			boolean res = node.send(b);
-			if (!res)
-				destruct();
+			packetHandler.sendRequest(req, onReceive);
+		});
+	}
+
+	public void setListener(String action, Callback<Request> onReceive) {
+		addCommand(() -> {
+			packetHandler.setListener(action, onReceive);
 		});
 	}
 }

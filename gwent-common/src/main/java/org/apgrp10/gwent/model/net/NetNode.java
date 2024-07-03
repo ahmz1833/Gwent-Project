@@ -7,6 +7,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import org.apgrp10.gwent.utils.Callback;
+
 public class NetNode implements Closeable, Runnable {
 	protected final Socket socket;
 	protected final InputStream inputStream;
@@ -15,7 +17,7 @@ public class NetNode implements Closeable, Runnable {
 
 	private AsyncReader asyncReader;
 
-	public NetNode(Socket socket, AsyncReader.Callback onReceive) {
+	public NetNode(Socket socket, Callback<byte[]> onReceive) {
 		this.socket = socket;
 		try {
 			inputStream = socket.getInputStream();
@@ -32,7 +34,7 @@ public class NetNode implements Closeable, Runnable {
 
 	public NetNode(Socket socket) {this(socket, null);}
 
-	public void setOnReceive(AsyncReader.Callback cb) {asyncReader.setOnReceive(cb);}
+	public void setOnReceive(Callback<byte[]> cb) {asyncReader.setOnReceive(cb);}
 
 	public Runnable addOnClose(Runnable fn) {
 		onClose.add(fn);
@@ -67,8 +69,11 @@ public class NetNode implements Closeable, Runnable {
 	// TODO: hopefully this doesn't block but we need to do something to guarantee it
 	public boolean send(byte[] data) {
 		try {
-			outputStream.write(AsyncReader.intToBytes(data.length));
-			outputStream.write(data);
+			// output stream might not be buffered
+			byte arr[] = new byte[4 + data.length];
+			System.arraycopy(AsyncReader.intToBytes(data.length), 0, arr, 0, 4);
+			System.arraycopy(data, 0, arr, 4, data.length);
+			outputStream.write(arr);
 			outputStream.flush();
 			return true;
 		} catch (IOException e) {

@@ -1,32 +1,29 @@
 package org.apgrp10.gwent.model.net;
 
+import org.apgrp10.gwent.utils.Random;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 public class Request extends Packet {
-	private static final Gson gson = new Gson();
-
 	Request(JsonObject header, JsonObject body) {
 		super(header, body);
 	}
 
-	public Request(int time, String action, JsonObject body) {
-		super(makeHeader(time, action), body);
+	public Request(String action, JsonObject body) {
+		super(makeHeader(action), body);
 	}
 
-	private static JsonObject makeHeader(int time, String action) {
+	public Request(String action) { this(action, new JsonObject()); }
+
+	private static JsonObject makeHeader(String action) {
 		JsonObject header = new JsonObject();
 		header.addProperty("type", "request");
-		header.addProperty("time", time);
+		header.addProperty("id", Random.nextId());
 		header.addProperty("action", action);
 		return header;
 	}
 
-	public String getAction() {
-		return header.get("action").getAsString();
-	}
-
-	public int getTime() {
-		return header.get("time").getAsInt();
-	}
+	public String getAction() { return header.get("action").getAsString(); }
+	public long getId() { return header.get("id").getAsLong(); }
 }

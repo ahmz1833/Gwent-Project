@@ -3,17 +3,21 @@ package org.apgrp10.gwent.model.net;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apgrp10.gwent.utils.Callback;
+
 public class AsyncReader implements Runnable {
 	private InputStream stream;
-	private Callback receive;
-	private FailureCallback failure;
+	private Callback<byte[]> receive;
+	private Callback<Exception> failure;
 	private byte buf[] = new byte[32];
 	private int size = 0;
-	public AsyncReader(InputStream stream, Callback onReceive, FailureCallback onFailure) {
+	public AsyncReader(InputStream stream, Callback<byte[]> onReceive, Callback<Exception> onFailure) {
 		this.stream = stream;
 		this.receive = onReceive;
 		this.failure = onFailure;
 	}
+
+	// TODO: move these two to a better place
 
 	public static byte[] intToBytes(int x) {
 		byte ans[] = new byte[4];
@@ -24,14 +28,12 @@ public class AsyncReader implements Runnable {
 		return ans;
 	}
 
-	// TODO: move these two to a better place
-
 	public static int bytesToInt(byte[] b) {
 		int x = 0;
-		x ^= (int) b[0] << 0;
-		x ^= (int) b[1] << 8;
-		x ^= (int) b[2] << 16;
-		x ^= (int) b[3] << 24;
+		x ^= ((int) b[0] & 0xff) << 0;
+		x ^= ((int) b[1] & 0xff) << 8;
+		x ^= ((int) b[2] & 0xff) << 16;
+		x ^= ((int) b[3] & 0xff) << 24;
 		return x;
 	}
 
@@ -57,14 +59,14 @@ public class AsyncReader implements Runnable {
 		return ans;
 	}
 
-	public void setOnReceive(Callback cb) {receive = cb;}
+	public void setOnReceive(Callback<byte[]> cb) {receive = cb;}
 
-	public void setOnFailure(FailureCallback cb) {failure = cb;}
+	public void setOnFailure(Callback<Exception> cb) {failure = cb;}
 
 	@Override
 	public void run() {
 		if (failure == null)
-			return; // return so that the possible error isn't lost if we don't have an failure callback
+			return; // return so that the possible error isn't lost if we don't have a failure callback
 		try {
 			int available = stream.available();
 			if (available == 0)
@@ -83,7 +85,7 @@ public class AsyncReader implements Runnable {
 			while (size >= 4) {
 				int len = bytesToInt(buf);
 				if (len < 0)
-					len = 0;
+					throw new IOException("invalid length");
 				if (len + 4 > size)
 					break;
 
@@ -95,13 +97,5 @@ public class AsyncReader implements Runnable {
 		} catch (Exception e) {
 			failure.call(e);
 		}
-	}
-
-	public static interface Callback {
-		public void call(byte[] data);
-	}
-
-	public static interface FailureCallback {
-		public void call(Exception e);
 	}
 }

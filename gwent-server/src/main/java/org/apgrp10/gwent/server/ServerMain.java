@@ -1,7 +1,12 @@
 package org.apgrp10.gwent.server;
 
+import org.apgrp10.gwent.model.net.Request;
+import org.apgrp10.gwent.model.net.Response;
 import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.Random;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -42,11 +47,7 @@ public class ServerMain {
 		}
 
 		// Initialize the thread pool
-		HandlingThread[] threads = new HandlingThread[10];
-		for (int i = 0; i < threads.length; i++) {
-			threads[i] = new HandlingThread();
-			threads[i].start();
-		}
+		TaskManager.init(10);
 
 		ANSI.log("Listening at port: " + PORT, ANSI.CYAN, false);
 		while (true) {
@@ -54,42 +55,31 @@ public class ServerMain {
 				Socket socket = serverSocket.accept();
 
 				Client client = new Client(socket);
-				assignThread(client, threads);
-				assignThread(new SendHello(client), threads);
+				// for test
+				client.setListener("hello", (Request req) -> {
+					JsonObject body = new JsonObject();
+					body.add("msg", new JsonPrimitive(
+						"""
+						According to all known laws of aviation, there is no way a bee should be able to fly.
+						Its wings are too small to get its fat little body off the ground.
+						The bee, of course, flies anyway because bees don't care what humans think is impossible.
+						Yellow, black. Yellow, black. Yellow, black. Yellow, black.
+						Ooh, black and yellow!
+						Let's shake it up a little.
+						Barry! Breakfast is ready!
+						Coming!
+						"""
+					));
+					client.getPacketHandler().sendResponse(new Response(
+						req.getId(),
+						200,
+						body
+					));
+				});
+				TaskManager.submit(client);
 			} catch (IOException e) {
 				ANSI.logError(System.err, "Failed to accept client connection", e);
 			}
-		}
-	}
-
-	private static HandlingThread assignThread(Task task, HandlingThread[] threads) {
-		int index = Random.nextInt(0, threads.length);
-		threads[index].addTask(task);
-		return threads[index];
-	}
-
-	// for testing
-	private static class SendHello implements Task {
-		private Client client;
-		private long last;
-
-		public SendHello(Client client) {
-			this.client = client;
-			last = System.currentTimeMillis();
-		}
-
-		@Override
-		public void run() {
-			long cur = System.currentTimeMillis();
-			if (cur - last < 2000)
-				return;
-			last = cur;
-			client.send(("\nHello from server\nkhobi? " + System.currentTimeMillis() + "\nnaa???\n").getBytes());
-		}
-
-		@Override
-		public boolean isDone() {
-			return client.isDone();
 		}
 	}
 }
