@@ -40,7 +40,7 @@ public class Avatar {
 	}
 
 	public static Avatar random() {
-		return R.ALL_AVATARS.get(Random.nextInt(0, R.ALL_AVATARS.size()));
+		return R.DEFAULT_AVATARS.get(Random.nextInt(0, R.DEFAULT_AVATARS.size()));
 	}
 
 	private static Avatar fromString(String string) throws IllegalArgumentException {
@@ -52,7 +52,7 @@ public class Avatar {
 		try {
 			number = Integer.parseInt(value);
 		} catch (Exception ignored) {}
-		if (number > 0 && number < R.ALL_AVATARS.size()) return R.ALL_AVATARS.get(number);
+		if (number > 0 && number < R.DEFAULT_AVATARS.size()) return R.DEFAULT_AVATARS.get(number);
 		else {
 			byte[] decoded = Base64.getDecoder().decode(value);
 			return Avatar.fromImage(imageFromBytes(decoded));
