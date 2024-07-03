@@ -1,4 +1,4 @@
-package org.apgrp10.gwent.server.DataBase;
+package org.apgrp10.gwent.server.db;
 
 import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.Deck;
@@ -7,7 +7,6 @@ import org.apgrp10.gwent.server.ServerMain;
 import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.DatabaseTable;
 
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

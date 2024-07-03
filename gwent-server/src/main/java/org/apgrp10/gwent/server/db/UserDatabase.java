@@ -1,4 +1,4 @@
-package org.apgrp10.gwent.server.DataBase;
+package org.apgrp10.gwent.server.db;
 
 import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.User;
@@ -7,8 +7,6 @@ import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.DatabaseTable;
 import org.apgrp10.gwent.utils.Random;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
