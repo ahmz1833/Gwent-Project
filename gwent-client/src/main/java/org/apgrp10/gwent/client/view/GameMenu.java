@@ -20,7 +20,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
@@ -89,6 +88,22 @@ public class GameMenu extends Application {
                 new RectPos(0.3697, 0.5296, 0.7906, 0.6342),
                 new RectPos(0.3697, 0.6555, 0.7906, 0.7611),
         };
+        public static final RectPos profBack[] = {
+                new RectPos(0, 0.225, 0.235, 0.3708),
+                new RectPos(0.0, 0.586, 0.233, 0.754166)
+        };
+        public static final RectPos profName[] = {
+                new RectPos(0.0796875, 0.251388, 0.1625, 0.3375),
+                new RectPos(0.0796875, 0.622, 0.1625, 0.70875)
+        };
+        public static final RectPos profAvatar[] = {
+                new RectPos(0.016406, 0.25138, 0.064062, 0.3527),
+                new RectPos(0.016406, 0.62138, 0.064062, 0.7227)
+        };
+        public static final RectPos profAvatarBorder[] = {
+                new RectPos(0.011406, 0.24738, 0.069062, 0.3707),
+                new RectPos(0.011406, 0.61738, 0.069062, 0.7407)
+        };
         public static final RectPos special[] = {
                 new RectPos(0.2963, 0.0212, 0.3640, 0.1250),
                 new RectPos(0.2963, 0.1388, 0.3640, 0.2444),
@@ -121,8 +136,8 @@ public class GameMenu extends Application {
                 new RectPos(0.8041, 0.7657, 0.8619, 0.9009),
         };
         public static final RectPos hp[] = {
-                new RectPos(0.0666, 0.2824, 0.2260, 0.3324),
-                new RectPos(0.0666, 0.6546, 0.2260, 0.7046),
+                new RectPos(0.125, 0.240277, 0.2140, 0.28611),
+                new RectPos(0.127, 0.68472, 0.2156, 0.74445)
         };
         public static final RectPos leader[] = {
                 new RectPos(0.0713, 0.0740, 0.1244, 0.1990),
@@ -167,6 +182,15 @@ public class GameMenu extends Application {
         if (pos != null)
             pos.setBounds(btn);
         parent.getChildren().add(btn);
+    }
+
+    private void addImage(Image image, Position.RectPos pos) {
+        ImageView imageView = new ImageView(image);
+        imageView.setFitWidth(pos.w());
+        imageView.setFitHeight(pos.h());
+        imageView.setX(pos.x());
+        imageView.setY(pos.y());
+        rootPane.getChildren().add(imageView);
     }
 
     private void addSelectionRect(Position.RectPos pos, int code) {
@@ -279,6 +303,17 @@ public class GameMenu extends Application {
         rootPane.getChildren().add(deaths);
     }
 
+    private void addWinnerSign() {
+        if (controller.calcPlayerScore(0) == controller.calcPlayerScore(1)) return;
+        ImageView image = new ImageView(R.getImage("icons/icon_high_score.png"));
+        image.setY(201 + ((controller.calcPlayerScore(controller.getActivePlayer()) > controller.calcPlayerScore(1 - controller.getActivePlayer())) ?
+                269 : 0));
+        image.setX(272);
+        image.setFitWidth(60);
+        image.setFitHeight(50);
+        rootPane.getChildren().add(image);
+    }
+
     private void addDeckCards(boolean up) {
         Pane deckCards = new Pane();
         deckCards.setPrefWidth(74);
@@ -316,6 +351,64 @@ public class GameMenu extends Application {
             addDeckCards(false);
         }
     }
+    public void beginRound(){
+        new MessageGame(rootPane, R.getImage("icons/notif_round_start.png"), "salam");
+        System.out.println("Hello");
+    }
+
+    private void addNameProfile(boolean up) {
+        int playerIdx = up ? 1 - controller.getActivePlayer() : controller.getActivePlayer();
+        PlayerData player = controller.getPlayer(playerIdx);
+        addImage(R.getImage("icons/halfBlack.png"), Position.profBack[up ? 0 : 1]);
+        String path =
+                switch (player.deck.getFaction()) {
+                    case REALMS -> "deck_shield_realms";
+                    case NILFGAARD -> "deck_shield_nilfgaard";
+                    case MONSTERS -> "deck_shield_monsters";
+                    case SCOIATAEL -> "deck_shield_scoiatael";
+                    case SKELLIGE -> "deck_shield_skellige";
+                    default -> "";
+                };
+        ImageView image = new ImageView(R.getImage("icons/" + path + ".png"));
+        image.setFitWidth(50);
+        image.setFitHeight(50);
+        VBox vBox = new VBox();
+        vBox.setLayoutX(Position.profName[up ? 0 : 1].x());
+        vBox.setLayoutY(Position.profName[up ? 0 : 1].y());
+        vBox.setSpacing(4);
+        Text nickName = new Text(player.user.getNickname());
+        nickName.setStyle("-fx-font-family: 'Yrsa SemiBold'");
+        nickName.setStyle("-fx-font-size: 16px");
+        nickName.setFill(Color.GOLD);
+        vBox.getChildren().add(nickName);
+        Text faction = new Text(path.substring(path.lastIndexOf('_') + 1));
+        faction.setStyle("-fx-font-family: 'Yrsa SemiBold'");
+        faction.setStyle("-fx-font-size: 14px");
+        faction.setFill(Color.GREY);
+        vBox.getChildren().add(faction);
+        ImageView cards = new ImageView(R.getImage("icons/icon_card_count.png"));
+        cards.setFitHeight(20);
+        cards.setFitWidth(20);
+        HBox hbox = new HBox();
+        hbox.setSpacing(5);
+        hbox.getChildren().add(cards);
+        Text cardsCounts = new Text(String.valueOf(player.handCards.size()));
+        cardsCounts.setStyle("-fx-font-size: 20px; -fx-font-family: 'Yrsa SemiBold'");
+        cardsCounts.setFill(Color.GOLD);
+        hbox.getChildren().add(cardsCounts);
+        vBox.getChildren().add(hbox);
+        rootPane.getChildren().add(vBox);
+    }
+
+    private void addProfile(boolean up) {
+        addNameProfile(up);
+        addImage(R.getImage("icons/profile.png"), Position.profAvatar[up ? 0 : 1]);
+        addImage(R.getImage("icons/icon_player_border.png"), Position.profAvatarBorder[up ? 0 : 1]);
+
+        if (up) {
+            addProfile(false);
+        }
+    }
 
     public void redraw() {
         final int player = controller.getActivePlayer();
@@ -327,15 +420,17 @@ public class GameMenu extends Application {
                 continue;
         }
         rootPane.getChildren().clear();
+        System.out.println("cleared");
         addBackground(R.image.board[controller.getActivePlayer()]);
-//        rootPane.setOnMouseClicked(k -> {
-//            System.out.println(k.getSceneX());
-//            System.out.println(k.getSceneY());
-//        });
+        rootPane.setOnMouseClicked(k -> {
+            System.out.println(k.getSceneX() / WIDTH);
+            System.out.println(k.getSceneY() / HEIGHT);
+        });
         // TODO: hide these
         addCheatButtons();
         addButton(rootPane, "Pass", "pass", Position.pass);
         addDeckCards(true);
+        addProfile(true);
         if (hasNewDeath) {
             addDeaths(lastDeath[0], true);
             addDeaths(lastDeath[1], false);
@@ -429,6 +524,7 @@ public class GameMenu extends Application {
             Position.info.setBounds(info);
             rootPane.getChildren().add(info);
         }
+        addWinnerSign();
         if (pickList != null)
             addPicker();
     }

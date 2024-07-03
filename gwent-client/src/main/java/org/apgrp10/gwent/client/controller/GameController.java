@@ -118,7 +118,6 @@ public class GameController {
 
 	private void beginRound() {
 		currentRound++;
-
 		Faction f0 = playerData[0].deck.getFaction();
 		Faction f1 = playerData[1].deck.getFaction();
 		if (f0 == Faction.SCOIATAEL && f1 != Faction.SCOIATAEL)
@@ -151,6 +150,7 @@ public class GameController {
 
 		nextTurnDelay = 1000;
 		playerData[turn].controller.beginTurn();
+		gameMenu.beginRound();
 	}
 
 	private long nextTurnDelay = 1000;
