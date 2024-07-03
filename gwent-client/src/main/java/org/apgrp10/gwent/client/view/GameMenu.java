@@ -40,7 +40,7 @@ public class GameMenu extends Application {
     public static GameMenu currentMenu;
     private static final int WIDTH = 1280, HEIGHT = 720;
 
-    private static class Position {
+    protected static class Position {
         public static record RectPos(double posX, double posY, double posX2, double posY2) {
             public double x() {
                 return posX * WIDTH;
@@ -218,48 +218,12 @@ public class GameMenu extends Application {
     // this shit is for keeping the scroller position
     private Text pickSelectedText;
 
+    protected void changePicIdx(int value) {
+        pickIdx = value;
+    }
+
     private void addPicker() {
-        Rectangle rect = new Rectangle(0, 0, WIDTH, HEIGHT);
-        rect.setFill(Color.color(0, 0, 0, 0.5));
-        if (pickNullPossible) {
-            rect.setOnMouseClicked(e -> {
-                pickList = null;
-                pickFn.call(null);
-                redraw();
-            });
-        }
-
-        // TODO: make this more beautiful
-        HBox hbox = new HBox();
-        hbox.setAlignment(Pos.CENTER);
-        for (Card card : pickList) {
-            CardView view = CardView.newInfo(card.pathAddress, Position.info.w(), Position.info.h());
-            final int idx = hbox.getChildren().size();
-            view.setOnMouseClicked(e -> {
-                if (pickIdx != idx) {
-                    ((CardView) hbox.getChildren().get(pickIdx)).getChildren().remove(pickSelectedText);
-                    pickIdx = idx;
-                    ((CardView) hbox.getChildren().get(pickIdx)).getChildren().add(pickSelectedText);
-                } else {
-                    pickList = null;
-                    pickFn.call(card);
-                    redraw();
-                }
-            });
-            hbox.getChildren().add(view);
-        }
-
-        pickSelectedText = new Text("Selected");
-        pickSelectedText.setFill(Color.GOLD);
-        pickSelectedText.setFont(new Font(32));
-        pickSelectedText.setLayoutY(Position.info.h() / 2);
-        ((CardView) hbox.getChildren().get(pickIdx)).getChildren().add(pickSelectedText);
-
-        ScrollPane scroller = new ScrollPane(hbox);
-        scroller.setMaxSize(WIDTH, HEIGHT);
-
-        rootPane.getChildren().add(rect);
-        rootPane.getChildren().add(scroller);
+        new FivePlaceGame(this, pickNullPossible, pickList, rootPane, pickIdx);
     }
 
     public void addWeatherOverlay(Position.RectPos pos, Image image) {
@@ -321,7 +285,7 @@ public class GameMenu extends Application {
         deckCards.setPrefHeight(93);
         deckCards.setLayoutX(1160);
         deckCards.setLayoutY(563 - 503 * (up ? 1 : 0));
-        PlayerData playerData = controller.getPlayer(up? 1 - controller.getActivePlayer() : controller.getActivePlayer());
+        PlayerData playerData = controller.getPlayer(up ? 1 - controller.getActivePlayer() : controller.getActivePlayer());
         ImageView image = new ImageView(R.getImage("icons/" + switch (playerData
                 .deck.getFaction()) {
             case REALMS -> "deck_back_realms";
@@ -364,14 +328,20 @@ public class GameMenu extends Application {
         }
         rootPane.getChildren().clear();
         addBackground(R.image.board[controller.getActivePlayer()]);
-        rootPane.setOnMouseClicked(k -> {
-            System.out.println(k.getSceneX());
-            System.out.println(k.getSceneY());
-        });
+//        rootPane.setOnMouseClicked(k -> {
+//            System.out.println(k.getSceneX());
+//            System.out.println(k.getSceneY());
+//        });
         // TODO: hide these
         addCheatButtons();
         addButton(rootPane, "Pass", "pass", Position.pass);
-
+        addDeckCards(true);
+        if (hasNewDeath) {
+            addDeaths(lastDeath[0], true);
+            addDeaths(lastDeath[1], false);
+            new WaitExec(600, () -> addDeathsNew(controller.getActivePlayer(), false));
+        } else
+            addDeathsNew(controller.getActivePlayer(), false);
         addCardHBox(Position.hand, controller.getPlayer(player).handCards, false, true);
 
         for (int i = 0; i < 6; i++) {
@@ -459,20 +429,13 @@ public class GameMenu extends Application {
             Position.info.setBounds(info);
             rootPane.getChildren().add(info);
         }
-        addDeckCards(true);
-        if (hasNewDeath) {
-            addDeaths(lastDeath[0], true);
-            addDeaths(lastDeath[1], false);
-            new WaitExec(600, () -> addDeathsNew(controller.getActivePlayer(), false));
-        } else
-            addDeathsNew(controller.getActivePlayer(), false);
         if (pickList != null)
             addPicker();
     }
 
-    private List<Card> pickList;
+    protected List<Card> pickList;
     private int pickIdx;
-    private Callback pickFn;
+    protected Callback pickFn;
     private boolean pickNullPossible;
 
     public void pickCard(List<Card> list, Callback cb, boolean nullPossible) {
