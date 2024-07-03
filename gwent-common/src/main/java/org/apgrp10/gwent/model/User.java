@@ -10,23 +10,30 @@ public class User {
 	private String email;
 	private String securityQ;
 	private Avatar avatar;
-	private int[] friends;
+	private long[] friends;
 
-	public User(long id, String username, String passHash, String nickname, String email, String securityQ, Avatar avatar) {
+	public record UserInfo(String username,
+	                String passHash,
+	                String nickname,
+	                String email,
+	                String securityQ,
+	                Avatar avatar) {}
+
+	public User(long id, UserInfo userInfo) {
 		this.id = id;
-		this.username = username;
-		this.email = email;
-		this.passwordHash = passHash;
-		this.securityQ = securityQ;
-		this.nickname = nickname;
-		this.avatar = avatar;
+		this.username = userInfo.username();
+		this.passwordHash = userInfo.passHash();
+		this.nickname = userInfo.nickname();
+		this.email = userInfo.email();
+		this.securityQ = userInfo.securityQ();
+		this.avatar = userInfo.avatar();
 	}
 
-	public void setFriends(int[] friends) {
+	public void setFriends(long[] friends) {
 		this.friends = friends;
 	}
 
-	public int[] getFriends() {
+	public long[] getFriends() {
 		return friends;
 	}
 
