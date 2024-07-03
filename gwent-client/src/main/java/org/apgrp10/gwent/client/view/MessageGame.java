@@ -4,13 +4,16 @@ import javafx.event.Event;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.model.WaitExec;
 
 public class MessageGame extends Pane {
     private final Pane gamePane;
     private final Pane self = this;
-    MessageGame(Pane gamePane, Image image, String Text){
+
+    MessageGame(Pane gamePane, Image image, String txt) {
         this.gamePane = gamePane;
         setPrefWidth(PreGameMenu.screenWidth);
         setPrefHeight(PreGameMenu.screenHeight);
@@ -19,22 +22,15 @@ public class MessageGame extends Pane {
         setOnMouseClicked(Event::consume);
         addImageView(R.getImage("icons/black.png"), PreGameMenu.screenWidth, 100, 0, 300);
         addImageView(image, 200, 200, 300, 230);
-        new WaitExec(400, new Runnable() {
-            @Override
-            public void run() {
-                gamePane.getChildren().add(self);
-                System.out.println("added");
-            }
-        });
-        new WaitExec(20000, new Runnable() {
-            @Override
-            public void run() {
-                gamePane.getChildren().remove(self);
-                System.out.println("deleted");
-            }
-        });
+        addText(txt);
     }
-    private void addImageView(Image image, int width, int height, int x, int y){
+
+    public void show(int firstTime) {
+        new WaitExec(firstTime, () -> gamePane.getChildren().add(self));
+        new WaitExec(firstTime + 1000, () -> gamePane.getChildren().remove(self));
+    }
+
+    private void addImageView(Image image, int width, int height, int x, int y) {
         ImageView imageView = new ImageView(image);
         imageView.setFitWidth(width);
         imageView.setFitHeight(height);
@@ -43,4 +39,12 @@ public class MessageGame extends Pane {
         getChildren().add(imageView);
     }
 
+    private void addText(String comment) {
+        Text text = new Text(comment);
+        text.setStyle("-fx-font-family: 'Yrsa SemiBold'; -fx-font-size: 50px");
+        text.setFill(Color.GOLD);
+        text.setY(365);
+        text.setX(500);
+        getChildren().add(text);
+    }
 }

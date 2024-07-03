@@ -351,9 +351,57 @@ public class GameMenu extends Application {
             addDeckCards(false);
         }
     }
-    public void beginRound(){
-        new MessageGame(rootPane, R.getImage("icons/notif_round_start.png"), "salam");
-        System.out.println("Hello");
+
+    private final ArrayList<MessageGame> messages = new ArrayList<>();
+    private boolean isMessageShowing = false;
+
+    private void showAllMessages() {
+        int delay = 10;
+        for (MessageGame message : messages) {
+            message.show(delay);
+            delay += 1050;
+        }
+        messages.clear();
+        isMessageShowing = false;
+    }
+
+    public void beginRound() {
+        messages.add(new MessageGame(rootPane, R.getImage("icons/notif_round_start.png"), "NEW Round Started"));
+        if (!isMessageShowing) {
+            isMessageShowing = true;
+            new WaitExec(1100, this::showAllMessages);
+        }
+    }
+
+    public void userPassed(int player) {
+        messages.add(new MessageGame(rootPane, R.getImage("icons/notif_round_passed.png"), controller.getPlayer(player).user.getNickname() + " passed"));
+        if (!isMessageShowing) {
+            isMessageShowing = true;
+            new WaitExec(1100, this::showAllMessages);
+        }
+    }
+
+    public void showWinner(int player) {
+        messages.add(new MessageGame(rootPane, R.getImage("icons/notif_win_round.png"), controller.getPlayer(player).user.getNickname() + " won"));
+        if (!isMessageShowing) {
+            isMessageShowing = true;
+            new WaitExec(1100, this::showAllMessages);
+        }
+    }
+    public void showDraw() {
+        messages.add(new MessageGame(rootPane, R.getImage("icons/notif_draw_round.png"), "   Draw!"));
+        if (!isMessageShowing) {
+            isMessageShowing = true;
+            new WaitExec(1100, this::showAllMessages);
+        }
+    }
+
+    public void userTurn(int player) {
+        messages.add(new MessageGame(rootPane, R.getImage("icons/notif_me_turn.png"), controller.getPlayer(1 - player).user.getNickname() + "'s turn"));
+        if (!isMessageShowing) {
+            isMessageShowing = true;
+            new WaitExec(1100, this::showAllMessages);
+        }
     }
 
     private void addNameProfile(boolean up) {
