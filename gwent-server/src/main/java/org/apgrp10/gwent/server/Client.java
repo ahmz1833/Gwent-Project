@@ -66,6 +66,7 @@ public class Client extends Task {
 			packetHandler.sendRequest(req, onReceive);
 		});
 	}
+	public void sendRequest(Request req) { sendRequest(req, res -> {}); }
 
 	public void setListener(String action, Callback<Request> onReceive) {
 		addCommand(() -> {
