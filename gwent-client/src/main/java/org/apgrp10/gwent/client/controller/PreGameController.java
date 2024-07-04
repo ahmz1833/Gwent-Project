@@ -18,14 +18,14 @@ import com.google.gson.JsonPrimitive;
 import javafx.application.Platform;
 
 public class PreGameController {
-	private final User user1, user2;
+	private final User.PublicInfo user1, user2;
 	private Deck deck1 = null;
 	private Deck deck2 = null;
 	private boolean isLocal1, isLocal2;
 	private Long seed = null;
 
 	// TODO: support when !isLocal1 && !isLocal2
-	public PreGameController(User user1, User user2, boolean isLocal1, boolean isLocal2) {
+	public PreGameController(User.PublicInfo user1, User.PublicInfo user2, boolean isLocal1, boolean isLocal2) {
 		this.user1 = user1;
 		this.user2 = user2;
 		this.isLocal1 = isLocal1;

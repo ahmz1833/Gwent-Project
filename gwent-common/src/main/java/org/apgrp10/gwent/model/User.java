@@ -48,4 +48,8 @@ public class User {
 	public record PublicInfo(String username, String nickname, Avatar avatar) {}
 
 	public record RegisterInfo(PublicInfo publicInfo, String passwordHash, String email, String securityQ) {}
+
+	public PublicInfo getPublicInfo() {
+		return registerInfo.publicInfo();
+	}
 }

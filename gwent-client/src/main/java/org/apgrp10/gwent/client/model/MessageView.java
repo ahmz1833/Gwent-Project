@@ -24,7 +24,7 @@ import java.util.Locale;
 
 public class MessageView extends HBox {
 	private final Message message;
-	private final User user;
+	private final User.PublicInfo user;
 	private final HBox[] reactions = new HBox[4];
 	private final HBox allReactions = new HBox();
 	private final Text messageText = new Text();
@@ -34,7 +34,7 @@ public class MessageView extends HBox {
 	private VBox messageBox;
 	private Message replyOn;
 
-	public MessageView(Message message, User user, Message replyOn) {
+	public MessageView(Message message, User.PublicInfo user, Message replyOn) {
 		this.replyOn = replyOn;
 		this.message = message;
 		this.user = user;
@@ -186,7 +186,7 @@ public class MessageView extends HBox {
 			username.setFill(Color.RED);
 
 		} else {
-			username = new Text(message.getOwner().getNickname() + ":");
+			username = new Text(message.getOwner().nickname() + ":");
 			username.setFill(Color.GREEN);
 		}
 		username.setWrappingWidth(150);

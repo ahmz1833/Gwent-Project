@@ -369,7 +369,7 @@ public class GameMenu extends Application implements GameMenuInterface {
 	}
 
 	public void userPassed(int player) {
-		messages.add(new MessageGame(rootPane, R.getImage("icons/notif_round_passed.png"), controller.getPlayer(player).user.getNickname() + " passed"));
+		messages.add(new MessageGame(rootPane, R.getImage("icons/notif_round_passed.png"), controller.getPlayer(player).user.nickname() + " passed"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
 			controller.waitExec.run(1100, this::showAllMessages);
@@ -377,7 +377,7 @@ public class GameMenu extends Application implements GameMenuInterface {
 	}
 
 	public void showWinner(int player) {
-		messages.add(new MessageGame(rootPane, R.getImage("icons/notif_win_round.png"), controller.getPlayer(player).user.getNickname() + " won"));
+		messages.add(new MessageGame(rootPane, R.getImage("icons/notif_win_round.png"), controller.getPlayer(player).user.nickname() + " won"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
 			controller.waitExec.run(1100, this::showAllMessages);
@@ -392,7 +392,7 @@ public class GameMenu extends Application implements GameMenuInterface {
 	}
 
 	public void userTurn(int player) {
-		messages.add(new MessageGame(rootPane, R.getImage("icons/notif_me_turn.png"), controller.getPlayer(1 - player).user.getNickname() + "'s turn"));
+		messages.add(new MessageGame(rootPane, R.getImage("icons/notif_me_turn.png"), controller.getPlayer(1 - player).user.nickname() + "'s turn"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
 			controller.waitExec.run(1100, this::showAllMessages);
@@ -419,7 +419,7 @@ public class GameMenu extends Application implements GameMenuInterface {
 		vBox.setLayoutX(Position.profName[up ? 0 : 1].x());
 		vBox.setLayoutY(Position.profName[up ? 0 : 1].y());
 		vBox.setSpacing(4);
-		Text nickName = new Text(player.user.getNickname());
+		Text nickName = new Text(player.user.nickname());
 		nickName.setStyle("-fx-font-family: 'Yrsa SemiBold'");
 		nickName.setStyle("-fx-font-size: 16px");
 		nickName.setFill(Color.GOLD);

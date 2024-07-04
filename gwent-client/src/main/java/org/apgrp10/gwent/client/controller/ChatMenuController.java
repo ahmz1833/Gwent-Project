@@ -11,7 +11,7 @@ public class ChatMenuController {
 	private final ChatMenu chatMenu;
 	private final Pane pane;
 
-	public ChatMenuController(Pane pane, User user, double screenWidth, Scene scene) {
+	public ChatMenuController(Pane pane, User.PublicInfo user, double screenWidth, Scene scene) {
 		scene.getStylesheets().add(R.get("css/chat.css").toExternalForm());
 		this.chatMenu = new ChatMenu(screenWidth, this, user);
 		this.pane = pane;

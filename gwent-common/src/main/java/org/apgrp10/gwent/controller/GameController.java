@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class GameController {
 	public static class PlayerData {
-		public final User user;
+		public final User.PublicInfo user;
 		public final Deck deck;
 		public final InputController controller;
 		public final List<Card> handCards = new ArrayList<>();

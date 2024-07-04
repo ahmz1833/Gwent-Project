@@ -11,12 +11,12 @@ public class Message {
 	//2 -> delete text message
 	//3 -> delete reaction
 	//4 -> edit a message
-	private final User owner;
+	private final User.PublicInfo owner;
 	private final Instant creationTime;
 	private final int replyOn;
 	private String text;
 
-	private Message(int id, String text, int numberOfReaction, byte type, User owner, Instant creationTime, int replyOn) {
+	private Message(int id, String text, int numberOfReaction, byte type, User.PublicInfo owner, Instant creationTime, int replyOn) {
 		this.replyOn = replyOn;
 		this.id = id;
 		this.text = text;
@@ -26,23 +26,23 @@ public class Message {
 		this.creationTime = creationTime;
 	}
 
-	public static Message newTextMessage(int id, String text, User owner, int replyOn) {
+	public static Message newTextMessage(int id, String text, User.PublicInfo owner, int replyOn) {
 		return new Message(id, text, -1, (byte) (0), owner, Instant.now(), replyOn);
 	}
 
-	public static Message deleteTextMessage(int id, User owner) {
+	public static Message deleteTextMessage(int id, User.PublicInfo owner) {
 		return new Message(id, "", -1, (byte) (2), owner, Instant.now(), 0);
 	}
 
-	public static Message newReactionMessage(int id, int reaction, User owner) {
+	public static Message newReactionMessage(int id, int reaction, User.PublicInfo owner) {
 		return new Message(id, "", reaction, (byte) (1), owner, Instant.now(), 0);
 	}
 
-	public static Message deleteReactionMessage(int id, int reaction, User owner) {
+	public static Message deleteReactionMessage(int id, int reaction, User.PublicInfo owner) {
 		return new Message(id, "", reaction, (byte) (3), owner, Instant.now(), 0);
 	}
 
-	public static Message editMessage(int id, String text, User owner) {
+	public static Message editMessage(int id, String text, User.PublicInfo owner) {
 		return new Message(id, text, -1, (byte) (4), owner, Instant.now(), 0);
 	}
 
@@ -62,7 +62,7 @@ public class Message {
 		return numberOfReaction;
 	}
 
-	public User getOwner() {
+	public User.PublicInfo getOwner() {
 		return owner;
 	}
 

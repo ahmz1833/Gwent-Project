@@ -35,7 +35,7 @@ public class PreGameMenu extends Application {
 	private final GridPane[] deckLists = new GridPane[2];
 	private final int primaryX;
 	private final PreGameController preGameController;
-	private final User user;
+	private final User.PublicInfo user;
 	private final boolean isUserOne;
 	private Pane pane;
 	private Faction faction;
@@ -47,7 +47,7 @@ public class PreGameMenu extends Application {
 	private int currentIndexOfLeader, currentFactionIndex;
 
 
-	public PreGameMenu(PreGameController preGameController, boolean isFirstOne, User user) {
+	public PreGameMenu(PreGameController preGameController, boolean isFirstOne, User.PublicInfo user) {
 		isUserOne = isFirstOne;
 		this.user = user;
 		this.preGameController = preGameController;
@@ -73,7 +73,7 @@ public class PreGameMenu extends Application {
 
 	private void addUserInfo() {
 		StackPane stackPane = getStackPane(200, 50, Pos.CENTER_LEFT);
-		Text text = new Text("Good luck \"" + user.getNickname() + "\"");
+		Text text = new Text("Good luck \"" + user.nickname() + "\"");
 		text.setFill(Color.GREEN);
 		text.setWrappingWidth(200);
 		text.setStyle("-fx-font-size: 13px");

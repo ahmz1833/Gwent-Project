@@ -14,7 +14,7 @@ public class UserController
 	
 	public static boolean userExists(String username)
 	{
-		return allUsers.stream().anyMatch(user -> user.getUsername().equals(username));
+		return allUsers.stream().anyMatch(user -> user.getPublicInfo().username().equals(username));
 	}
 	
 	public static void register(String username, String password, String passwordConfirm)

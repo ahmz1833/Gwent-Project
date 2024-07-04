@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -23,12 +22,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 public class Deck {
-	private User user;
+	private User.PublicInfo user;
 	private final ArrayList<Card> deck = new ArrayList<>();
 	private final Faction faction;
 	private final Card leader;
 
-	public Deck(int factionId, String leaderName, User user) {
+	public Deck(int factionId, String leaderName, User.PublicInfo user) {
 		this.user = user;
 		switch (factionId) {
 			case 0 -> faction = Faction.REALMS;
@@ -48,7 +47,7 @@ public class Deck {
 		leader = leaderCopy;
 	}
 
-	public void setUser(User user) {
+	public void setUser(User.PublicInfo user) {
 		this.user = user;
 	}
 
@@ -137,7 +136,7 @@ public class Deck {
 		addCard(convertCortInfoToCard(cardInfo));
 	}
 
-	public User getUser() {
+	public User.PublicInfo getUser() {
 		return user;
 	}
 

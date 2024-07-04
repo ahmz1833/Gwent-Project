@@ -33,7 +33,7 @@ public class ChatMenu extends Pane {
 	private final int screenWidth;
 	private final ChatMenuController controller;
 	private final HashMap<Integer, Integer> reactionList = new HashMap<>();
-	private final User user;
+	private final User.PublicInfo user;
 	private final ImageView deleteReply = new ImageView(R.getImage("chat/clear.png"));
 	private MFXScrollPane messagesScroll;
 	//this is a map from each message id to reaction number
@@ -41,7 +41,7 @@ public class ChatMenu extends Pane {
 	private int editID = 0;
 	private StackPane massageReplyViw = new StackPane();
 
-	public ChatMenu(double screenWidth, ChatMenuController controller, User user) {
+	public ChatMenu(double screenWidth, ChatMenuController controller, User.PublicInfo user) {
 		this.user = user;
 		this.screenWidth = (int) screenWidth;
 		this.controller = controller;
@@ -51,10 +51,10 @@ public class ChatMenu extends Pane {
 		addMessagesBox();
 	}
 
-	public static StackPane getMessageReplyView(Message replyOn, User user, boolean isReply) {
+	public static StackPane getMessageReplyView(Message replyOn, User.PublicInfo user, boolean isReply) {
 		String reply;
 		if (isReply)
-			reply = "reply on " + (replyOn.getOwner().equals(user) ? "you" : replyOn.getOwner().getNickname()) + ": " + replyOn.getText();
+			reply = "reply on " + (replyOn.getOwner().equals(user) ? "you" : replyOn.getOwner().nickname()) + ": " + replyOn.getText();
 		else reply = "edit: " + replyOn.getText();
 		if (reply.length() > 30) reply = reply.substring(0, 30) + "...";
 		Text text = new Text(reply);
@@ -242,7 +242,7 @@ public class ChatMenu extends Pane {
 		}
 	}
 
-	private User getUserById(int id) {
+	private User.PublicInfo getUserById(int id) {
 		try {
 			return Objects.requireNonNull(getMessageById(id)).getMessage().getOwner();
 		} catch (NullPointerException e) {
