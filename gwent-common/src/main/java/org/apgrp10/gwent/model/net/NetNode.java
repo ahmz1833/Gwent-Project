@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.Callback;
 
 public class NetNode implements Closeable, Runnable {
@@ -54,7 +55,7 @@ public class NetNode implements Closeable, Runnable {
 		try {
 			socket.close();
 		} catch (Exception e) {
-			throw new RuntimeException("Failed to close device", e);
+			ANSI.logError(System.err, "Failed to close socket", e);
 		}
 		for (Runnable fn : onClose)
 			fn.run();

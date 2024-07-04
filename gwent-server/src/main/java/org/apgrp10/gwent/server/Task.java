@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Task {
-	private List<Runnable> commandQueue = new ArrayList<>();
+	private final List<Runnable> commandQueue = new ArrayList<>();
 
 	protected final void addCommand(Runnable cmd) {
 		synchronized (commandQueue) {

@@ -16,9 +16,8 @@ import java.util.List;
 
 public class Client extends Task {
 	private User loggedInUser; // may be null if not logged in
-	private Runnable onDestruction;
 	private boolean destructed;
-	private PacketHandler packetHandler;
+	private final PacketHandler packetHandler;
 	private long lastPing;
 	private boolean lastPingReceived;
 

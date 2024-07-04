@@ -59,7 +59,25 @@ public class Avatar {
 		}
 	}
 
-	public static byte[] imageToBytes(Image image) {
+	private static Image imageFromBytes(byte[] bytes) {
+		// Read the byte array into a BufferedImage
+		ByteArrayInputStream input = new ByteArrayInputStream(bytes);
+		BufferedImage bufferedImage = null;
+		try {
+			bufferedImage = ImageIO.read(input);
+		} catch (IOException e) {
+			ANSI.logError(System.err, "Failed to read image from byte array", e);
+			return null;
+		}
+
+		// Convert the BufferedImage to a JavaFX Image
+		int width = bufferedImage.getWidth();
+		int height = bufferedImage.getHeight();
+		ByteBuffer byteBuffer = ByteBuffer.allocate(width * height * 4);
+		return new Image(new ByteArrayInputStream(byteBuffer.array()), width, height, true, true);
+	}
+
+	private static byte[] imageToBytes(Image image) {
 		int width = (int) image.getWidth();
 		int height = (int) image.getHeight();
 		PixelReader pixelReader = image.getPixelReader();
@@ -83,25 +101,6 @@ public class Avatar {
 			ANSI.logError(System.err, "Failed to write image to byte array", e);
 		}
 		return output.toByteArray();
-	}
-
-	public static Image imageFromBytes(byte[] bytes) {
-		// Read the byte array into a BufferedImage
-		ByteArrayInputStream input = new ByteArrayInputStream(bytes);
-		BufferedImage bufferedImage = null;
-		try {
-			bufferedImage = ImageIO.read(input);
-		} catch (IOException e) {
-			ANSI.logError(System.err, "Failed to read image from byte array", e);
-			return null;
-		}
-
-		// Convert the BufferedImage to a JavaFX Image
-		int width = bufferedImage.getWidth();
-		int height = bufferedImage.getHeight();
-		ByteBuffer byteBuffer = ByteBuffer.allocate(width * height * 4);
-		Image image = new Image(new ByteArrayInputStream(byteBuffer.array()), width, height, true, true);
-		return image;
 	}
 
 	public Image getViewableImage() {

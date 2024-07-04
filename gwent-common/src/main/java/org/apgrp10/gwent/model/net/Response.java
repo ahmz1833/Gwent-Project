@@ -1,6 +1,5 @@
 package org.apgrp10.gwent.model.net;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 public class Response extends Packet {
