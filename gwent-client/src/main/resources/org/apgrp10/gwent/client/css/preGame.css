@@ -1,5 +1,5 @@
 Pane {
-    -fx-background-image: url("../image/icons/boardPreGame.jpg");
+    -fx-background-image: url("../image/board.jpg");
     -fx-background-repeat: stretch;
     -fx-background-size: 100% 100%;
 }
@@ -57,13 +57,15 @@ MFXScrollPane, MFXScrollPane > .viewport {
 }
 
 .textInfo {
-    -fx-font-size: 14px;
+    -fx-font-size: 17px;
     -fx-alignment: center;
     -fx-text-alignment: center;
+    -fx-font-family: 'Yrsa SemiBold';
     -fx-min-width: 145;
     -fx-max-width: 145;
 }
 
 .linkedText {
-    -fx-font-size: 13px;
+    -fx-font-size: 15px;
+    -fx-font-family: "Yrsa SemiBold";
 }

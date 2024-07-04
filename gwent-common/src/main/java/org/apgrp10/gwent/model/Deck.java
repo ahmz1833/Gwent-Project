@@ -110,10 +110,7 @@ public class Deck {
 	}
 
 	public static Deck fromJsonString(String string) {
-		Deck deckLoaded = DeckToSave.loadFromJson(string);
-		if (deckLoaded == null)
-			ANSI.logError(System.err, "Error in loading deck", new RuntimeException());
-		return deckLoaded;
+		return DeckToSave.loadFromJson(string);
 	}
 
 	public static Deck fromBase64(String base64) {
