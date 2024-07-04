@@ -46,17 +46,17 @@ public class FivePlacePreGame extends Pane {
 			StackPane stackPane = new StackPane();
 			switch (i) {
 				case 0 ->
-						stackPane = getStackPane(PreGameMenu.screenWidth / 10.0, PreGameMenu.screenHeight / 10.0 * 6, Pos.TOP_RIGHT);
+						stackPane = getStackPane(PreGameMenu.screenWidth / 5.0 - 20, PreGameMenu.screenHeight / 10.0 * 6, Pos.TOP_RIGHT);
 				case 1, 3 ->
-						stackPane = getStackPane(PreGameMenu.screenWidth / 10.0, PreGameMenu.screenHeight / 10.0 * 6, Pos.CENTER);
+						stackPane = getStackPane(PreGameMenu.screenWidth / 5.0 - 20, PreGameMenu.screenHeight / 10.0 * 6, Pos.CENTER);
 				case 2 ->
-						stackPane = getStackPane(PreGameMenu.screenWidth / 10.0, PreGameMenu.screenHeight / 10.0 * 6, Pos.BOTTOM_CENTER);
+						stackPane = getStackPane(PreGameMenu.screenWidth / 5.0 - 20, PreGameMenu.screenHeight / 10.0 * 6, Pos.BOTTOM_CENTER);
 				case 4 ->
-						stackPane = getStackPane(PreGameMenu.screenWidth / 10.0, PreGameMenu.screenHeight / 10.0 * 6, Pos.TOP_LEFT);
+						stackPane = getStackPane(PreGameMenu.screenWidth / 5.0 - 20, PreGameMenu.screenHeight / 10.0 * 6, Pos.TOP_LEFT);
 			}
 
 			images[i] = new ImageView(R.getImage("lg/faction_monsters.jpg"));
-			images[i].setFitWidth(PreGameMenu.screenWidth / 12.0 - 20 * (Math.abs(i - 2)));
+			images[i].setFitWidth(PreGameMenu.screenWidth / 6.0 - 20 * (Math.abs(i - 2)));
 			images[i].setFitHeight(PreGameMenu.screenHeight / 2.5 - 60 * (Math.abs(i - 2)));
 			images[i].setStyle("-fx-border-color: black; -fx-border-width: 2; -fx-padding: 2;");
 			//adding shadow
@@ -64,10 +64,10 @@ public class FivePlacePreGame extends Pane {
 			dropShadow.setOffsetX(0);
 			dropShadow.setOffsetY(0);
 			if (i == 2) {
-				dropShadow.setRadius(40);
+				dropShadow.setRadius(60);
 				dropShadow.setColor(Color.rgb(225, 169, 50));
 			} else {
-				dropShadow.setRadius(20);
+				dropShadow.setRadius(40);
 				dropShadow.setColor(Color.rgb(50, 225, 210));
 			}
 			images[i].setEffect(dropShadow);
@@ -120,10 +120,10 @@ public class FivePlacePreGame extends Pane {
 	}
 
 	private Text addText(HBox[] places) {
-		StackPane stackPane = getStackPane(PreGameMenu.screenWidth / 2.0, PreGameMenu.screenHeight / 5.0, Pos.TOP_CENTER);
+		StackPane stackPane = getStackPane(1130, PreGameMenu.screenHeight / 5.0, Pos.TOP_CENTER);
 		Text text = new Text("\n");
 		text.setTextAlignment(TextAlignment.CENTER);
-		text.setStyle("-fx-font-size: 16px");
+		text.setStyle("-fx-font-size: 15px; -fx-font-family: 'Yrsa SemiBold'");
 		text.setFill(Color.WHITE);
 		text.setWrappingWidth(400);
 		Rectangle clip = new Rectangle(400, 100);

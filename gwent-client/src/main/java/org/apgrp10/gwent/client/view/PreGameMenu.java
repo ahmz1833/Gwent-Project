@@ -30,8 +30,8 @@ import java.util.ArrayList;
 
 
 public class PreGameMenu extends Application {
-	public static final int screenWidth = 1280, cardWidth = 18;
-	public static final int screenHeight = 720, cardHeight = 5;
+	public static final int screenWidth = 1280, cardWidth = 9;
+	public static final int screenHeight = 720, cardHeight = 3;
 	private final GridPane[] deckLists = new GridPane[2];
 	private final int primaryX;
 	private final PreGameController preGameController;
@@ -54,7 +54,7 @@ public class PreGameMenu extends Application {
 		if (isFirstOne)
 			primaryX = 0;
 		else
-			primaryX = screenWidth / 2;
+			primaryX = 150;
 		start(PreGameStage.getInstance());
 	}
 
@@ -76,17 +76,17 @@ public class PreGameMenu extends Application {
 		Text text = new Text("Good luck \"" + user.nickname() + "\"");
 		text.setFill(Color.GREEN);
 		text.setWrappingWidth(200);
-		text.setStyle("-fx-font-size: 13px");
+		text.setStyle("-fx-font-size: 19px; -fx-font-family: 'Yrsa SemiBold'");
 		stackPane.getChildren().add(text);
-		stackPane.setLayoutX(primaryX + 5);
-		stackPane.setLayoutY(3);
+		stackPane.setLayoutX(primaryX + 20);
+		stackPane.setLayoutY(10);
 		pane.getChildren().add(stackPane);
 	}
 
 	private void addLinkTexts() {
 		pane.getChildren().remove(factionInfo);
 		factionInfo = new VBox();
-		factionInfo.setLayoutX(primaryX + screenWidth / 4.0 - 200);
+		factionInfo.setLayoutX(primaryX + screenWidth / 2.0 - 280);
 		setFactionInfo(factionInfo);
 		addFactionMassageToFactionInfo(factionInfo);
 		addLinksToFactionInfo(factionInfo);
@@ -176,34 +176,38 @@ public class PreGameMenu extends Application {
 
 	private void setSpoiler() {
 		ImageView imageView = new ImageView(R.getImage("icons/preGame_selectImage.png"));
-		imageView.setX(screenWidth / 2.0 - primaryX);
+		imageView.setX(primaryX > 50 ? 0 : 1131);
 		imageView.setY(0);
-		imageView.setFitWidth(screenWidth / 2.0);
-		imageView.setFitHeight(screenHeight);
+		imageView.setFitWidth(screenWidth - 1131);
+		imageView.setFitHeight(screenHeight - 35);
 		pane.getChildren().add(imageView);
 	}
 
 	private void load() {
 		pane = PreGameStage.getInstance().getPane();
 		pane.getStylesheets().add(R.get("css/preGame.css").toExternalForm());
+		Rectangle rec = new Rectangle(0, 0, screenWidth, screenHeight);
+		rec.setFill(Color.BLACK);
+		pane.getChildren().add(rec);
+		rec.setOpacity(0.7);
 		setCursor();
 	}
 
 	private void addGradePane() {
 		for (int i = 0; i < 2; i++) {
 			GridPane gridPane = new GridPane();
-			gridPane.setVgap(5);
-			gridPane.setHgap(5);
+			gridPane.setVgap(3);
+			gridPane.setHgap(3);
 			for (int j = 0; j < 3; j++) {
-				gridPane.getColumnConstraints().add(new ColumnConstraints(screenWidth / (double) cardWidth - 5));
+				gridPane.getColumnConstraints().add(new ColumnConstraints(screenWidth / (double) cardWidth + 3));
 			}
 			ScrollPane scroll = new ScrollPane(gridPane);
 			scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
 			scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-			scroll.setPrefSize(3 * screenWidth / (double) cardWidth + 12, 550);
+			scroll.setPrefSize(3 * screenWidth / (double) cardWidth + 30, 550);
 			switch (i) {
 				case 0 -> scroll.setLayoutX(primaryX + 9);
-				case 1 -> scroll.setLayoutX(primaryX + 398);
+				case 1 -> scroll.setLayoutX(primaryX + 655);
 			}
 			scroll.setLayoutY(117);
 			pane.getChildren().add(scroll);
@@ -338,11 +342,11 @@ public class PreGameMenu extends Application {
 
 	private void addInfoBox() {
 		VBox infoVBox = new VBox();
-		infoVBox.setLayoutX(primaryX + 245);
+		infoVBox.setLayoutX(primaryX + 489);
 		infoVBox.setLayoutY(117);
 		textForInfo(infoVBox, "Leader");
 		leaderImage = new ImageView();
-		leaderImage.setFitWidth(85);
+		leaderImage.setFitWidth(100);
 		leaderImage.setFitHeight(172);
 		leaderImage.setOnMouseClicked(k -> fivePlacePreGame.show(true, currentIndexOfLeader));
 		StackPane stackPane = getStackPane(142, 172, Pos.CENTER);
