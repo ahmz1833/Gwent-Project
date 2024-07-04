@@ -29,7 +29,7 @@ eval $(ssh-agent -s) > /dev/null
 sshpass -P assphrase -p $PASSPHRASE ssh-add "$KEY_FILE" > /dev/null
 
 # First, kill all java processes on the server
-( ssh $REMOTE_USER@$REMOTE_IP "pkill java"; \
+( ssh $REMOTE_USER@$REMOTE_IP "sudo killall java"; \
 
 # Use rsync to upload the jar file to the server
 rsync -avz -e "ssh" --progress $LOCAL_FILES $REMOTE_USER@$REMOTE_IP:$REMOTE_DIR/ && \

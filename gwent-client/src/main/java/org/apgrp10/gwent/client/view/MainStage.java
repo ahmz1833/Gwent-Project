@@ -6,6 +6,7 @@ import javafx.scene.layout.Pane;
 import javafx.stage.WindowEvent;
 import org.apgrp10.gwent.client.Server;
 import org.apgrp10.gwent.client.controller.PreGameController;
+import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
@@ -32,22 +33,22 @@ public class MainStage extends AbstractStage {
 		pane.setPrefWidth(400);
 		pane.setPrefHeight(300);
 		MFXButton btn = new MFXButton("Salam");
-		// Server.instance().sendRequest(new Request("fastPlay"), res -> {
-		// 	playerId = res.getBody().get("player").getAsInt();
-		// 	System.out.println("we are player " + playerId);
-		// });
-		// Server.instance().setListener("makeDeck", req -> {
-		// 	start = true;
-		// 	Server.instance().sendResponse(new Response(req.getId(), 200));
-		// 	Server.instance().setListener("makeDeck", null);
-		// });
+		 Server.instance().sendRequest(new Request("fastPlay"), res -> {
+		 	playerId = res.getBody().get("player").getAsInt();
+		 	System.out.println("we are player " + playerId);
+		 });
+		 Server.instance().setListener("makeDeck", req -> {
+		 	start = true;
+		 	Server.instance().sendResponse(new Response(req.getId(), 200));
+		 	Server.instance().setListener("makeDeck", null);
+		 });
 		btn.setOnMouseClicked(event -> {
 			// if (!start)
 			// 	return;
 			this.close();
-			User user2 = new User(2, new User.UserInfo("user2", "pass2", "nick2", "email2", "secQ2", null));
-			User user1 = new User(1, new User.UserInfo("user1", "pass1", "nick1", "email1", "secQ1", null));
-			new PreGameController(user1, user2, playerId != 1, playerId != 0);
+			User.PublicInfo publicInfo = new User.PublicInfo("user1", "nick1", Avatar.random());
+			User.PublicInfo publicInfo2 = new User.PublicInfo("user2", "nick2", Avatar.random());
+			new PreGameController(publicInfo, publicInfo2, playerId != 1, playerId != 0);
 		});
 		pane.getChildren().add(btn);
 		setScene(scene);
