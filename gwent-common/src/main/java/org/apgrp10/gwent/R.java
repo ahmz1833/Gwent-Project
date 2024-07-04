@@ -11,11 +11,11 @@ import java.util.List;
 public class R {
 	public static List<Avatar> DEFAULT_AVATARS = new ArrayList<>();
 	static {
-		DEFAULT_AVATARS.add(Avatar.fromImage(new Image(getAsStream("/avatars/1.png"))));
-		DEFAULT_AVATARS.add(Avatar.fromImage(new Image(getAsStream("/avatars/2.png"))));
-		DEFAULT_AVATARS.add(Avatar.fromImage(new Image(getAsStream("/avatars/3.png"))));
-		DEFAULT_AVATARS.add(Avatar.fromImage(new Image(getAsStream("/avatars/4.png"))));
-		DEFAULT_AVATARS.add(Avatar.fromImage(new Image(getAsStream("/avatars/5.png"))));
+		DEFAULT_AVATARS.add(Avatar.fromImage(new Image(getAsStream("avatars/1.png"))));
+		DEFAULT_AVATARS.add(Avatar.fromImage(new Image(getAsStream("avatars/2.png"))));
+		DEFAULT_AVATARS.add(Avatar.fromImage(new Image(getAsStream("avatars/3.png"))));
+		DEFAULT_AVATARS.add(Avatar.fromImage(new Image(getAsStream("avatars/4.png"))));
+		DEFAULT_AVATARS.add(Avatar.fromImage(new Image(getAsStream("avatars/5.png"))));
 	}
 
 	public static URL get(String path) {

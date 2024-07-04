@@ -30,4 +30,8 @@ public interface GameMenuInterface {
 
 	void setController(GameController controller);
 	void start();
+
+	void beginRound();
+	void setHaveNewDeath(boolean b);
+	void userPassed(int player);
 }

@@ -1,12 +1,15 @@
 package org.apgrp10.gwent.client.model;
 
 import javafx.geometry.Pos;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.model.card.Ability;
@@ -45,35 +48,17 @@ public class CardView extends Pane {
 			addCountLabel();
 		}
 		if (showStrength && (strength != 0 || name.equals("Havekar Healer") || name.equals("Kambi") ||
-		                     name.equals("Cow") || name.equals("Siege Technician") || name.equals("Mysterious Elf"))) {
+				name.equals("Cow") || name.equals("Siege Technician") || name.equals("Mysterious Elf"))) {
 			// TODO: make this better
 			addScoreText(strength);
 			addPlaceImage();
 			addAbilityImage();
 		}
-		if (showStrength && faction == Faction.WEATHER) {
+		if (showStrength && (faction == Faction.WEATHER || faction == Faction.SPECIAL)) {
 			addWeatherScore();
 		}
-		if (showStrength && faction == Faction.SPECIAL) {
-
-		}
 		this.strength = strength;
-	}
 
-	public static CardView newSelection(String address, double width, double height) {
-		return new CardView(address, true, true, false, -1, false, width, height);
-	}
-
-	public static CardView newHand(String address, double width, double height) {
-		return new CardView(address, false, false, true, -1, true, width, height);
-	}
-
-	public static CardView newInBoard(String address, int strength, double width, double height) {
-		return new CardView(address, false, false, true, strength, true, width, height);
-	}
-
-	public static CardView newInfo(String address, double width, double height) {
-		return new CardView(address, true, false, true, -1, false, width, height);
 	}
 
 	private void addWeatherScore() {
@@ -83,6 +68,10 @@ public class CardView extends Pane {
 			case "Biting Frost" -> "power_frost.png";
 			case "Clear Weather" -> "power_clear.png";
 			case "Impenetrable Fog" -> "power_fog.png";
+			case "Mardroeme" -> "power_mardroeme.png";
+			case "Decoy" -> "power_decoy.png";
+			case "Commander's Horn" -> "power_horn.png";
+			case "Scorch" -> "power_scorch.png";
 			default -> "";
 		};
 		getChildren().add(getImageView(width / 2 + 13, height / 2 + 5, path));
@@ -156,6 +145,22 @@ public class CardView extends Pane {
 		pane.setLayoutX(x);
 		pane.setAlignment(pos);
 		return pane;
+	}
+
+	public static CardView newSelection(String address, double width, double height) {
+		return new CardView(address, true, true, false, -1, false, width, height);
+	}
+
+	public static CardView newHand(String address, double width, double height) {
+		return new CardView(address, false, false, true, -1, true, width, height);
+	}
+
+	public static CardView newInBoard(String address, int strength, double width, double height) {
+		return new CardView(address, false, false, true, strength, true, width, height);
+	}
+
+	public static CardView newInfo(String address, double width, double height) {
+		return new CardView(address, true, false, true, -1, false, width, height);
 	}
 
 	private void fillInfoByName() {

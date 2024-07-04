@@ -152,6 +152,7 @@ public class GameController {
 
 		nextTurnDelay = 1000;
 		playerData[turn].controller.beginTurn();
+		gameMenu.beginRound();
 	}
 
 	private long nextTurnDelay = 1000;
@@ -181,7 +182,10 @@ public class GameController {
 			for (int p = 0; p < 2; p++) {
 				if (to == playerData[p].deck.getDeck()) gameMenu.animationToDeck(card, p);
 				if (to == playerData[p].handCards && activePlayer == p) gameMenu.animationToHand(card);
-				if (to == playerData[p].usedCards) gameMenu.animationToUsed(card, p);
+				if (to == playerData[p].usedCards) {
+					gameMenu.animationToUsed(card, p);
+					gameMenu.setHaveNewDeath(true);
+				}
 			}
 			for (int i = 0; i < 6; i++) {
 				if (to == row.get(i)) gameMenu.animationToRow(card, i);
@@ -490,6 +494,7 @@ public class GameController {
 	}
 
 	private void pass(Command.Pass cmd) {
+		gameMenu.userPassed(cmd.player());
 		if (!lastPassed) {
 			nextTurn();
 			lastPassed = true;

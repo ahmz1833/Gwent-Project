@@ -32,18 +32,18 @@ public class MainStage extends AbstractStage {
 		pane.setPrefWidth(400);
 		pane.setPrefHeight(300);
 		MFXButton btn = new MFXButton("Salam");
-		Server.instance().sendRequest(new Request("fastPlay"), res -> {
-			playerId = res.getBody().get("player").getAsInt();
-			System.out.println("we are player " + playerId);
-		});
-		Server.instance().setListener("makeDeck", req -> {
-			start = true;
-			Server.instance().sendResponse(new Response(req.getId(), 200));
-			Server.instance().setListener("makeDeck", null);
-		});
+		// Server.instance().sendRequest(new Request("fastPlay"), res -> {
+		// 	playerId = res.getBody().get("player").getAsInt();
+		// 	System.out.println("we are player " + playerId);
+		// });
+		// Server.instance().setListener("makeDeck", req -> {
+		// 	start = true;
+		// 	Server.instance().sendResponse(new Response(req.getId(), 200));
+		// 	Server.instance().setListener("makeDeck", null);
+		// });
 		btn.setOnMouseClicked(event -> {
-			if (!start)
-				return;
+			// if (!start)
+			// 	return;
 			this.close();
 			User user2 = new User(2, new User.UserInfo("user2", "pass2", "nick2", "email2", "secQ2", null));
 			User user1 = new User(1, new User.UserInfo("user1", "pass1", "nick1", "email1", "secQ1", null));
