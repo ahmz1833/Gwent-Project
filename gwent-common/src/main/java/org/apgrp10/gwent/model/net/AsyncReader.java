@@ -3,6 +3,7 @@ package org.apgrp10.gwent.model.net;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.Callback;
 
 public class AsyncReader implements Runnable {
@@ -95,6 +96,7 @@ public class AsyncReader implements Runnable {
 				skip(4 + len);
 			}
 		} catch (Exception e) {
+			ANSI.logError(System.err, "async reader failure", e);
 			failure.call(e);
 		}
 	}

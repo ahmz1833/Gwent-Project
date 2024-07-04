@@ -34,6 +34,9 @@ public class Gwent extends Application {
 
 	@Override
 	public void start(Stage primaryStage) {
+		// requires javafx so must be here
+		if (Server.isConnected())
+			Server.instance().run();
 		// primaryStage.getIcons().add(R.icon.app_icon); // TODO: add icon
 		primaryStage.setIconified(true);
 		primaryStage.close();

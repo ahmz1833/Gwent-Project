@@ -23,5 +23,6 @@ public class Random {
 		return bytes;
 	}
 
-	public static long nextId() {return get().nextLong() & 0x7f_ff_ff_ff_ff_ff_ff_ffl;}
+	public static long nextPosLong() {return get().nextLong() & 0x7f_ff_ff_ff_ff_ff_ff_ffl;}
+	public static long nextId() {return nextPosLong();}
 }

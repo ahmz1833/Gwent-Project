@@ -10,6 +10,7 @@ import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
+import org.apgrp10.gwent.utils.ANSI;
 
 public class MainStage extends AbstractStage {
 	private static MainStage INSTANCE;
@@ -33,18 +34,18 @@ public class MainStage extends AbstractStage {
 		pane.setPrefWidth(400);
 		pane.setPrefHeight(300);
 		MFXButton btn = new MFXButton("Salam");
-		 Server.instance().sendRequest(new Request("fastPlay"), res -> {
-		 	playerId = res.getBody().get("player").getAsInt();
-		 	System.out.println("we are player " + playerId);
-		 });
-		 Server.instance().setListener("makeDeck", req -> {
-		 	start = true;
-		 	Server.instance().sendResponse(new Response(req.getId(), 200));
-		 	Server.instance().setListener("makeDeck", null);
-		 });
+		Server.instance().sendRequest(new Request("fastPlay"), res -> {
+			playerId = res.getBody().get("player").getAsInt();
+			ANSI.log("we are player " + playerId);
+		});
+		Server.instance().setListener("makeDeck", req -> {
+			start = true;
+			Server.instance().sendResponse(new Response(req.getId(), 200));
+			Server.instance().setListener("makeDeck", null);
+		});
 		btn.setOnMouseClicked(event -> {
-			// if (!start)
-			// 	return;
+			if (!start)
+				return;
 			this.close();
 			User.PublicInfo publicInfo = new User.PublicInfo("user1", "nick1", Avatar.random());
 			User.PublicInfo publicInfo2 = new User.PublicInfo("user2", "nick2", Avatar.random());

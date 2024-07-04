@@ -39,21 +39,17 @@ public class PreGameController {
 			Server.instance().setListener("start", req -> {
 				if (!isLocal1) deck1 = Deck.fromJsonString(req.getBody().get("deck1").getAsString());
 				if (!isLocal2) deck2 = Deck.fromJsonString(req.getBody().get("deck2").getAsString());
-				// seed must be last because tryStart checks seed
 				seed = req.getBody().get("seed").getAsLong();
 				Server.instance().sendResponse(new Response(req.getId(), 200));
+				if (deck1 != null && deck2 != null)
+					startGame();
 			});
 		}
-
-		tryStart();
 	}
 
-	private void tryStart() {
-		if (seed == null) {
-			Platform.runLater(this::tryStart);
-			return;
-		}
-
+	private void startGame() {
+		deck1.setUser(user1);
+		deck2.setUser(user2);
 		// TODO: for now we just set a random game up;
 		InputController c1, c2;
 		c1 = isLocal1? new MouseInputController(): new ServerInputController();
@@ -66,8 +62,8 @@ public class PreGameController {
 				Server.instance().sendResponse(new Response(req.getId(), 200));
 				Command cmd = Command.fromBase64(req.getBody().get("cmd").getAsString());
 				int player = req.getBody().get("player").getAsInt();
-				if (player == 0 && !isLocal1) ((ServerInputController)c1).addCommand(cmd);
-				if (player == 1 && !isLocal2) ((ServerInputController)c2).addCommand(cmd);
+				if (player == 0 && !isLocal1) ((ServerInputController)c1).sendCommand(cmd);
+				if (player == 1 && !isLocal2) ((ServerInputController)c2).sendCommand(cmd);
 			});
 			for (int i = 0; i < 2; i++) {
 				if (i == 0 && !isLocal1) continue;

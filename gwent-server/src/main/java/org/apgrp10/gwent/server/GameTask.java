@@ -44,7 +44,8 @@ public class GameTask extends Task {
 	private void start() {
 		addCommand(() -> {
 			JsonObject startBody = new JsonObject();
-			startBody.add("seed", new JsonPrimitive(Random.nextId()));
+			long seed = Random.nextPosLong();
+			startBody.add("seed", new JsonPrimitive(seed));
 			startBody.add("deck1", new JsonPrimitive(d1.toJsonString()));
 			startBody.add("deck2", new JsonPrimitive(d2.toJsonString()));
 
@@ -56,7 +57,7 @@ public class GameTask extends Task {
 				new DummyInputController(),
 				d1,
 				d2,
-				Random.nextId(),
+				seed,
 				null,
 				() -> {
 					done = true;

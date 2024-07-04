@@ -23,7 +23,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 public class Deck {
-	private final User user;
+	private User user;
 	private final ArrayList<Card> deck = new ArrayList<>();
 	private final Faction faction;
 	private final Card leader;
@@ -46,6 +46,10 @@ public class Deck {
 			}
 		}
 		leader = leaderCopy;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
 	}
 
 	public static boolean isCorrectDeck(Deck deck) {

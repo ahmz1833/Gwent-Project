@@ -152,7 +152,8 @@ public class GameController {
 
 		nextTurnDelay = 1000;
 		playerData[turn].controller.beginTurn();
-		gameMenu.beginRound();
+		if (gameMenu != null)
+			gameMenu.beginRound();
 	}
 
 	private long nextTurnDelay = 1000;
@@ -386,7 +387,8 @@ public class GameController {
 			return;
 		}
 		if (!lastPassed) {
-			gameMenu.userTurn(getTurn());
+			if (gameMenu != null)
+				gameMenu.userTurn(getTurn());
 			playerData[turn].controller.endTurn();
 			waitExec.run(nextTurnDelay, () -> {
 				turn = 1 - turn;
@@ -441,17 +443,18 @@ public class GameController {
 		boolean end = false;
 		for (int i = 0; i < 2; i++) {
 			boolean win = gonnaWin(i);
-			if(win){
+			if (win) {
 				draw = false;
-				gameMenu.showWinner(i);			}
+				if (gameMenu != null)
+					gameMenu.showWinner(i);
+			}
 			playerData[i].hp -= win? 0: 1;
 			if (win && playerData[i].deck.getFaction() == Faction.REALMS && !playerData[i].deck.getDeck().isEmpty())
 				moveCard(playerData[i].deck.getDeck().get(0), playerData[i].handCards);
 			end |= playerData[i].hp == 0;
 		}
-		if(draw){
+		if (draw && gameMenu != null)
 			gameMenu.showDraw();
-		}
 		if (end) {
 			onEnd.run();
 			return;
@@ -502,7 +505,8 @@ public class GameController {
 	}
 
 	private void pass(Command.Pass cmd) {
-		gameMenu.userPassed(cmd.player());
+		if (gameMenu != null)
+			gameMenu.userPassed(cmd.player());
 		if (!lastPassed) {
 			nextTurn();
 			lastPassed = true;
