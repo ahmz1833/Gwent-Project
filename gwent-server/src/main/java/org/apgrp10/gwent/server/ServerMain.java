@@ -17,7 +17,7 @@ public class ServerMain {
 	public static final String SERVER_FOLDER = System.getProperty("user.home") + "/gwent-data/";
 	public static final int PORT = 12345;
 	private static Client fastPlayed;
-	private static Object lock = new Object();
+	private static final Object lock = new Object();
 
 	public static void main(String[] args) {
 		Locale.setDefault(Locale.ENGLISH);

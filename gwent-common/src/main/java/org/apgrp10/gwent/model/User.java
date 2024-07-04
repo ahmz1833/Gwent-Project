@@ -45,11 +45,15 @@ public class User {
 		return hashSecurityQ(secQuestion, secAnswer).equals(registerInfo.securityQ);
 	}
 
+	public PublicInfo publicInfo() {
+		return registerInfo.publicInfo();
+	}
+
+	public RegisterInfo registerInfo() {
+		return registerInfo;
+	}
+
 	public record PublicInfo(String username, String nickname, Avatar avatar) {}
 
 	public record RegisterInfo(PublicInfo publicInfo, String passwordHash, String email, String securityQ) {}
-
-	public PublicInfo getPublicInfo() {
-		return registerInfo.publicInfo();
-	}
 }

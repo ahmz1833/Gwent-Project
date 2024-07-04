@@ -14,12 +14,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 public class EmailUtils {
-	private static final HashMap<String, User.UserInfo> queue = new HashMap<>();
+	private static final HashMap<String, User.RegisterInfo> queue = new HashMap<>();
 	private static final String HTTP_SERVER_ADDR = "37.152.178.57", EMAIL_SERVER_ADDR = "localhost";
 	private static final int HTTP_SERVER_PORT = 2222, EMAIL_SERVER_PORT = 41567;
 	private static HttpServer server = null;
 
-	public static void sendMailAndAddToQueue(User.UserInfo userInfo) throws Exception {
+	public static void sendMailAndAddToQueue(User.RegisterInfo userInfo) throws Exception {
 		String uuid = java.util.UUID.randomUUID().toString();
 		String emailContent = "Please click on the following link to verify your email: \n" +
 		                      "http://" + HTTP_SERVER_ADDR + ":" + HTTP_SERVER_PORT + "/verify/" + uuid;

@@ -32,15 +32,15 @@ public class UserDatabase extends DatabaseTable {
 		return instance;
 	}
 
-	public User addUser(User.UserInfo userInfo) throws Exception {
-		if (isUsernameTaken(userInfo.username()))
-			throw new IllegalArgumentException("Username " + userInfo.username() + " is already taken");
-		long id = insert(Map.entry(UserDBColumns.username, userInfo.username()),
-				Map.entry(UserDBColumns.nickname, userInfo.nickname()),
+	public User addUser(User.RegisterInfo userInfo) throws Exception {
+		if (isUsernameTaken(userInfo.publicInfo().username()))
+			throw new IllegalArgumentException("Username " + userInfo.publicInfo().username() + " is already taken");
+		long id = insert(Map.entry(UserDBColumns.username, userInfo.publicInfo().username()),
+				Map.entry(UserDBColumns.nickname, userInfo.publicInfo().nickname()),
 				Map.entry(UserDBColumns.email, userInfo.email()),
-				Map.entry(UserDBColumns.passHash, userInfo.passHash()),
+				Map.entry(UserDBColumns.passHash, userInfo.passwordHash()),
 				Map.entry(UserDBColumns.securityQuestion, userInfo.securityQ()),
-				Map.entry(UserDBColumns.avatar, userInfo.avatar().toBase64()),
+				Map.entry(UserDBColumns.avatar, userInfo.publicInfo().avatar().toBase64()),
 				Map.entry(UserDBColumns.friends, ""));
 		return new User(id, userInfo);
 	}
@@ -53,13 +53,26 @@ public class UserDatabase extends DatabaseTable {
 	public User getUserById(long id) throws Exception {
 		if (!isIdTaken(id))
 			throw new IllegalArgumentException("User with id " + id + " does not exist");
-		return new User(id,
-				new User.UserInfo(getValue(id, UserDBColumns.username),
-						getValue(id, UserDBColumns.nickname),
-						getValue(id, UserDBColumns.email),
-						getValue(id, UserDBColumns.passHash),
-						getValue(id, UserDBColumns.securityQuestion),
-						Avatar.fromBase64(getValue(id, UserDBColumns.avatar))));
+		return new User(id, getUserRegisterInfoById(id));
+	}
+
+	public User.PublicInfo getUserPublicInfoById(long id) throws Exception {
+		if (!isIdTaken(id))
+			throw new IllegalArgumentException("User with id " + id + " does not exist");
+		return new User.PublicInfo(
+				getValue(id, UserDBColumns.username),
+				getValue(id, UserDBColumns.nickname),
+				Avatar.fromBase64(getValue(id, UserDBColumns.avatar)));
+	}
+
+	public User.RegisterInfo getUserRegisterInfoById(long id) throws Exception {
+		if (!isIdTaken(id))
+			throw new IllegalArgumentException("User with id " + id + " does not exist");
+		return new User.RegisterInfo(
+				getUserPublicInfoById(id),
+				getValue(id, UserDBColumns.passHash),
+				getValue(id, UserDBColumns.email),
+				getValue(id, UserDBColumns.securityQuestion));
 	}
 
 	public boolean isUsernameTaken(String username) {
