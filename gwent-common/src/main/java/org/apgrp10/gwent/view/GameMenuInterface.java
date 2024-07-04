@@ -34,4 +34,7 @@ public interface GameMenuInterface {
 	void beginRound();
 	void setHaveNewDeath(boolean b);
 	void userPassed(int player);
+	void showWinner(int player);
+	void showDraw();
+	void userTurn(int player);
 }

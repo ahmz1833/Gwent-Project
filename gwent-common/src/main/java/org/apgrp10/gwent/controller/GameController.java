@@ -386,6 +386,7 @@ public class GameController {
 			return;
 		}
 		if (!lastPassed) {
+			gameMenu.userTurn(getTurn());
 			playerData[turn].controller.endTurn();
 			waitExec.run(nextTurnDelay, () -> {
 				turn = 1 - turn;
@@ -435,14 +436,21 @@ public class GameController {
 	}
 
 	private void nextRound() {
+		boolean draw = true;
 		playerData[turn].controller.endTurn();
 		boolean end = false;
 		for (int i = 0; i < 2; i++) {
 			boolean win = gonnaWin(i);
+			if(win){
+				draw = false;
+				gameMenu.showWinner(i);			}
 			playerData[i].hp -= win? 0: 1;
 			if (win && playerData[i].deck.getFaction() == Faction.REALMS && !playerData[i].deck.getDeck().isEmpty())
 				moveCard(playerData[i].deck.getDeck().get(0), playerData[i].handCards);
 			end |= playerData[i].hp == 0;
+		}
+		if(draw){
+			gameMenu.showDraw();
 		}
 		if (end) {
 			onEnd.run();

@@ -463,12 +463,7 @@ public class GameMenu extends Application implements GameMenuInterface {
 				continue;
 		}
 		rootPane.getChildren().clear();
-		System.out.println("cleared");
 		addBackground(R.image.board[controller.getActivePlayer()]);
-		rootPane.setOnMouseClicked(k -> {
-			System.out.println(k.getSceneX() / WIDTH);
-			System.out.println(k.getSceneY() / HEIGHT);
-		});
 		// TODO: hide these
 		addCheatButtons();
 		addButton(rootPane, "Pass", "pass", Position.pass);
