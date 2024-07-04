@@ -13,11 +13,10 @@ import org.apgrp10.gwent.model.card.Card;
 import org.apgrp10.gwent.model.card.CardInfo;
 import org.apgrp10.gwent.model.card.Faction;
 import org.apgrp10.gwent.model.card.Row;
+import org.apgrp10.gwent.utils.MGson;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.utils.ANSI;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
@@ -193,8 +192,7 @@ public class Deck {
 
 		public static Deck loadFromJson(String json) {
 			try {
-				Gson gson = new Gson();
-				DeckToSave deckToSave = gson.fromJson(json, DeckToSave.class);
+				DeckToSave deckToSave = MGson.fromJson(json, DeckToSave.class);
 				int factionIndex = -1;
 				switch (deckToSave.faction) {
 					case "REALMS" -> factionIndex = 0;
@@ -229,8 +227,7 @@ public class Deck {
 		}
 
 		public String getJson() {
-			Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
-			return gson.toJson(this);
+			return MGson.get(true, true).toJson(this);
 		}
 	}
 

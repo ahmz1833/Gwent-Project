@@ -34,14 +34,14 @@ public class MainStage extends AbstractStage {
 		pane.setPrefWidth(400);
 		pane.setPrefHeight(300);
 		MFXButton btn = new MFXButton("Salam");
-		Server.instance().sendRequest(new Request("fastPlay"), res -> {
+		Server.instance().send(new Request("fastPlay"), res -> {
 			playerId = res.getBody().get("player").getAsInt();
 			ANSI.log("we are player " + playerId);
 		});
 		Server.instance().setListener("makeDeck", req -> {
 			start = true;
-			Server.instance().sendResponse(new Response(req.getId(), 200));
 			Server.instance().setListener("makeDeck", null);
+			return req.response(Response.OK_NO_CONTENT);
 		});
 		btn.setOnMouseClicked(event -> {
 			if (!start)

@@ -14,11 +14,11 @@ public class User {
 
 	public static String hashSecurityQ(String secQuestion, String secAnswer) {
 		String text = secQuestion + " " + secAnswer;
-		return SecurityUtils.sha256Hash(text);
+		return SecurityUtils.sha256(text);
 	}
 
 	public static String hashPassword(String password) {
-		return SecurityUtils.sha256Hash(password);
+		return SecurityUtils.sha256(password);
 	}
 
 	public void update(RegisterInfo registerInfo) {
@@ -38,11 +38,19 @@ public class User {
 	}
 
 	public boolean isPasswordCorrect(String password) {
-		return hashPassword(password).equals(registerInfo.passwordHash);
+		return isPassHashCorrect(hashPassword(password));
+	}
+
+	public boolean isPassHashCorrect(String passHash) {
+		return passHash.equals(registerInfo.passwordHash);
 	}
 
 	public boolean isSecurityQCorrect(String secQuestion, String secAnswer) {
-		return hashSecurityQ(secQuestion, secAnswer).equals(registerInfo.securityQ);
+		return isSecurityQCorrect(hashSecurityQ(secQuestion, secAnswer));
+	}
+
+	public boolean isSecurityQCorrect(String hashed) {
+		return registerInfo.securityQ.equals(hashed);
 	}
 
 	public PublicInfo publicInfo() {
@@ -55,5 +63,17 @@ public class User {
 
 	public record PublicInfo(String username, String nickname, Avatar avatar) {}
 
-	public record RegisterInfo(PublicInfo publicInfo, String passwordHash, String email, String securityQ) {}
+	public record RegisterInfo(PublicInfo publicInfo, String passwordHash, String email, String securityQ) {
+		public String username() {
+			return publicInfo.username();
+		}
+
+		public String nickname() {
+			return publicInfo.nickname();
+		}
+
+		public Avatar avatar() {
+			return publicInfo.avatar();
+		}
+	}
 }

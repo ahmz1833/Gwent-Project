@@ -3,11 +3,12 @@ package org.apgrp10.gwent.model.net;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.apgrp10.gwent.utils.Callback;
 
 public class PacketHandler implements Runnable {
-	private NetNode node;
+	private final NetNode node;
 
 	public PacketHandler(Socket socket) { node = new NetNode(socket, this::parsePacket); }
 
@@ -19,21 +20,21 @@ public class PacketHandler implements Runnable {
 			node.run();
 	}
 
-	private Map<Long, Callback<Response>> resCallbacks = new HashMap<>();
-	private Map<String, Callback<Request>> reqCallbacks = new HashMap<>();
+	private final Map<Long, Callback<Response>> resCallbacks = new HashMap<>();
+	private final Map<String, Function<Request, Response>> reqCallbacks = new HashMap<>();
 
-	public Callback<Request> setListener(String action, Callback<Request> cb) {
+	public Function<Request, Response> setListener(String action, Function<Request, Response> cb) {
 		reqCallbacks.put(action, cb);
 		return cb;
 	}
 
-	public void sendRequest(Request req, Callback<Response> onReceive) {
+	public void send(Request req, Callback<Response> onReceive) {
 		resCallbacks.put(req.getId(), onReceive);
 		if (!node.send(req.toString().getBytes()))
 			node.close();
 	}
 
-	public void sendResponse(Response res) {
+	public void send(Response res) {
 		if (!node.send(res.toString().getBytes()))
 			node.close();
 	}
@@ -53,15 +54,16 @@ public class PacketHandler implements Runnable {
 
 	private void handleRequest(Request req) {
 		if (req.getAction().equals("ping")) {
-			sendResponse(new Response(req.getId(), 200));
+			send(new Response(req.getId(), Response.OK_NO_CONTENT));
 			return;
 		}
-		Callback<Request> cb = reqCallbacks.get(req.getAction());
+		Function<Request, Response> cb = reqCallbacks.get(req.getAction());
 		if (cb == null) {
-			sendResponse(new Response(req.getId(), 400));
+			send(new Response(req.getId(), Response.BAD_REQUEST));
 			return;
 		}
-		cb.call(req);
+		Response res = cb.apply(req);
+		send(res);
 	}
 
 	private void handleResponse(Response res) {
@@ -75,6 +77,6 @@ public class PacketHandler implements Runnable {
 	}
 
 	public void ping(Runnable onReceive) {
-		sendRequest(new Request("ping"), res -> onReceive.run());
+		send(new Request("ping"), res -> onReceive.run());
 	}
 }

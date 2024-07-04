@@ -21,7 +21,7 @@ public class GamesDatabase extends DatabaseTable {
 		super(ServerMain.SERVER_FOLDER + "gwent.db", tableName, System::currentTimeMillis, GameDBColumn.values());
 	}
 
-	public static GamesDatabase getInstance() {
+	public synchronized static GamesDatabase getInstance() {
 		if (instance == null) {
 			try {
 				instance = new GamesDatabase();
@@ -33,7 +33,7 @@ public class GamesDatabase extends DatabaseTable {
 		return instance;
 	}
 
-	public GameRecord addGame(boolean isPublic, long player1ID, long player2ID, long seed, Deck deck1, Deck deck2, List<Command> commands,
+	public synchronized GameRecord addGame(boolean isPublic, long player1ID, long player2ID, long seed, Deck deck1, Deck deck2, List<Command> commands,
 	                          int set1P1Sc, int set1P2Sc, int set2P1Sc, int set2P2Sc, int set3P1Sc, int set3P2Sc) throws Exception {
 		long id = insert(Map.entry(GameDBColumn.isPublic, isPublic),
 				Map.entry(GameDBColumn.player1, player1ID),
@@ -49,7 +49,7 @@ public class GamesDatabase extends DatabaseTable {
 				set1P1Sc, set1P2Sc, set2P1Sc, set2P2Sc, set3P1Sc, set3P2Sc);
 	}
 
-	public GameRecord getGameById(long id) throws Exception {
+	public synchronized GameRecord getGameById(long id) throws Exception {
 		if (!isIdTaken(id))
 			throw new IllegalArgumentException("Game with id " + id + " does not exist");
 		String set1 = getValue(id, GameDBColumn.set1);
@@ -73,7 +73,7 @@ public class GamesDatabase extends DatabaseTable {
 				set1P1Sc, set1P2Sc, set2P1Sc, set2P2Sc, set3P1Sc, set3P2Sc);
 	}
 
-	public void updateGame(GameRecord game) throws Exception {
+	public synchronized void updateGame(GameRecord game) throws Exception {
 		update(game.id(), Map.entry(GameDBColumn.isPublic, game.isPublic()),
 				Map.entry(GameDBColumn.player1, game.player1ID()),
 				Map.entry(GameDBColumn.player2, game.player2ID()),
@@ -86,7 +86,7 @@ public class GamesDatabase extends DatabaseTable {
 				Map.entry(GameDBColumn.set3, game.set3P1Sc() + "-" + game.set3P2Sc()));
 	}
 
-	public ArrayList<GameRecord> allGamesByPlayer(long playerId) {
+	public synchronized ArrayList<GameRecord> allGamesByPlayer(long playerId) {
 		return (ArrayList<GameRecord>) getAllIds().stream().filter(id -> {
 			try {
 				return getValue(id, GameDBColumn.player1).equals(playerId) || getValue(id, GameDBColumn.player2).equals(playerId);
@@ -102,7 +102,7 @@ public class GamesDatabase extends DatabaseTable {
 		}).collect(Collectors.toList());
 	}
 
-	public List<GameRecord> getLastGames(int n) {
+	public synchronized List<GameRecord> getLastGames(int n) {
 		// if n is -1, return all games
 		// because id is incremented, the last n games are the last n ids
 		return getAllIds().stream().sorted().limit(n).map(id -> {

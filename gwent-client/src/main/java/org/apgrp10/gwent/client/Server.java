@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import org.apgrp10.gwent.model.net.PacketHandler;
 import org.apgrp10.gwent.model.net.Request;
@@ -19,28 +20,18 @@ public class Server {
 	private static Server instance;
 	private PacketHandler packetHandler;
 	private List<Runnable> onClose = new ArrayList<>();
-
-	public static Server instance() {
-		if (instance == null)
-			connect();
-		return instance;
-	}
+	private boolean running;
+	private long lastPing = System.currentTimeMillis();
+	private boolean lastPingReceived = true;
 
 	private Server(Socket socket) {
 		packetHandler = new PacketHandler(socket);
 	}
 
-	public void sendRequest(Request req, Callback<Response> onReceive) { packetHandler.sendRequest(req, onReceive); }
-	public void sendRequest(Request req) { sendRequest(req, res -> {}); }
-	public void sendResponse(Response res) { packetHandler.sendResponse(res); }
-	public void setListener(String action, Callback<Request> onReceive) { packetHandler.setListener(action, onReceive); }
-
-	public Runnable addOnClose(Runnable fn) {
-		onClose.add(fn);
-		return fn;
-	}
-	public void removeOnClose(Runnable fn) {
-		onClose.remove(fn);
+	public static Server instance() {
+		if (instance == null)
+			connect();
+		return instance;
 	}
 
 	public static boolean isConnected() {
@@ -75,9 +66,22 @@ public class Server {
 		instance.packetHandler.getNetNode().close();
 	}
 
-	private boolean running;
-	private long lastPing = System.currentTimeMillis();
-	private boolean lastPingReceived = true;
+	public void send(Request req, Callback<Response> onReceive) {packetHandler.send(req, onReceive);}
+
+	public void send(Request req) {send(req, res -> {});}
+
+	public void send(Response res) {packetHandler.send(res);}
+
+	public void setListener(String action, Function<Request, Response> onReceive) {packetHandler.setListener(action, onReceive);}
+
+	public Runnable addOnClose(Runnable fn) {
+		onClose.add(fn);
+		return fn;
+	}
+
+	public void removeOnClose(Runnable fn) {
+		onClose.remove(fn);
+	}
 
 	private void fxLoop() {
 		if (!running)
@@ -102,7 +106,7 @@ public class Server {
 		packetHandler.run();
 	}
 
-	public void run() { 
+	public void run() {
 		if (!running) {
 			running = true;
 			fxLoop();

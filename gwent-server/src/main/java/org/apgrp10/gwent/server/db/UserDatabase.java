@@ -20,7 +20,7 @@ public class UserDatabase extends DatabaseTable {
 		super(ServerMain.SERVER_FOLDER + "gwent.db", tableName, Random::nextId, UserDBColumns.values());
 	}
 
-	public static UserDatabase getInstance() {
+	public synchronized static UserDatabase getInstance() {
 		if (instance == null) {
 			try {
 				instance = new UserDatabase();
@@ -32,31 +32,31 @@ public class UserDatabase extends DatabaseTable {
 		return instance;
 	}
 
-	public User addUser(User.RegisterInfo userInfo) throws Exception {
-		if (isUsernameTaken(userInfo.publicInfo().username()))
-			throw new IllegalArgumentException("Username " + userInfo.publicInfo().username() + " is already taken");
-		long id = insert(Map.entry(UserDBColumns.username, userInfo.publicInfo().username()),
-				Map.entry(UserDBColumns.nickname, userInfo.publicInfo().nickname()),
+	public synchronized User addUser(User.RegisterInfo userInfo) throws Exception {
+		if (isUsernameTaken(userInfo.username()))
+			throw new IllegalArgumentException("Username " + userInfo.username() + " is already taken");
+		long id = insert(Map.entry(UserDBColumns.username, userInfo.username()),
+				Map.entry(UserDBColumns.nickname, userInfo.nickname()),
 				Map.entry(UserDBColumns.email, userInfo.email()),
 				Map.entry(UserDBColumns.passHash, userInfo.passwordHash()),
 				Map.entry(UserDBColumns.securityQuestion, userInfo.securityQ()),
-				Map.entry(UserDBColumns.avatar, userInfo.publicInfo().avatar().toBase64()),
+				Map.entry(UserDBColumns.avatar, userInfo.avatar().toBase64()),
 				Map.entry(UserDBColumns.friends, ""));
 		return new User(id, userInfo);
 	}
 
-	public User getUserByUsername(String username) throws Exception {
+	public synchronized User getUserByUsername(String username) throws Exception {
 		long id = getUserId(username);
 		return getUserById(id);
 	}
 
-	public User getUserById(long id) throws Exception {
+	public synchronized User getUserById(long id) throws Exception {
 		if (!isIdTaken(id))
 			throw new IllegalArgumentException("User with id " + id + " does not exist");
 		return new User(id, getUserRegisterInfoById(id));
 	}
 
-	public User.PublicInfo getUserPublicInfoById(long id) throws Exception {
+	public synchronized User.PublicInfo getUserPublicInfoById(long id) throws Exception {
 		if (!isIdTaken(id))
 			throw new IllegalArgumentException("User with id " + id + " does not exist");
 		return new User.PublicInfo(
@@ -65,7 +65,7 @@ public class UserDatabase extends DatabaseTable {
 				Avatar.fromBase64(getValue(id, UserDBColumns.avatar)));
 	}
 
-	public User.RegisterInfo getUserRegisterInfoById(long id) throws Exception {
+	public synchronized User.RegisterInfo getUserRegisterInfoById(long id) throws Exception {
 		if (!isIdTaken(id))
 			throw new IllegalArgumentException("User with id " + id + " does not exist");
 		return new User.RegisterInfo(
@@ -75,20 +75,20 @@ public class UserDatabase extends DatabaseTable {
 				getValue(id, UserDBColumns.securityQuestion));
 	}
 
-	public boolean isUsernameTaken(String username) {
+	public synchronized boolean isUsernameTaken(String username) {
 		return getUserId(username) != -1;
 	}
 
-	public long getUserId(String username) {
+	public synchronized long getUserId(String username) {
 		return getId("WHERE username = ('" + username + "')");
 	}
 
-	public long[] getFriendsIds(long id) throws Exception {
+	public synchronized long[] getFriendsIds(long id) throws Exception {
 		return Arrays.stream(((String) getValue(id, UserDBColumns.friends)).split(",")) // split by comma
 				.map(String::trim).mapToLong(Long::parseLong).toArray();
 	}
 
-	public String[] getFriendsUsernames(String username) throws Exception {
+	public synchronized String[] getFriendsUsernames(String username) throws Exception {
 		return (String[]) Arrays.stream(getFriendsIds(getUserId(username))).mapToObj(id -> {
 			try {
 				return (String) getValue(id, UserDBColumns.username);
@@ -98,35 +98,35 @@ public class UserDatabase extends DatabaseTable {
 		}).toArray();
 	}
 
-	private void addNewFriend(long idOwner, long idFriend) throws Exception {
+	private synchronized void addNewFriend(long idOwner, long idFriend) throws Exception {
 		String newData = (String) getValue(idOwner, UserDBColumns.friends) + idFriend + ",";
 		updateInfo(idOwner, UserDBColumns.friends, newData);
 	}
 
-	public boolean haveFriendShip(long id1, long id2) throws Exception {
+	public synchronized boolean haveFriendShip(long id1, long id2) throws Exception {
 		for (long id : getFriendsIds(id1)) if (id == id2) return true;
 		return false;
 	}
 
-	public void addFriendShip(long id1, long id2) throws Exception {
+	public synchronized void addFriendShip(long id1, long id2) throws Exception {
 		if (haveFriendShip(id1, id2))
 			return;
 		addNewFriend(id1, id2);
 		addNewFriend(id2, id1);
 	}
 
-	public void deleteFriendShip(long id1, long id2) throws Exception {
+	public synchronized void deleteFriendShip(long id1, long id2) throws Exception {
 		deleteFriendShipOfOne(id1, id2);
 		deleteFriendShipOfOne(id2, id1);
 	}
 
-	private void deleteFriendShipOfOne(long id1, long id2) throws Exception {
+	private synchronized void deleteFriendShipOfOne(long id1, long id2) throws Exception {
 		StringBuilder newData = new StringBuilder();
 		for (long id : getFriendsIds(id1)) if (id != id2) newData.append(id).append(",");
 		updateInfo(id1, UserDBColumns.friends, newData.toString());
 	}
 
-	public ArrayList<User> getAllUsers() {
+	public synchronized ArrayList<User> getAllUsers() {
 		return (ArrayList<User>) getAllIds().stream().map(id -> {
 			try {
 				return getUserById(id);

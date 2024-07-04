@@ -5,6 +5,7 @@ import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
+import org.apgrp10.gwent.utils.MGson;
 import org.apgrp10.gwent.utils.Random;
 
 import com.google.gson.JsonObject;
@@ -19,38 +20,36 @@ public class GameTask extends Task {
 	public GameTask(Client c1, Client c2) {
 		this.c1 = c1;
 		this.c2 = c2;
-		c1.sendRequest(new Request("makeDeck"));
-		c2.sendRequest(new Request("makeDeck"));
+		c1.send(new Request("makeDeck"));
+		c2.send(new Request("makeDeck"));
 		c1.setListener("deck", req -> {
-			c1.sendResponse(new Response(req.getId(), 200));
 			c1.setListener("deck", null);
 			addCommand(() -> {
 				d1 = Deck.fromJsonString(req.getBody().get("deck").getAsString());
-				if (d1 != null && d2 != null)
-					start();
+				if (d1 != null && d2 != null) {start();}
 			});
+			return req.response(Response.OK_NO_CONTENT);
 		});
 		c2.setListener("deck", req -> {
-			c2.sendResponse(new Response(req.getId(), 200));
 			c2.setListener("deck", null);
 			addCommand(() -> {
 				d2 = Deck.fromJsonString(req.getBody().get("deck").getAsString());
 				if (d1 != null && d2 != null)
 					start();
 			});
+			return req.response(Response.OK_NO_CONTENT);
 		});
 	}
 
 	private void start() {
 		addCommand(() -> {
-			JsonObject startBody = new JsonObject();
 			long seed = Random.nextPosLong();
-			startBody.add("seed", new JsonPrimitive(seed));
-			startBody.add("deck1", new JsonPrimitive(d1.toJsonString()));
-			startBody.add("deck2", new JsonPrimitive(d2.toJsonString()));
+			JsonObject startBody = MGson.makeJsonObject("seed", seed,
+					"deck1", d1.toJsonString(),
+					"deck2", d2.toJsonString());
 
-			c1.sendRequest(new Request("start", startBody));
-			c2.sendRequest(new Request("start", startBody));
+			c1.send(new Request("start", startBody));
+			c2.send(new Request("start", startBody));
 
 			gameController = new GameController(
 				new DummyInputController(),
@@ -66,23 +65,19 @@ public class GameTask extends Task {
 				}
 			);
 
-			c1.setListener("command", req -> handleCommand(c1, req));
-			c2.setListener("command", req -> handleCommand(c2, req));
+			c1.setListener("command", this::handleCommand);
+			c2.setListener("command", this::handleCommand);
 		});
 	}
 
-	private void handleCommand(Client client, Request req) {
+	private Response handleCommand(Request req) {
 		Command cmd = Command.fromBase64(req.getBody().get("cmd").getAsString());
 		int player = req.getBody().get("player").getAsInt();
 		sendCommand(player, cmd);
-
-		client.sendResponse(new Response(req.getId(), 200));
-
-		JsonObject commandBody = new JsonObject();
-		commandBody.add("cmd", new JsonPrimitive(cmd.toBase64()));
-		commandBody.add("player", new JsonPrimitive(player));
-		c1.sendRequest(new Request("command", commandBody));
-		c2.sendRequest(new Request("command", commandBody));
+		JsonObject commandBody = MGson.makeJsonObject("cmd", cmd.toBase64(), "player", player);
+		c1.send(new Request("command", commandBody));
+		c2.send(new Request("command", commandBody));
+		return req.response(Response.OK_NO_CONTENT);
 	}
 
 	public boolean isDone() {
@@ -90,8 +85,6 @@ public class GameTask extends Task {
 	}
 
 	public void sendCommand(int player, Command cmd) {
-		addCommand(() -> {
-			gameController.sendCommand(player, cmd);
-		});
+		addCommand(() -> gameController.sendCommand(player, cmd));
 	}
 }

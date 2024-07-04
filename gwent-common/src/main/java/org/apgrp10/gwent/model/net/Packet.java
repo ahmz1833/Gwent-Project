@@ -1,9 +1,8 @@
 package org.apgrp10.gwent.model.net;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.MalformedJsonException;
+import org.apgrp10.gwent.utils.MGson;
 
 public abstract class Packet {
 	protected final JsonObject header;
@@ -15,7 +14,7 @@ public abstract class Packet {
 	}
 
 	public static Packet parse(String string) throws MalformedJsonException {
-		JsonObject full = new GsonBuilder().create().fromJson(string, JsonObject.class);
+		JsonObject full = MGson.fromJson(string, JsonObject.class);
 		JsonObject header = full.get("header").getAsJsonObject();
 		JsonObject body = full.get("body").getAsJsonObject();
 		if (header == null || body == null) throw new MalformedJsonException("Header or body is null");
@@ -29,7 +28,7 @@ public abstract class Packet {
 		JsonObject full = new JsonObject();
 		full.add("header", header);
 		full.add("body", body);
-		return new Gson().toJson(full);
+		return MGson.toJson(full);
 	}
 
 	public JsonObject getHeader() { return header; }

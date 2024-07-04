@@ -3,6 +3,15 @@ package org.apgrp10.gwent.model.net;
 import com.google.gson.JsonObject;
 
 public class Response extends Packet {
+	public static final int OK = 200;
+	public static final int ACCEPTED = 202;
+	public static final int OK_NO_CONTENT = 204;
+	public static final int BAD_REQUEST = 400;
+	public static final int UNAUTHORIZED = 401;
+	public static final int NOT_FOUND = 404;
+	public static final int CONFLICT = 409;
+	public static final int INTERNAL_SERVER_ERROR = 500;
+
 	Response(JsonObject header, JsonObject body) {
 		super(header, body);
 	}
@@ -11,7 +20,7 @@ public class Response extends Packet {
 		super(makeHeader(id, status), body);
 	}
 
-	public Response(long id, int status) { this(id, status, new JsonObject()); }
+	public Response(long id, int status) {this(id, status, new JsonObject());}
 
 	private static JsonObject makeHeader(long id, int status) {
 		JsonObject header = new JsonObject();
@@ -21,7 +30,9 @@ public class Response extends Packet {
 		return header;
 	}
 
-	public int getStatus() { return header.get("status").getAsInt(); }
-	public boolean isOk() { return getStatus() == 200; }
-	public long getRequestId() { return header.get("id").getAsLong(); }
+	public int getStatus() {return header.get("status").getAsInt();}
+
+	public boolean isOk() {return getStatus() == OK || getStatus() == OK_NO_CONTENT || getStatus() == ACCEPTED;}
+
+	public long getRequestId() {return header.get("id").getAsLong();}
 }

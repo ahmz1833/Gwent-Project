@@ -1,9 +1,7 @@
 package org.apgrp10.gwent.model.net;
 
-import org.apgrp10.gwent.utils.Random;
-
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.apgrp10.gwent.utils.Random;
 
 public class Request extends Packet {
 	Request(JsonObject header, JsonObject body) {
@@ -14,7 +12,7 @@ public class Request extends Packet {
 		super(makeHeader(action), body);
 	}
 
-	public Request(String action) { this(action, new JsonObject()); }
+	public Request(String action) {this(action, new JsonObject());}
 
 	private static JsonObject makeHeader(String action) {
 		JsonObject header = new JsonObject();
@@ -24,6 +22,11 @@ public class Request extends Packet {
 		return header;
 	}
 
-	public String getAction() { return header.get("action").getAsString(); }
-	public long getId() { return header.get("id").getAsLong(); }
+	public String getAction() {return header.get("action").getAsString();}
+
+	public long getId() {return header.get("id").getAsLong();}
+
+	public Response response(int status) {return new Response(getId(), status);}
+
+	public Response response(int status, JsonObject body) {return new Response(getId(), status, body);}
 }

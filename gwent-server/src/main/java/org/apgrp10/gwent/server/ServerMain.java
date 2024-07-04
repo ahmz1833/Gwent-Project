@@ -1,11 +1,16 @@
 package org.apgrp10.gwent.server;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
+import org.apgrp10.gwent.server.db.UserDatabase;
 import org.apgrp10.gwent.utils.ANSI;
+import org.apgrp10.gwent.utils.MGson;
+import org.apgrp10.gwent.utils.SecurityUtils;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -16,8 +21,9 @@ import java.util.Locale;
 public class ServerMain {
 	public static final String SERVER_FOLDER = System.getProperty("user.home") + "/gwent-data/";
 	public static final int PORT = 12345;
-	private static Client fastPlayed;
+	protected static final String SECRET_KEY = "AP_server@apgrp10/2024";
 	private static final Object lock = new Object();
+	private static Client fastPlayed;
 
 	public static void main(String[] args) {
 		Locale.setDefault(Locale.ENGLISH);
@@ -46,34 +52,105 @@ public class ServerMain {
 		// Initialize the thread pool
 		TaskManager.init(10);
 
+		Email2FAUtils.setRegisterCallback(userInfo -> {
+			ANSI.log("Registeration email verified: " + userInfo, ANSI.LGREEN, false);
+			// Add user to database
+			try {
+				UserDatabase.getInstance().addUser(userInfo);
+			} catch (Exception e) {
+				ANSI.logError(System.err, "Failed to add user to database", e);
+			}
+		});
+
 		ANSI.log("Listening at port: " + PORT, ANSI.CYAN, false);
 		while (true) {
 			try {
 				Socket socket = serverSocket.accept();
 
 				Client client = new Client(socket);
+				//List all static methods in Requests class
+
+				Method[] methods = Requests.class.getMethods();
+				for (Method method : methods) {
+					// Check if the method is a static method
+					if (method.getModifiers() != (Modifier.PUBLIC | Modifier.STATIC)) continue;
+
+					// Check if the method has the correct signature
+					if (method.getParameterCount() != 2) continue;
+					if (method.getParameterTypes()[0] != Client.class) continue;
+					if (method.getParameterTypes()[1] != Request.class) continue;
+					if (method.getReturnType() != Response.class) continue;
+
+					// Check if the method has the Authorizations annotation
+					Requests.Authorizations auth = method.getAnnotation(Requests.Authorizations.class);
+
+					// Add the method as a listener
+					client.setListener(method.getName(), req -> {
+						try {
+							if (auth != null) {
+								switch (auth.value()) {
+									case ALL:
+										break;
+									case LOGGED_IN:
+										if (client.loggedInUser() == null)
+											return req.response(Response.UNAUTHORIZED);
+										break;
+									case NOT_LOGGED_IN:
+										if (client.loggedInUser() != null)
+											return req.response(Response.BAD_REQUEST);
+										break;
+								}
+							}
+							return (Response) method.invoke(null, client, req);
+						} catch (Exception e) {
+							ANSI.logError(System.err, "Failed to invoke method", e);
+							return req.response(Response.INTERNAL_SERVER_ERROR);
+						}
+					});
+				}
+
 				client.setListener("fastPlay", req -> {
 					synchronized (lock) {
-						JsonObject json = new JsonObject();
 						if (fastPlayed == null) {
-							json.add("player", new JsonPrimitive(0));
-							client.sendResponse(new Response(req.getId(), 200, json));
 							fastPlayed = client;
+							return req.response(Response.OK, MGson.makeJsonObject("player", 0));
 						} else {
-							json.add("player", new JsonPrimitive(1));
-							client.sendResponse(new Response(req.getId(), 200, json));
 							TaskManager.submit(new GameTask(fastPlayed, client));
 							fastPlayed = null;
+							client.setListener("fastPlay", null);
+							return req.response(Response.OK, MGson.makeJsonObject("player", 1));
 						}
-						client.setListener("fastPlay", null);
 					}
 				});
+//
+//
+//				client.setListener("verifyLogin", req -> {
+//					synchronized (lock) {
+//						long userId = req.getBody().get("userId").getAsLong();
+//						String code = req.getBody().get("code").getAsString();
+//						if (Email2FAUtils.verifyLoginCode(client, code, userId)) try {
+//							JsonObject userJson = MGson.makeJsonObject("sub", userId,
+//									"name", UserDatabase.getInstance().getUserById(userId).registerInfo().username(),
+//									"exp", System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7); // 1 week
+//							String jwt = SecurityUtils.makeJWT(userJson, SECRET_KEY);
+//							return req.response(Response.OK, MGson.makeJsonObject("jwt", jwt));
+//						} catch (Exception e) {
+//							ANSI.logError(System.err, "Failed to verify login code", e);
+//							return req.response(Response.INTERNAL_SERVER_ERROR);
+//						}
+//						else
+//							return req.response(Response.UNAUTHORIZED);
+//					}
+//				});
+//
 				client.getNetNode().addOnClose(() -> {
 					synchronized (lock) {
 						if (fastPlayed == client)
 							fastPlayed = null;
 					}
 				});
+
+
 				TaskManager.submit(client);
 			} catch (IOException e) {
 				ANSI.logError(System.err, "Failed to accept client connection", e);

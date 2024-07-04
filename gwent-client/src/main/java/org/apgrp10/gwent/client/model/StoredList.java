@@ -1,10 +1,9 @@
 package org.apgrp10.gwent.client.model;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.stream.JsonReader;
 import org.apgrp10.gwent.client.Gwent;
+import org.apgrp10.gwent.utils.MGson;
 import org.apgrp10.gwent.utils.ANSI;
 
 import java.io.*;
@@ -63,8 +62,7 @@ public class StoredList<E> extends ArrayList<E> implements List<E>, InvocationHa
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		String json = gson.toJson(list);
+		String json = MGson.get(true, false).toJson(list);
 		try {
 			if (Files.readString(file.toPath()).equals(json)) return;
 		} catch (IOException e) {
@@ -80,15 +78,14 @@ public class StoredList<E> extends ArrayList<E> implements List<E>, InvocationHa
 	public static synchronized  <E> ArrayList<E> parseFile(File file, Class<E> eClass)
 	{
 		ArrayList<E> arr = new ArrayList<>();
-		Gson gson = new Gson();
 		try {
-			JsonArray a = gson.fromJson(new FileReader(file), JsonArray.class);
+			JsonArray a = MGson.fromJson(new FileReader(file), JsonArray.class);
 			if (a == null) return arr;
 			a.forEach(e -> {
 				try {
 					JsonReader reader = new JsonReader(new StringReader(e.toString()));
 					reader.setLenient(true);
-					E obj = gson.fromJson(reader, eClass);
+					E obj = MGson.fromJson(reader, eClass);
 					arr.add(obj);
 				} catch (Exception ex) {
 					ex.printStackTrace();

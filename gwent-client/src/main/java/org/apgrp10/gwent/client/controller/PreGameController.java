@@ -14,14 +14,13 @@ import org.apgrp10.gwent.model.net.Response;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-
-import javafx.application.Platform;
+import org.apgrp10.gwent.utils.MGson;
 
 public class PreGameController {
 	private final User.PublicInfo user1, user2;
 	private Deck deck1 = null;
 	private Deck deck2 = null;
-	private boolean isLocal1, isLocal2;
+	private final boolean isLocal1, isLocal2;
 	private Long seed = null;
 
 	// TODO: support when !isLocal1 && !isLocal2
@@ -40,9 +39,8 @@ public class PreGameController {
 				if (!isLocal1) deck1 = Deck.fromJsonString(req.getBody().get("deck1").getAsString());
 				if (!isLocal2) deck2 = Deck.fromJsonString(req.getBody().get("deck2").getAsString());
 				seed = req.getBody().get("seed").getAsLong();
-				Server.instance().sendResponse(new Response(req.getId(), 200));
-				if (deck1 != null && deck2 != null)
-					startGame();
+				if (deck1 != null && deck2 != null) {startGame();}
+				return req.response(Response.OK_NO_CONTENT);
 			});
 		}
 	}
@@ -52,28 +50,25 @@ public class PreGameController {
 		deck2.setUser(user2);
 		// TODO: for now we just set a random game up;
 		InputController c1, c2;
-		c1 = isLocal1? new MouseInputController(): new ServerInputController();
-		c2 = isLocal2? new MouseInputController(): new ServerInputController();
+		c1 = isLocal1 ? new MouseInputController() : new ServerInputController();
+		c2 = isLocal2 ? new MouseInputController() : new ServerInputController();
 		GameMenu gameMenu = new GameMenu(PreGameStage.getInstance());
 		GameController controller = new GameController(c1, c2, deck1, deck2, seed, gameMenu, () -> System.exit(1));
 
 		if (!isLocal1 || !isLocal2) {
 			Server.instance().setListener("command", req -> {
-				Server.instance().sendResponse(new Response(req.getId(), 200));
 				Command cmd = Command.fromBase64(req.getBody().get("cmd").getAsString());
 				int player = req.getBody().get("player").getAsInt();
-				if (player == 0 && !isLocal1) ((ServerInputController)c1).sendCommand(cmd);
-				if (player == 1 && !isLocal2) ((ServerInputController)c2).sendCommand(cmd);
+				if (player == 0 && !isLocal1) ((ServerInputController) c1).sendCommand(cmd);
+				if (player == 1 && !isLocal2) ((ServerInputController) c2).sendCommand(cmd);
+				return req.response(Response.OK_NO_CONTENT);
 			});
 			for (int i = 0; i < 2; i++) {
 				if (i == 0 && !isLocal1) continue;
 				if (i == 1 && !isLocal2) continue;
 				int ii = i;
 				controller.addCommandListener(ii, cmd -> {
-					JsonObject json = new JsonObject();
-					json.add("cmd", new JsonPrimitive(cmd.toBase64()));
-					json.add("player", new JsonPrimitive(ii));
-					Server.instance().sendRequest(new Request("command", json));
+					Server.instance().send(new Request("command", MGson.makeJsonObject("cmd", cmd.toBase64(), "player", ii)));
 				});
 			}
 		}
@@ -82,7 +77,7 @@ public class PreGameController {
 	public void setDeck1(Deck deck) {
 		deck1 = deck;
 		if (isLocal1 && !isLocal2)
-			Server.instance().sendRequest(Deck.deckRequest(0, deck));
+			Server.instance().send(Deck.deckRequest(0, deck));
 		if (isLocal2)
 			new PreGameMenu(this, false, user2);
 	}
@@ -90,7 +85,7 @@ public class PreGameController {
 	public void setDeck2(Deck deck) {
 		deck2 = deck;
 		if (isLocal2 && !isLocal1)
-			Server.instance().sendRequest(Deck.deckRequest(1, deck));
+			Server.instance().send(Deck.deckRequest(1, deck));
 		if (isLocal1 && isLocal2)
 			seed = System.currentTimeMillis();
 	}

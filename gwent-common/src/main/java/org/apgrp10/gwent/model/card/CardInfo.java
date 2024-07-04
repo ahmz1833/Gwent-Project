@@ -1,8 +1,7 @@
 package org.apgrp10.gwent.model.card;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.apgrp10.gwent.R;
+import org.apgrp10.gwent.utils.MGson;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -49,10 +48,7 @@ public class CardInfo {
 		static {
 			Scanner scanner = new Scanner(R.getAsStream("cards.json")).useDelimiter("\\A");
 			String result = scanner.hasNext() ? scanner.next() : "";
-			GsonBuilder builder = new GsonBuilder();
-			builder.setPrettyPrinting();
-			Gson gson = builder.create();
-			CardLoader[] allCards = gson.fromJson(result, CardLoader[].class);
+			CardLoader[] allCards = MGson.fromJson(result, CardLoader[].class);
 			for (CardLoader card : allCards) {
 				int id = convertToInt(card.id);
 				int count = convertToInt(card.count);

@@ -2,7 +2,6 @@ package org.apgrp10.gwent.server;
 
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.net.NetNode;
-import org.apgrp10.gwent.model.net.Packet;
 import org.apgrp10.gwent.model.net.PacketHandler;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
@@ -11,13 +10,12 @@ import org.apgrp10.gwent.utils.Callback;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Function;
 
 public class Client extends Task {
+	private final PacketHandler packetHandler;
 	private User loggedInUser; // may be null if not logged in
 	private boolean destructed;
-	private final PacketHandler packetHandler;
 	private long lastPing;
 	private boolean lastPingReceived;
 
@@ -54,27 +52,36 @@ public class Client extends Task {
 			}
 			lastPing = time;
 			lastPingReceived = false;
-			packetHandler.ping(() -> { lastPingReceived = true; });
+			packetHandler.ping(() -> lastPingReceived = true);
 		}
 		packetHandler.run();
 	}
 
-	public void sendRequest(Request req, Callback<Response> onReceive) {
-		addCommand(() -> {
-			packetHandler.sendRequest(req, onReceive);
-		});
-	}
-	public void sendRequest(Request req) { sendRequest(req, res -> {}); }
-
-	public void sendResponse(Response res) {
-		addCommand(() -> {
-			packetHandler.sendResponse(res);
-		});
+	public void send(Request req, Callback<Response> onReceive) {
+		addCommand(() -> packetHandler.send(req, onReceive));
 	}
 
-	public void setListener(String action, Callback<Request> onReceive) {
-		addCommand(() -> {
-			packetHandler.setListener(action, onReceive);
-		});
+	public void send(Request req) {send(req, res -> {});}
+
+	public void send(Response res) {
+		addCommand(() -> packetHandler.send(res));
 	}
+
+	public void setListener(String action, Function<Request, Response> onReceive) {
+		addCommand(() -> packetHandler.setListener(action, onReceive));
+	}
+
+	public User loggedInUser() {
+		return loggedInUser;
+	}
+
+	public void setLoggedInUser(User user) {
+		loggedInUser = user;
+	}
+
+	public AuthLevel getAuthLevel() {
+		return loggedInUser == null ? AuthLevel.NOT_LOGGED_IN : AuthLevel.LOGGED_IN;
+	}
+
+	public enum AuthLevel {NONE, LOGGED_IN, NOT_LOGGED_IN, ALL}
 }
