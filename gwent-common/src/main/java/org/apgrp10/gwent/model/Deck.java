@@ -14,6 +14,7 @@ import org.apgrp10.gwent.model.card.CardInfo;
 import org.apgrp10.gwent.model.card.Faction;
 import org.apgrp10.gwent.model.card.Row;
 import org.apgrp10.gwent.utils.MGson;
+import org.apgrp10.gwent.utils.Utils;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.utils.ANSI;
 
@@ -91,15 +92,8 @@ public class Deck {
 
 	public static Deck loadDeckFromFile(String fileAddress) {
 		try {
-			File file = new File(fileAddress);
-			BufferedReader br = new BufferedReader(new FileReader(file));
-			StringBuilder text = new StringBuilder();
-			String line;
-			while ((line = br.readLine()) != null) {
-				text.append(line).append("\n");
-			}
-			br.close();
-			Deck deck = fromJsonString(text.toString());
+			String text = Utils.loadFile(fileAddress);
+			Deck deck = fromJsonString(text);
 			assert deck != null;
 			return deck;
 		} catch (Exception e) {

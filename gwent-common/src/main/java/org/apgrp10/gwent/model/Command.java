@@ -1,8 +1,19 @@
 package org.apgrp10.gwent.model;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.Base64;
 
+import com.google.gson.TypeAdapter;
+import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
+
+@JsonAdapter(Command.CommandAdapter.class)
 public interface Command {
 	static Command fromBase64(String str) {
 		try {
@@ -24,6 +35,18 @@ public interface Command {
 			// should be unreachable
 			System.exit(1);
 			return null;
+		}
+	}
+
+	static class CommandAdapter extends TypeAdapter<Command> {
+		@Override
+		public void write(JsonWriter out, Command value) throws IOException {
+			out.value(value.toBase64());
+		}
+
+		@Override
+		public Command read(JsonReader in) throws IOException {
+			return Command.fromBase64(in.nextString());
 		}
 	}
 

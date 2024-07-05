@@ -156,10 +156,11 @@ public class GameController {
 			}
 		}
 
-		nextTurnDelay = 1000;
-		playerData[turn].controller.beginTurn();
 		if (gameMenu != null)
 			gameMenu.beginRound();
+
+		nextTurnDelay = 1000;
+		playerData[turn].controller.beginTurn();
 	}
 
 	private long nextTurnDelay = 1000;

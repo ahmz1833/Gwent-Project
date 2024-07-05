@@ -17,6 +17,7 @@ import com.google.gson.JsonPrimitive;
 
 import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
+import org.apgrp10.gwent.utils.Utils;
 
 public class PreGameController {
 	private final User.PublicInfo user1, user2;
@@ -57,7 +58,9 @@ public class PreGameController {
 		GameMenu gameMenu = new GameMenu(PreGameStage.getInstance());
 		GameController controller = new GameController(c1, c2, deck1, deck2, seed, gameMenu, gr -> {
 			ANSI.log("game record: " + gr);
-			System.exit(1);
+			Utils.choosePlaceAndDownload("Choose place to save recording", "recording.gwent", PreGameStage.getInstance(),
+					MGson.get(true, true).toJson(gr));
+			System.exit(0);
 		});
 
 		if (!isLocal1 || !isLocal2) {
@@ -92,7 +95,9 @@ public class PreGameController {
 		deck2 = deck;
 		if (isLocal2 && !isLocal1)
 			Server.send(Deck.deckRequest(1, deck));
-		if (isLocal1 && isLocal2)
+		if (isLocal1 && isLocal2) {
 			seed = System.currentTimeMillis();
+			startGame();
+		}
 	}
 }

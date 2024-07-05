@@ -23,6 +23,7 @@ import org.apgrp10.gwent.model.card.Card;
 import org.apgrp10.gwent.model.card.CardInfo;
 import org.apgrp10.gwent.model.card.Faction;
 import org.apgrp10.gwent.model.card.Row;
+import org.apgrp10.gwent.utils.Utils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -156,9 +157,13 @@ public class PreGameMenu extends Application {
 	private void addLinksToFactionInfo(VBox factionInfo) {
 		StackPane stack2 = getStackPane(400, 20, Pos.CENTER);
 		HBox links = new HBox();
-		links.getChildren().add(addCSSLinkedText("Upload Deck", k -> chooseFileToUpload()));
+		links.getChildren().add(addCSSLinkedText("Upload Deck", k -> {
+			uploadDeck(Utils.chooseFileToUpload("Choose deck to upload", PreGameStage.getInstance()));
+		}));
 		links.getChildren().add(addCSSLinkedText("Change Faction", k -> fivePlacePreGame.show(false, currentFactionIndex)));
-		links.getChildren().add(addCSSLinkedText("Download Deck", k -> choosePlaceToDownload()));
+		links.getChildren().add(addCSSLinkedText("Download Deck", k -> {
+			Utils.choosePlaceAndDownload("Choose place to download deck", "deck.gwent", PreGameStage.getInstance(), downloadDeck());
+		}));
 		stack2.getChildren().add(links);
 		factionInfo.getChildren().add(stack2);
 	}
@@ -441,6 +446,8 @@ public class PreGameMenu extends Application {
 	}
 
 	private void uploadDeck(String path) {
+		if (path == null)
+			return;
 		Deck deck = Deck.loadDeckFromFile(path);
 		if (deck != null) {
 			loadFactionDeck(deck.getFaction());
@@ -464,38 +471,6 @@ public class PreGameMenu extends Application {
 
 	private String downloadDeck() {
 		return createDeckFromPane(deckLists[1]).toJsonString();
-	}
-
-	private void chooseFileToUpload() {
-		FileChooser fileChooser = new FileChooser();
-		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Gwent Files", "*.gwent"));
-		File downloadFolder = new File(System.getProperty("user.home"), "Downloads");
-		fileChooser.setInitialDirectory(downloadFolder);
-		File selectedFile = fileChooser.showOpenDialog(PreGameStage.getInstance());
-		if (selectedFile != null) {
-			uploadDeck(selectedFile.getAbsolutePath());
-		}
-	}
-
-	private void choosePlaceToDownload() {
-		String downloadedFileName = "deck.gwent";
-		FileChooser fileChooser = new FileChooser();
-		fileChooser.setTitle("Save File");
-		fileChooser.setInitialFileName(downloadedFileName);
-		String home = System.getProperty("user.home");
-		File downloadFolder = new File(home, "Downloads");
-		fileChooser.setInitialDirectory(downloadFolder);
-		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Gwent Files", "*.gwent"));
-		File selectedDir = fileChooser.showSaveDialog(PreGameStage.getInstance());
-		if (selectedDir != null) {
-			try {
-				File myFile = new File(selectedDir.getAbsolutePath());
-				FileWriter myWriter = new FileWriter(myFile);
-				myWriter.write(downloadDeck());
-				myWriter.close();
-			} catch (Exception ignored) {
-			}
-		}
 	}
 
 	private void startGame() {

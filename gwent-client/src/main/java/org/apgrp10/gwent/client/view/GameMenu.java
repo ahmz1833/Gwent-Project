@@ -349,13 +349,16 @@ public class GameMenu extends Application implements GameMenuInterface {
 
 	private final ArrayList<MessageGame> messages = new ArrayList<>();
 	private boolean isMessageShowing = false;
+	private boolean messageAnimation = false;
 
 	private void showAllMessages() {
 		int delay = 10;
+		messageAnimation = true;
 		for (MessageGame message : messages) {
 			message.show(delay);
 			delay += 1050;
 		}
+		controller.waitExec.run(delay, () -> messageAnimation = false);
 		messages.clear();
 		isMessageShowing = false;
 	}
@@ -693,7 +696,7 @@ public class GameMenu extends Application implements GameMenuInterface {
 	}
 
 	public boolean isAnimationPlaying() {
-		return !animationNodes.isEmpty() || !scorchCards.isEmpty();
+		return !animationNodes.isEmpty() || !scorchCards.isEmpty() || isMessageShowing || messageAnimation;
 	}
 
 	private List<Card> scorchCards = new ArrayList<>();

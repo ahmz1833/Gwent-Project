@@ -7,9 +7,9 @@ import org.apgrp10.gwent.utils.ANSI;
 
 public class ClientMain {
 	public static void main(String[] args) {
-		Locale.setDefault(Locale.ENGLISH);
-		ANSI.log("Trying to connect to server", ANSI.LYELLOW, false);
-		Server.connect();
+		// Locale.setDefault(Locale.ENGLISH);
+		// ANSI.log("Trying to connect to server", ANSI.LYELLOW, false);
+		// Server.connect();
 
 		//while (true) {
 		//	Server.instance().sendRequest(new Request("hello"), res -> {
