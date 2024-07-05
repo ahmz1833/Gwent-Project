@@ -6,10 +6,10 @@ import org.apgrp10.gwent.model.net.PacketHandler;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
 import org.apgrp10.gwent.utils.ANSI;
-import org.apgrp10.gwent.utils.Callback;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Client extends Task {
@@ -57,7 +57,7 @@ public class Client extends Task {
 		packetHandler.run();
 	}
 
-	public void send(Request req, Callback<Response> onReceive) {
+	public void send(Request req, Consumer<Response> onReceive) {
 		addCommand(() -> packetHandler.send(req, onReceive));
 	}
 

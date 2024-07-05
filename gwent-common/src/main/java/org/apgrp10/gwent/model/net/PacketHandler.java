@@ -3,9 +3,8 @@ package org.apgrp10.gwent.model.net;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
-
-import org.apgrp10.gwent.utils.Callback;
 
 public class PacketHandler implements Runnable {
 	private final NetNode node;
@@ -20,7 +19,7 @@ public class PacketHandler implements Runnable {
 			node.run();
 	}
 
-	private final Map<Long, Callback<Response>> resCallbacks = new HashMap<>();
+	private final Map<Long, Consumer<Response>> resCallbacks = new HashMap<>();
 	private final Map<String, Function<Request, Response>> reqCallbacks = new HashMap<>();
 
 	public Function<Request, Response> setListener(String action, Function<Request, Response> cb) {
@@ -28,7 +27,7 @@ public class PacketHandler implements Runnable {
 		return cb;
 	}
 
-	public void send(Request req, Callback<Response> onReceive) {
+	public void send(Request req, Consumer<Response> onReceive) {
 		resCallbacks.put(req.getId(), onReceive);
 		if (!node.send(req.toString().getBytes()))
 			node.close();
@@ -71,9 +70,9 @@ public class PacketHandler implements Runnable {
 			node.close();
 			return;
 		}
-		Callback<Response> cb = resCallbacks.remove(res.getRequestId());
+		Consumer<Response> cb = resCallbacks.remove(res.getRequestId());
 		if (cb != null)
-			cb.call(res);
+			cb.accept(res);
 	}
 
 	public void ping(Runnable onReceive) {

@@ -6,9 +6,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
 import org.apgrp10.gwent.utils.ANSI;
-import org.apgrp10.gwent.utils.Callback;
+
 
 public class NetNode implements Closeable, Runnable {
 	protected final Socket socket;
@@ -18,7 +19,7 @@ public class NetNode implements Closeable, Runnable {
 
 	private AsyncReader asyncReader;
 
-	public NetNode(Socket socket, Callback<byte[]> onReceive) {
+	public NetNode(Socket socket, Consumer<byte[]> onReceive) {
 		this.socket = socket;
 		try {
 			inputStream = socket.getInputStream();
@@ -35,7 +36,7 @@ public class NetNode implements Closeable, Runnable {
 
 	public NetNode(Socket socket) {this(socket, null);}
 
-	public void setOnReceive(Callback<byte[]> cb) {asyncReader.setOnReceive(cb);}
+	public void setOnReceive(Consumer<byte[]> cb) {asyncReader.setOnReceive(cb);}
 
 	public Runnable addOnClose(Runnable fn) {
 		onClose.add(fn);

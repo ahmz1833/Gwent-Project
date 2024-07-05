@@ -10,7 +10,7 @@ import org.apgrp10.gwent.client.model.CardView;
 import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.controller.GameController.PlayerData;
 import org.apgrp10.gwent.model.card.Card;
-import org.apgrp10.gwent.utils.Callback;
+import org.apgrp10.gwent.utils.Consumer;
 import org.apgrp10.gwent.view.GameMenuInterface;
 
 import javafx.animation.Transition;
@@ -566,10 +566,10 @@ public class GameMenu extends Application implements GameMenuInterface {
 
 	protected List<Card> pickList;
 	private int pickIdx;
-	protected Callback<Card> pickFn;
+	protected Consumer<Card> pickFn;
 	private boolean pickNullPossible;
 
-	public void pickCard(List<Card> list, Callback<Card> cb, boolean nullPossible) {
+	public void pickCard(List<Card> list, Consumer<Card> cb, boolean nullPossible) {
 		assert pickList == null;
 
 		if (list.isEmpty()) {
@@ -584,15 +584,15 @@ public class GameMenu extends Application implements GameMenuInterface {
 		redraw();
 	}
 
-	private final List<Callback<Object>> cardListeners = new ArrayList<>();
-	private final List<Callback<Object>> buttonListeners = new ArrayList<>();
-	private final List<Callback<Object>> rowListeners = new ArrayList<>();
-	private final List<Callback<Object>> bgListeners = new ArrayList<>();
+	private final List<Consumer<Object>> cardListeners = new ArrayList<>();
+	private final List<Consumer<Object>> buttonListeners = new ArrayList<>();
+	private final List<Consumer<Object>> rowListeners = new ArrayList<>();
+	private final List<Consumer<Object>> bgListeners = new ArrayList<>();
 
-	public Object addCardListener(Callback<Object> cb) { cardListeners.add(cb); return cb; }
-	public Object addButtonListener(Callback<Object> cb) { buttonListeners.add(cb); return cb; }
-	public Object addRowListener(Callback<Object> cb) { rowListeners.add(cb); return cb; }
-	public Object addBgListener(Callback<Object> cb) { bgListeners.add(cb); return cb; }
+	public Object addCardListener(Consumer<Object> cb) { cardListeners.add(cb); return cb; }
+	public Object addButtonListener(Consumer<Object> cb) { buttonListeners.add(cb); return cb; }
+	public Object addRowListener(Consumer<Object> cb) { rowListeners.add(cb); return cb; }
+	public Object addBgListener(Consumer<Object> cb) { bgListeners.add(cb); return cb; }
 
 	public void removeListener(Object obj) {
 		cardListeners.remove(obj);
@@ -601,9 +601,9 @@ public class GameMenu extends Application implements GameMenuInterface {
 		bgListeners.remove(obj);
 	}
 
-	private void notifyListeners(List<Callback<Object>> callbacks, Object obj) {
+	private void notifyListeners(List<Consumer<Object>> callbacks, Object obj) {
 		// we make a deep copy because someone might remove their listeners while we are iterating
-		for (Callback<Object> cb : new ArrayList<>(callbacks))
+		for (Consumer<Object> cb : new ArrayList<>(callbacks))
 			cb.call(obj);
 	}
 

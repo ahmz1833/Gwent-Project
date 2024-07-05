@@ -4,7 +4,6 @@ import com.sun.net.httpserver.HttpServer;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.net.Response;
 import org.apgrp10.gwent.utils.ANSI;
-import org.apgrp10.gwent.utils.Callback;
 import org.apgrp10.gwent.utils.Random;
 
 import java.io.IOException;
@@ -17,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class Email2FAUtils {
 	private static final Map<String, User.RegisterInfo> registerQueue = new HashMap<>();
@@ -24,9 +24,9 @@ public class Email2FAUtils {
 	private static final String HTTP_SERVER_ADDR = "37.152.178.57", EMAIL_SERVER_ADDR = "localhost";
 	private static final int HTTP_SERVER_PORT = 2222, EMAIL_SERVER_PORT = 41567;
 	private static final int LOGIN_CODE_LENGTH = 6, LOGIN_CODE_EXPIRY = 300_000;
-	private static Callback<User.RegisterInfo> registerCallback;
+	private static Consumer<User.RegisterInfo> registerCallback;
 
-	public static void setRegisterCallback(Callback<User.RegisterInfo> callback) {
+	public static void setRegisterCallback(Consumer<User.RegisterInfo> callback) {
 		registerCallback = callback;
 	}
 
@@ -65,7 +65,7 @@ public class Email2FAUtils {
 							""";
 					responseCode = Response.BAD_REQUEST;  // Bad request
 				} else {
-					registerCallback.call(userInfo);  // Register the user
+					registerCallback.accept(userInfo);  // Register the user
 					response = """
 							<html>
 							<head> <title>Email verified</title> </head>

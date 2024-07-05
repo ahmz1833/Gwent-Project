@@ -4,16 +4,16 @@ import java.util.List;
 
 import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.model.card.Card;
-import org.apgrp10.gwent.utils.Callback;
+import org.apgrp10.gwent.utils.Consumer;
 
 public interface GameMenuInterface {
 	void redraw();
-	void pickCard(List<Card> list, Callback<Card> cb, boolean nullPossible);
+	void pickCard(List<Card> list, Consumer<Card> cb, boolean nullPossible);
 
-	Object addCardListener(Callback<Object> cb);
-	Object addButtonListener(Callback<Object> cb);
-	Object addRowListener(Callback<Object> cb);
-	Object addBgListener(Callback<Object> cb);
+	Object addCardListener(Consumer<Object> cb);
+	Object addButtonListener(Consumer<Object> cb);
+	Object addRowListener(Consumer<Object> cb);
+	Object addBgListener(Consumer<Object> cb);
 
 	void removeListener(Object obj);
 	void animationToRow(Card card, int actualRow);

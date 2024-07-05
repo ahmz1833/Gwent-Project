@@ -2,17 +2,17 @@ package org.apgrp10.gwent.model.net;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.Consumer;
 
 import org.apgrp10.gwent.utils.ANSI;
-import org.apgrp10.gwent.utils.Callback;
 
 public class AsyncReader implements Runnable {
 	private InputStream stream;
-	private Callback<byte[]> receive;
-	private Callback<Exception> failure;
+	private Consumer<byte[]> receive;
+	private Consumer<Exception> failure;
 	private byte buf[] = new byte[32];
 	private int size = 0;
-	public AsyncReader(InputStream stream, Callback<byte[]> onReceive, Callback<Exception> onFailure) {
+	public AsyncReader(InputStream stream, Consumer<byte[]> onReceive, Consumer<Exception> onFailure) {
 		this.stream = stream;
 		this.receive = onReceive;
 		this.failure = onFailure;
@@ -60,9 +60,9 @@ public class AsyncReader implements Runnable {
 		return ans;
 	}
 
-	public void setOnReceive(Callback<byte[]> cb) {receive = cb;}
+	public void setOnReceive(Consumer<byte[]> cb) {receive = cb;}
 
-	public void setOnFailure(Callback<Exception> cb) {failure = cb;}
+	public void setOnFailure(Consumer<Exception> cb) {failure = cb;}
 
 	@Override
 	public void run() {
@@ -91,13 +91,13 @@ public class AsyncReader implements Runnable {
 					break;
 
 				if (len > 0)
-					receive.call(part(4, len));
+					receive.accept(part(4, len));
 
 				skip(4 + len);
 			}
 		} catch (Exception e) {
 			ANSI.logError(System.err, "async reader failure", e);
-			failure.call(e);
+			failure.accept(e);
 		}
 	}
 }

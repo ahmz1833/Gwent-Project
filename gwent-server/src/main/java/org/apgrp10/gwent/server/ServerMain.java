@@ -1,12 +1,10 @@
 package org.apgrp10.gwent.server;
 
-import com.google.gson.JsonObject;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
 import org.apgrp10.gwent.server.db.UserDatabase;
 import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
-import org.apgrp10.gwent.utils.SecurityUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -122,27 +120,7 @@ public class ServerMain {
 						}
 					}
 				});
-//
-//
-//				client.setListener("verifyLogin", req -> {
-//					synchronized (lock) {
-//						long userId = req.getBody().get("userId").getAsLong();
-//						String code = req.getBody().get("code").getAsString();
-//						if (Email2FAUtils.verifyLoginCode(client, code, userId)) try {
-//							JsonObject userJson = MGson.makeJsonObject("sub", userId,
-//									"name", UserDatabase.getInstance().getUserById(userId).registerInfo().username(),
-//									"exp", System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7); // 1 week
-//							String jwt = SecurityUtils.makeJWT(userJson, SECRET_KEY);
-//							return req.response(Response.OK, MGson.makeJsonObject("jwt", jwt));
-//						} catch (Exception e) {
-//							ANSI.logError(System.err, "Failed to verify login code", e);
-//							return req.response(Response.INTERNAL_SERVER_ERROR);
-//						}
-//						else
-//							return req.response(Response.UNAUTHORIZED);
-//					}
-//				});
-//
+
 				client.getNetNode().addOnClose(() -> {
 					synchronized (lock) {
 						if (fastPlayed == client)

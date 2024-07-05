@@ -1,11 +1,10 @@
 package org.apgrp10.gwent.client.controller;
 
-import org.apgrp10.gwent.client.view.GameMenu;
 import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.controller.InputController;
 import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.card.Card;
-import org.apgrp10.gwent.utils.Callback;
+import org.apgrp10.gwent.utils.Consumer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +56,7 @@ public class MouseInputController implements InputController {
 		// TODO: this function is pure shit! maybe do something better?
 		// also note that if it's a local game player 2 needs to wait for player 1 before choosing
 
-		Callback<Card> pickCb = card1 -> {
+		Consumer<Card> pickCb = card1 -> {
 			if (card1 == null) {
 				controller.waitExec.run(1000, () -> {
 					controller.sendCommand(player, new Command.VetoCard(player, -1));

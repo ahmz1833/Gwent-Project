@@ -35,7 +35,7 @@ public class PreGameController {
 			new PreGameMenu(this, false, user2);
 
 		if (!isLocal2 || !isLocal1) {
-			Server.instance().setListener("start", req -> {
+			Server.setListener("start", req -> {
 				if (!isLocal1) deck1 = Deck.fromJsonString(req.getBody().get("deck1").getAsString());
 				if (!isLocal2) deck2 = Deck.fromJsonString(req.getBody().get("deck2").getAsString());
 				seed = req.getBody().get("seed").getAsLong();
@@ -56,7 +56,7 @@ public class PreGameController {
 		GameController controller = new GameController(c1, c2, deck1, deck2, seed, gameMenu, () -> System.exit(1));
 
 		if (!isLocal1 || !isLocal2) {
-			Server.instance().setListener("command", req -> {
+			Server.setListener("command", req -> {
 				Command cmd = Command.fromBase64(req.getBody().get("cmd").getAsString());
 				int player = req.getBody().get("player").getAsInt();
 				if (player == 0 && !isLocal1) ((ServerInputController) c1).sendCommand(cmd);
@@ -68,7 +68,7 @@ public class PreGameController {
 				if (i == 1 && !isLocal2) continue;
 				int ii = i;
 				controller.addCommandListener(ii, cmd -> {
-					Server.instance().send(new Request("command", MGson.makeJsonObject("cmd", cmd.toBase64(), "player", ii)));
+					Server.send(new Request("command", MGson.makeJsonObject("cmd", cmd.toBase64(), "player", ii)));
 				});
 			}
 		}
@@ -77,7 +77,7 @@ public class PreGameController {
 	public void setDeck1(Deck deck) {
 		deck1 = deck;
 		if (isLocal1 && !isLocal2)
-			Server.instance().send(Deck.deckRequest(0, deck));
+			Server.send(Deck.deckRequest(0, deck));
 		if (isLocal2)
 			new PreGameMenu(this, false, user2);
 	}
@@ -85,7 +85,7 @@ public class PreGameController {
 	public void setDeck2(Deck deck) {
 		deck2 = deck;
 		if (isLocal2 && !isLocal1)
-			Server.instance().send(Deck.deckRequest(1, deck));
+			Server.send(Deck.deckRequest(1, deck));
 		if (isLocal1 && isLocal2)
 			seed = System.currentTimeMillis();
 	}
