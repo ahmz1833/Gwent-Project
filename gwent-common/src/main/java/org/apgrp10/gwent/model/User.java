@@ -7,8 +7,8 @@ public class User {
 	private RegisterInfo registerInfo;
 	private long[] friends;
 
-	public User(long id, RegisterInfo registerInfo) {
-		this.id = id;
+	public User(RegisterInfo registerInfo) {
+		this.id = registerInfo.publicInfo().id();
 		this.registerInfo = registerInfo;
 	}
 
@@ -61,7 +61,7 @@ public class User {
 		return registerInfo;
 	}
 
-	public record PublicInfo(String username, String nickname, Avatar avatar) {}
+	public record PublicInfo(long id, String username, String nickname, Avatar avatar) {}
 
 	public record RegisterInfo(PublicInfo publicInfo, String passwordHash, String email, String securityQ) {
 		public String username() {
@@ -74,6 +74,11 @@ public class User {
 
 		public Avatar avatar() {
 			return publicInfo.avatar();
+		}
+
+		public static RegisterInfo copyWithId(RegisterInfo src, long newId) {
+			return new RegisterInfo(new PublicInfo(newId, src.username(), src.nickname(), src.avatar()),
+					src.passwordHash(), src.email(), src.securityQ());
 		}
 	}
 }

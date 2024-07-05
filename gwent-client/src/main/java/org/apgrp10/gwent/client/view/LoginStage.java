@@ -33,7 +33,7 @@ public class LoginStage extends AbstractStage {
 		setScene(R.scene.login);
 		MFXButton btn = lookup("#register");
 		User.RegisterInfo ureg = new User.RegisterInfo(
-				new User.PublicInfo("user", "nick", Avatar.random()),
+				new User.PublicInfo(666, "user", "nick", Avatar.random()),
 				User.hashPassword("12344321"),
 				"ahmz.ut@gmail.com",
 				User.hashSecurityQ("What is your name?", "Ahmad"));

@@ -2,6 +2,7 @@ package org.apgrp10.gwent.server.db;
 
 import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.User;
+import org.apgrp10.gwent.model.User.RegisterInfo;
 import org.apgrp10.gwent.server.ServerMain;
 import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.DatabaseTable;
@@ -42,7 +43,7 @@ public class UserDatabase extends DatabaseTable {
 				Map.entry(UserDBColumns.securityQuestion, userInfo.securityQ()),
 				Map.entry(UserDBColumns.avatar, userInfo.avatar().toBase64()),
 				Map.entry(UserDBColumns.friends, ""));
-		return new User(id, userInfo);
+		return new User(RegisterInfo.copyWithId(userInfo, id));
 	}
 
 	public synchronized User getUserByUsername(String username) throws Exception {
@@ -53,13 +54,13 @@ public class UserDatabase extends DatabaseTable {
 	public synchronized User getUserById(long id) throws Exception {
 		if (!isIdTaken(id))
 			throw new IllegalArgumentException("User with id " + id + " does not exist");
-		return new User(id, getUserRegisterInfoById(id));
+		return new User(getUserRegisterInfoById(id));
 	}
 
 	public synchronized User.PublicInfo getUserPublicInfoById(long id) throws Exception {
 		if (!isIdTaken(id))
 			throw new IllegalArgumentException("User with id " + id + " does not exist");
-		return new User.PublicInfo(
+		return new User.PublicInfo(id,
 				getValue(id, UserDBColumns.username),
 				getValue(id, UserDBColumns.nickname),
 				Avatar.fromBase64(getValue(id, UserDBColumns.avatar)));

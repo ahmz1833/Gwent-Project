@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class GamesDatabase extends DatabaseTable {
@@ -33,57 +34,61 @@ public class GamesDatabase extends DatabaseTable {
 		return instance;
 	}
 
+	private<T> String listToString(List<T> list, Function<T, String> mapper) {
+		return list.stream().map(mapper).collect(Collectors.joining(","));
+	}
+
+	private<T> List<T> stringToList(String str, Function<String, T> mapper) {
+		return Arrays.stream(str.split(",")).map(mapper).collect(Collectors.toList());
+	}
+
 	public synchronized GameRecord addGame(boolean isPublic, long player1ID, long player2ID, long seed, Deck deck1, Deck deck2, List<Command> commands,
-	                          int set1P1Sc, int set1P2Sc, int set2P1Sc, int set2P2Sc, int set3P1Sc, int set3P2Sc) throws Exception {
-		long id = insert(Map.entry(GameDBColumn.isPublic, isPublic),
+	                          int gameWinner, List<Integer> roundWinner, List<Integer> p1Sc, List<Integer> p2Sc) throws Exception {
+		insert(
+				Map.entry(GameDBColumn.isPublic, isPublic),
 				Map.entry(GameDBColumn.player1, player1ID),
 				Map.entry(GameDBColumn.player2, player2ID),
 				Map.entry(GameDBColumn.seed, seed),
 				Map.entry(GameDBColumn.deck1, deck1),
 				Map.entry(GameDBColumn.deck2, deck2),
-				Map.entry(GameDBColumn.commands, commands.stream().map(Command::toBase64).collect(Collectors.joining(","))),
-				Map.entry(GameDBColumn.set1, set1P1Sc + "-" + set1P2Sc),
-				Map.entry(GameDBColumn.set2, set2P1Sc + "-" + set2P2Sc),
-				Map.entry(GameDBColumn.set3, set3P1Sc + "-" + set3P2Sc));
-		return new GameRecord(id, isPublic, player1ID, player2ID, seed, deck1, deck2, commands,
-				set1P1Sc, set1P2Sc, set2P1Sc, set2P2Sc, set3P1Sc, set3P2Sc);
+				Map.entry(GameDBColumn.commands, listToString(commands, Command::toBase64)),
+				Map.entry(GameDBColumn.gameWinner, gameWinner),
+				Map.entry(GameDBColumn.roundWinner, listToString(roundWinner, String::valueOf)),
+				Map.entry(GameDBColumn.p1Sc, listToString(p1Sc, String::valueOf)),
+				Map.entry(GameDBColumn.p2Sc, listToString(p2Sc, String::valueOf))
+		);
+		return new GameRecord(player1ID, player2ID, seed, deck1.toJsonString(), deck2.toJsonString(),
+				new ArrayList<>(commands), gameWinner, new ArrayList<>(roundWinner),
+				new ArrayList<>(p1Sc), new ArrayList<>(p2Sc));
 	}
 
 	public synchronized GameRecord getGameById(long id) throws Exception {
 		if (!isIdTaken(id))
 			throw new IllegalArgumentException("Game with id " + id + " does not exist");
-		String set1 = getValue(id, GameDBColumn.set1);
-		String set2 = getValue(id, GameDBColumn.set2);
-		String set3 = getValue(id, GameDBColumn.set3);
-		int set1P1Sc = Integer.parseInt(set1.split("-")[0]);
-		int set1P2Sc = Integer.parseInt(set1.split("-")[1]);
-		int set2P1Sc = Integer.parseInt(set2.split("-")[0]);
-		int set2P2Sc = Integer.parseInt(set2.split("-")[1]);
-		int set3P1Sc = Integer.parseInt(set3.split("-")[0]);
-		int set3P2Sc = Integer.parseInt(set3.split("-")[1]);
-		return new GameRecord(id,
-				getValue(id, GameDBColumn.isPublic),
-				getValue(id, GameDBColumn.player1),
+		return new GameRecord(getValue(id, GameDBColumn.player1),
 				getValue(id, GameDBColumn.player2),
 				getValue(id, GameDBColumn.seed),
-				Deck.fromBase64(getValue(id, GameDBColumn.deck1)),
-				Deck.fromBase64(getValue(id, GameDBColumn.deck2)),
-				Arrays.stream(((String)getValue(id, GameDBColumn.commands)).split(","))
-						.map(Command::fromBase64).collect(Collectors.toList()),
-				set1P1Sc, set1P2Sc, set2P1Sc, set2P2Sc, set3P1Sc, set3P2Sc);
+				Deck.fromBase64(getValue(id, GameDBColumn.deck1)).toJsonString(),
+				Deck.fromBase64(getValue(id, GameDBColumn.deck2)).toJsonString(),
+				stringToList(getValue(id, GameDBColumn.commands), Command::fromBase64),
+				getValue(id, GameDBColumn.gameWinner),
+				stringToList(getValue(id, GameDBColumn.roundWinner), Integer::parseInt),
+				stringToList(getValue(id, GameDBColumn.p1Sc), Integer::parseInt),
+				stringToList(getValue(id, GameDBColumn.p2Sc), Integer::parseInt));
 	}
 
-	public synchronized void updateGame(GameRecord game) throws Exception {
-		update(game.id(), Map.entry(GameDBColumn.isPublic, game.isPublic()),
+	public synchronized void updateGame(long id, boolean isPublic, GameRecord game) throws Exception {
+		update(id, Map.entry(GameDBColumn.isPublic, isPublic),
 				Map.entry(GameDBColumn.player1, game.player1ID()),
 				Map.entry(GameDBColumn.player2, game.player2ID()),
 				Map.entry(GameDBColumn.seed, game.seed()),
-				Map.entry(GameDBColumn.deck1, game.deck1().toBase64()),
-				Map.entry(GameDBColumn.deck2, game.deck2().toBase64()),
-				Map.entry(GameDBColumn.commands, game.commands().stream().map(Command::toBase64).collect(Collectors.joining(","))),
-				Map.entry(GameDBColumn.set1, game.set1P1Sc() + "-" + game.set1P2Sc()),
-				Map.entry(GameDBColumn.set2, game.set2P1Sc() + "-" + game.set2P2Sc()),
-				Map.entry(GameDBColumn.set3, game.set3P1Sc() + "-" + game.set3P2Sc()));
+				Map.entry(GameDBColumn.deck1, Deck.fromJsonString(game.deck1()).toBase64()),
+				Map.entry(GameDBColumn.deck2, Deck.fromJsonString(game.deck2()).toBase64()),
+				Map.entry(GameDBColumn.commands, listToString(game.commands(), Command::toBase64)),
+				Map.entry(GameDBColumn.gameWinner, game.gameWinner()),
+				Map.entry(GameDBColumn.roundWinner, listToString(game.roundWinner(), String::valueOf)),
+				Map.entry(GameDBColumn.p1Sc, listToString(game.p1Sc(), String::valueOf)),
+				Map.entry(GameDBColumn.p2Sc, listToString(game.p2Sc(), String::valueOf)));
 	}
 
 	public synchronized ArrayList<GameRecord> allGamesByPlayer(long playerId) {
@@ -122,9 +127,10 @@ public class GamesDatabase extends DatabaseTable {
 		deck1("TEXT"),
 		deck2("TEXT"),
 		commands("TEXT"),
-		set1("TEXT"),
-		set2("TEXT"),
-		set3("TEXT");
+		gameWinner("INT"),
+		roundWinner("TEXT"),
+		p1Sc("TEXT"),
+		p2Sc("TEXT");
 
 		private final String type;
 
