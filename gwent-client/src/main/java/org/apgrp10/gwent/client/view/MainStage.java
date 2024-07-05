@@ -34,15 +34,15 @@ public class MainStage extends AbstractStage {
 		pane.setPrefWidth(400);
 		pane.setPrefHeight(300);
 		MFXButton btn = new MFXButton("Salam");
-		Server.send(new Request("fastPlay"), res -> {
-			playerId = res.getBody().get("playerId").getAsInt();
-			ANSI.log("we are player " + playerId);
-		});
-		Server.setListener("makeDeck", req -> {
-			start = true;
-			Server.setListener("makeDeck", null);
-			return req.response(Response.OK_NO_CONTENT);
-		});
+//		Server.send(new Request("fastPlay"), res -> {
+//			playerId = res.getBody().get("playerId").getAsInt();
+//			ANSI.log("we are player " + playerId);
+//		});
+//		Server.setListener("makeDeck", req -> {
+//			start = true;
+//			Server.setListener("makeDeck", null);
+//			return req.response(Response.OK_NO_CONTENT);
+//		});
 		btn.setOnMouseClicked(event -> {
 			if (!start)
 				return;
@@ -52,6 +52,12 @@ public class MainStage extends AbstractStage {
 			new PreGameController(publicInfo, publicInfo2, playerId != 1, playerId != 0);
 		});
 		pane.getChildren().add(btn);
+
+
+		MFXButton btn2 = new MFXButton("Salam2");
+		btn2.setLayoutY(50);
+		btn2.setOnMouseClicked(event -> LoginStage.getInstance().start());
+		pane.getChildren().add(btn2);
 		setScene(scene);
 		return true;
 	}

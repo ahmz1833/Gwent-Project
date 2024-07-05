@@ -4,10 +4,10 @@ import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.controller.InputController;
 import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.card.Card;
-import org.apgrp10.gwent.utils.Consumer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class MouseInputController implements InputController {
 	private final List<Object> listeners = new ArrayList<>();

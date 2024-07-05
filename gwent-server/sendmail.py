@@ -36,6 +36,7 @@ def send_email():
     msg['Subject'] = subject
     msg['From'] = SENDER_NAME + ' <' + SENDER_ADDRESS + '>'
     msg['To'] = recipient
+    msg.add_header('Content-Type', 'text/html')
 
     try:
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:

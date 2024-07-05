@@ -33,7 +33,7 @@ public class FivePlaceGame extends Pane {
 		if (nullPossible) {
 			setOnMouseClicked(k -> {
 				gameMenu.pickList = null;
-				gameMenu.pickFn.call(null);
+				gameMenu.pickFn.accept(null);
 				gameMenu.redraw();
 				gamePane.getChildren().remove(this);
 			});
@@ -112,7 +112,7 @@ public class FivePlaceGame extends Pane {
 		setCurrentImage(currentIndex);
 		if (index == 2) {
 			gameMenu.pickList = null;
-			gameMenu.pickFn.call(card);
+			gameMenu.pickFn.accept(card);
 			gameMenu.changePicIdx(indexInList);
 			gameMenu.redraw();
 		}

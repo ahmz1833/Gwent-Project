@@ -15,6 +15,7 @@ public class TaskManager {
 		threads = new HandlingThread[numThreads];
 		for (int i = 0; i < threads.length; i++) {
 			threads[i] = new HandlingThread();
+			threads[i].setName("TaskManager-" + i); // [1]
 			threads[i].start();
 		}
 	}

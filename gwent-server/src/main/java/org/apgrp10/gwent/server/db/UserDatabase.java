@@ -89,13 +89,13 @@ public class UserDatabase extends DatabaseTable {
 	}
 
 	public synchronized String[] getFriendsUsernames(String username) throws Exception {
-		return (String[]) Arrays.stream(getFriendsIds(getUserId(username))).mapToObj(id -> {
+		return Arrays.stream(getFriendsIds(getUserId(username))).mapToObj(id -> {
 			try {
 				return (String) getValue(id, UserDBColumns.username);
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-		}).toArray();
+		}).toArray(String[]::new);
 	}
 
 	private synchronized void addNewFriend(long idOwner, long idFriend) throws Exception {

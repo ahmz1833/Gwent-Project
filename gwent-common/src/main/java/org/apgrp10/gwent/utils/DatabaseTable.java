@@ -1,5 +1,6 @@
 package org.apgrp10.gwent.utils;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -16,6 +17,11 @@ public class DatabaseTable {
 	protected DatabaseTable(String dbPath, String tableName, Supplier<Long> idGenerator, DBColumn... columns) throws Exception {
 		this.tableName = tableName;
 		this.idGenerator = idGenerator;
+		// if the database does not exist, it will be created
+		if (new File(dbPath).getParentFile() != null)
+			new File(dbPath).getParentFile().mkdirs();
+		if (!new File(dbPath).exists())
+			new File(dbPath).createNewFile();
 		String url = "jdbc:sqlite:" + dbPath;
 		Connection conn = DriverManager.getConnection(url);
 		stmt = conn.createStatement();
@@ -33,8 +39,8 @@ public class DatabaseTable {
 
 	@SafeVarargs
 	protected final long insert(Map.Entry<DBColumn, Object>... data) throws Exception {
-		String[] keys = (String[]) Arrays.stream(data).map(Map.Entry::getKey).map(DBColumn::name).toArray();
-		String[] values = (String[]) Arrays.stream(data).map(entry -> entry.getKey().valueToString(entry.getValue())).toArray();
+		String[] keys = Arrays.stream(data).map(Map.Entry::getKey).map(DBColumn::name).toArray(String[]::new);
+		String[] values = Arrays.stream(data).map(entry -> entry.getKey().valueToString(entry.getValue())).toArray(String[]::new);
 
 		// if idGenerator is null, then the id is auto-incremented
 		if (idGenerator == null)

@@ -79,8 +79,12 @@ public class ServerMain {
 					if (method.getParameterTypes()[1] != Request.class) continue;
 					if (method.getReturnType() != Response.class) continue;
 
+					ANSI.log("Method: " + method.getName(), ANSI.LGREEN, false);
+
 					// Check if the method has the Authorizations annotation
 					Requests.Authorizations auth = method.getAnnotation(Requests.Authorizations.class);
+
+					ANSI.log("Auth: " + auth, ANSI.LGREEN, false);
 
 					// Add the method as a listener
 					client.setListener(method.getName(), req -> {
@@ -107,19 +111,19 @@ public class ServerMain {
 					});
 				}
 
-				client.setListener("fastPlay", req -> {
-					synchronized (lock) {
-						if (fastPlayed == null) {
-							fastPlayed = client;
-							return req.response(Response.OK, MGson.makeJsonObject("player", 0));
-						} else {
-							TaskManager.submit(new GameTask(fastPlayed, client));
-							fastPlayed = null;
-							client.setListener("fastPlay", null);
-							return req.response(Response.OK, MGson.makeJsonObject("player", 1));
-						}
-					}
-				});
+//				client.setListener("fastPlay", req -> {
+//					synchronized (lock) {
+//						if (fastPlayed == null) {
+//							fastPlayed = client;
+//							return req.response(Response.OK, MGson.makeJsonObject("player", 0));
+//						} else {
+//							TaskManager.submit(new GameTask(fastPlayed, client));
+//							fastPlayed = null;
+//							client.setListener("fastPlay", null);
+//							return req.response(Response.OK, MGson.makeJsonObject("player", 1));
+//						}
+//					}
+//				});
 
 				client.getNetNode().addOnClose(() -> {
 					synchronized (lock) {

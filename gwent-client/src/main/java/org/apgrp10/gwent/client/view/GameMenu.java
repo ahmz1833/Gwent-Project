@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.model.CardView;
 import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.controller.GameController.PlayerData;
 import org.apgrp10.gwent.model.card.Card;
-import org.apgrp10.gwent.utils.Consumer;
 import org.apgrp10.gwent.view.GameMenuInterface;
 
 import javafx.animation.Transition;
@@ -573,7 +573,7 @@ public class GameMenu extends Application implements GameMenuInterface {
 		assert pickList == null;
 
 		if (list.isEmpty()) {
-			cb.call(null);
+			cb.accept(null);
 			return;
 		}
 
@@ -604,7 +604,7 @@ public class GameMenu extends Application implements GameMenuInterface {
 	private void notifyListeners(List<Consumer<Object>> callbacks, Object obj) {
 		// we make a deep copy because someone might remove their listeners while we are iterating
 		for (Consumer<Object> cb : new ArrayList<>(callbacks))
-			cb.call(obj);
+			cb.accept(obj);
 	}
 
 	private final List<Node> animationNodes = new ArrayList<>();

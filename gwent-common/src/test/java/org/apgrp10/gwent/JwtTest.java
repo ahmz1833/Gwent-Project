@@ -39,7 +39,7 @@ public class JwtTest {
 		payload.addProperty("iat", 1516239022);
 
 		String jwt = SecurityUtils.makeJWT(payload, TEST_SECRET_KEY);
-		assertTrue(SecurityUtils.verifyJWT(jwt, TEST_SECRET_KEY));
+		assertNotNull(SecurityUtils.verifyJWT(jwt, TEST_SECRET_KEY));
 	}
 
 	@Test
@@ -53,13 +53,13 @@ public class JwtTest {
 		String[] parts = jwt.split("\\.");
 		String modifiedJwt = parts[0] + "." + parts[1] + "." + "invalidsignature";
 
-		assertFalse(SecurityUtils.verifyJWT(modifiedJwt, TEST_SECRET_KEY));
+		assertNull(SecurityUtils.verifyJWT(modifiedJwt, TEST_SECRET_KEY));
 	}
 
 	@Test
 	public void testVerifyJWTInvalidToken() {
 		String invalidJwt = "invalid.jwt.token";
-		assertFalse(SecurityUtils.verifyJWT(invalidJwt, TEST_SECRET_KEY));
+		assertNull(SecurityUtils.verifyJWT(invalidJwt, TEST_SECRET_KEY));
 	}
 
 }

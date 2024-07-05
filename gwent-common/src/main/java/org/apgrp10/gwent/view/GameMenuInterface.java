@@ -1,10 +1,10 @@
 package org.apgrp10.gwent.view;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.model.card.Card;
-import org.apgrp10.gwent.utils.Consumer;
 
 public interface GameMenuInterface {
 	void redraw();

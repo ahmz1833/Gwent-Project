@@ -1,5 +1,4 @@
-/*@import "styles.css";*/
-/*@import "Yrsa/style.css";*/
+@import "styles.css";
 
 #login, #register {
     -fx-background-color: #4CAF50; /* Green */
@@ -15,12 +14,4 @@
 
 #guestplay:hover {
     -fx-background-color: #007B9E;
-}
-
-Label, MFXButton, MFXTextField, MFXTableView {
-    -fx-font-size: 25px;
-    -fx-text-fill: #000000;
-    -fx-border-color: #695181;
-    -fx-font-family: "Vazirmatn Bold";
-    /*-fx-font-style: italic;*/
 }
