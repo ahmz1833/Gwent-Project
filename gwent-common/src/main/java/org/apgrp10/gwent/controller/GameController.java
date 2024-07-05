@@ -654,19 +654,10 @@ public class GameController {
 		}
 	}
 
-	public interface CommandListener { public void call(Command cmd); }
+	private final List<Consumer<Command>> commandListeners = new ArrayList<>();
 
-	private final List<List<CommandListener>> commandListeners; {
-		commandListeners = new ArrayList<>();
-		commandListeners.add(new ArrayList<>());
-		commandListeners.add(new ArrayList<>());
-	}
-
-	public void addCommandListener(int player, CommandListener cb) { commandListeners.get(player).add(cb); }
-	public void removeCommandListener(CommandListener cb) {
-		commandListeners.get(0).remove(cb);
-		commandListeners.get(1).remove(cb);
-	}
+	public void addCommandListener(Consumer<Command> cb) { commandListeners.add(cb); }
+	public void removeCommandListener(Consumer<Command> cb) { commandListeners.remove(cb); }
 
 	private List<Command> commandQueue = new ArrayList<>();
 
@@ -695,7 +686,7 @@ public class GameController {
 
 	private List<Command> cmdHistory = new ArrayList<>();
 
-	public void sendCommand(int player, Command cmd) {
+	public void sendCommand(Command cmd) {
 		System.out.println(cmd);
 		cmdHistory.add(cmd);
 
@@ -707,8 +698,8 @@ public class GameController {
 		}
 
 		// we make a deep copy because some listeners might remove themselves while we are iterating
-		for (CommandListener cb : new ArrayList<>(commandListeners.get(player)))
-			cb.call(cmd);
+		for (Consumer<Command> cb : new ArrayList<>(commandListeners))
+			cb.accept(cmd);
 	}
 
 	public void setActivePlayer(int player) {

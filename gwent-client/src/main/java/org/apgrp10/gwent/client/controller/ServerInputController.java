@@ -9,15 +9,13 @@ import java.util.List;
 
 public class ServerInputController implements InputController {
 	private GameController controller;
-	private int player;
 
 	public void sendCommand(Command cmd) {
-		controller.sendCommand(player, cmd);
+		controller.sendCommand(cmd);
 	}
 
 	@Override public void start(GameController controller, int player) {
 		this.controller = controller;
-		this.player = player;
 	}
 
 	@Override public void beginTurn() { }

@@ -72,8 +72,9 @@ public class PreGameController {
 				if (i == 0 && !isLocal1) continue;
 				if (i == 1 && !isLocal2) continue;
 				int ii = i;
-				controller.addCommandListener(ii, cmd -> {
-					Server.send(new Request("command", MGson.makeJsonObject("cmd", cmd.toBase64(), "player", ii)));
+				controller.addCommandListener(cmd -> {
+					if (cmd.player() == ii)
+						Server.send(new Request("command", MGson.makeJsonObject("cmd", cmd.toBase64(), "player", ii)));
 				});
 			}
 		}

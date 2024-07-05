@@ -75,7 +75,7 @@ public class GameTask extends Task {
 	private Response handleCommand(Request req) {
 		Command cmd = Command.fromBase64(req.getBody().get("cmd").getAsString());
 		int player = req.getBody().get("player").getAsInt();
-		sendCommand(player, cmd);
+		sendCommand(cmd);
 		JsonObject commandBody = MGson.makeJsonObject("cmd", cmd.toBase64(), "player", player);
 		c1.send(new Request("command", commandBody));
 		c2.send(new Request("command", commandBody));
@@ -86,7 +86,7 @@ public class GameTask extends Task {
 		return done;
 	}
 
-	public void sendCommand(int player, Command cmd) {
-		addCommand(() -> gameController.sendCommand(player, cmd));
+	public void sendCommand(Command cmd) {
+		addCommand(() -> gameController.sendCommand(cmd));
 	}
 }

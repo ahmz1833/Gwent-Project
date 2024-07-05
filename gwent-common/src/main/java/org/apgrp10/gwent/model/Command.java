@@ -27,6 +27,8 @@ public interface Command {
 		}
 	}
 
+	int player();
+
 	record VetoCard(int player, int cardId) implements Command, Serializable {}
 
 	record PlayCard(int player, int cardId, int row) implements Command, Serializable {}
@@ -45,5 +47,5 @@ public interface Command {
 
 	record Cheat(int player, int cheatId) implements Command, Serializable {}
 
-	record Sync() implements Command, Serializable {}
+	record Sync(int player) implements Command, Serializable {}
 }
