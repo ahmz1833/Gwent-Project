@@ -10,6 +10,7 @@ import org.apgrp10.gwent.utils.Random;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -84,24 +85,24 @@ public class UserDatabase extends DatabaseTable {
 		return getId("WHERE username = ('" + username + "')");
 	}
 
-	public synchronized long[] getFriendsIds(long id) throws Exception {
-		return Arrays.stream(((String) getValue(id, UserDBColumns.friends)).split(",")) // split by comma
-				.map(String::trim).mapToLong(Long::parseLong).toArray();
+	public synchronized List<Long> getFriendsIds(long id) throws Exception {
+		return stringToList(getValue(id, UserDBColumns.friends), Long::parseLong);
 	}
 
-	public synchronized String[] getFriendsUsernames(String username) throws Exception {
-		return Arrays.stream(getFriendsIds(getUserId(username))).mapToObj(id -> {
+	public synchronized List<String> getFriendsUsernames(String username) throws Exception {
+		return getFriendsIds(getUserId(username)).stream().map(id -> {
 			try {
-				return (String) getValue(id, UserDBColumns.username);
+				return getUserById(id).publicInfo().username();
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-		}).toArray(String[]::new);
+		}).collect(Collectors.toList());
 	}
 
 	private synchronized void addNewFriend(long idOwner, long idFriend) throws Exception {
-		String newData = (String) getValue(idOwner, UserDBColumns.friends) + idFriend + ",";
-		updateInfo(idOwner, UserDBColumns.friends, newData);
+		List<Long> list = stringToList(getValue(idOwner, UserDBColumns.friends), Long::parseLong);
+		list.add(idFriend);
+		updateInfo(idOwner, UserDBColumns.friends, listToString(list, String::valueOf));
 	}
 
 	public synchronized boolean haveFriendShip(long id1, long id2) throws Exception {
@@ -122,9 +123,9 @@ public class UserDatabase extends DatabaseTable {
 	}
 
 	private synchronized void deleteFriendShipOfOne(long id1, long id2) throws Exception {
-		StringBuilder newData = new StringBuilder();
-		for (long id : getFriendsIds(id1)) if (id != id2) newData.append(id).append(",");
-		updateInfo(id1, UserDBColumns.friends, newData.toString());
+		List<Long> list = stringToList(getValue(id1, UserDBColumns.friends), Long::parseLong);
+		list.remove(id2);
+		updateInfo(id1, UserDBColumns.friends, listToString(list, String::valueOf));
 	}
 
 	public synchronized ArrayList<User> getAllUsers() {

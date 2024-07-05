@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -20,12 +21,19 @@ public class DatabaseTable {
 		// if the database does not exist, it will be created
 		if (new File(dbPath).getParentFile() != null)
 			new File(dbPath).getParentFile().mkdirs();
-		if (!new File(dbPath).exists())
-			new File(dbPath).createNewFile();
+		ANSI.log("Connecting to database: " + dbPath, ANSI.LYELLOW, false);
 		String url = "jdbc:sqlite:" + dbPath;
 		Connection conn = DriverManager.getConnection(url);
 		stmt = conn.createStatement();
-		assert stmt.execute("CREATE TABLE IF NOT EXISTS " + tableName + " (id BIGINT PRIMARY KEY, " + getColumnsSyntax(columns) + ")");
+		stmt.execute("CREATE TABLE IF NOT EXISTS " + tableName + " (id BIGINT PRIMARY KEY, " + getColumnsSyntax(columns) + ")");
+	}
+
+	protected static <T> String listToString(List<T> list, Function<T, String> mapper) {
+		return list.stream().map(mapper).collect(Collectors.joining(",")) + ",";
+	}
+
+	protected static <T> List<T> stringToList(String str, Function<String, T> mapper) {
+		return Arrays.stream((str + ",").split(",")).map(mapper).collect(Collectors.toList());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -44,15 +52,14 @@ public class DatabaseTable {
 
 		// if idGenerator is null, then the id is auto-incremented
 		if (idGenerator == null)
-			assert stmt.execute("INSERT INTO " + tableName + " (" + Arrays.stream(keys).collect(Collectors.joining(", ")) +
-			                    ") VALUES (" + Arrays.stream(values).collect(Collectors.joining(", ")) + ")");
+			stmt.execute("INSERT INTO " + tableName + " (" + Arrays.stream(keys).collect(Collectors.joining(", ")) +
+			             ") VALUES (" + Arrays.stream(values).collect(Collectors.joining(", ")) + ")");
 		else
-			assert stmt.execute("INSERT INTO " + tableName + " (id, " + Arrays.stream(keys).collect(Collectors.joining(", ")) +
-			                    ") VALUES (" + genId() + ", " + Arrays.stream(values).collect(Collectors.joining(", ")) + ")");
+			stmt.execute("INSERT INTO " + tableName + " (id, " + Arrays.stream(keys).collect(Collectors.joining(", ")) +
+			             ") VALUES (" + genId() + ", " + Arrays.stream(values).collect(Collectors.joining(", ")) + ")");
 
 		return getId("ORDER BY ROWID DESC LIMIT 1");
 	}
-
 
 	public List<Long> getAllIds() {
 		try {
@@ -95,7 +102,7 @@ public class DatabaseTable {
 
 	protected void updateInfo(String condition, DBColumn column, Object newData) throws Exception {
 		String command = "UPDATE " + tableName + " SET " + column.name() + " = " + column.valueToString(newData) + " WHERE " + condition;
-		assert stmt.execute(command);
+		stmt.execute(command);
 	}
 
 	protected void updateInfo(long id, DBColumn column, Object newData) throws Exception {

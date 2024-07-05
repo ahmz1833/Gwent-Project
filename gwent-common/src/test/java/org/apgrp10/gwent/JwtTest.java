@@ -34,12 +34,13 @@ public class JwtTest {
 	@Test
 	public void testVerifyJWT() {
 		JsonObject payload = new JsonObject();
-		payload.addProperty("sub", "1234567890");
-		payload.addProperty("name", "John Doe");
-		payload.addProperty("iat", 1516239022);
+		payload.addProperty("sub", 7243168145879485845L);
+		payload.addProperty("name", "ahmz");
+		payload.addProperty("exp", 1720790323515L);
 
 		String jwt = SecurityUtils.makeJWT(payload, TEST_SECRET_KEY);
 		assertNotNull(SecurityUtils.verifyJWT(jwt, TEST_SECRET_KEY));
+		System.out.println(SecurityUtils.verifyJWT(jwt, TEST_SECRET_KEY));
 	}
 
 	@Test

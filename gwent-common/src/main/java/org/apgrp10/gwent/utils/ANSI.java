@@ -1,10 +1,18 @@
 package org.apgrp10.gwent.utils;
 
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
+import org.apgrp10.gwent.model.net.Request;
+import org.apgrp10.gwent.model.net.Response;
+
 import java.awt.*;
 import java.io.PrintStream;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public final class ANSI {
 	public static final ANSI RST = new ANSI("\u001B[0m");
@@ -48,7 +56,7 @@ public final class ANSI {
 		return new ANSI("\u001B[48;2;" + color.getRed() + ";" + color.getGreen() + ";" + color.getBlue() + "m");
 	}
 
-	public static void log(long time, PrintStream stream, String logMsg, StackTraceElement... stackTraceElements) {
+	public synchronized static void log(long time, PrintStream stream, String logMsg, StackTraceElement... stackTraceElements) {
 		for (StackTraceElement element : stackTraceElements)
 			log(time, stream,
 					"In Thread \"" + Thread.currentThread().getName() + "\" at " +
@@ -57,7 +65,7 @@ public final class ANSI {
 		stream.println(timeStr + " -> " + logMsg + ANSI.RST);
 	}
 
-	public static void log(long time, PrintStream stream, String logMsg, ANSI color, StackTraceElement... stackTraceElements) {
+	public synchronized static void log(long time, PrintStream stream, String logMsg, ANSI color, StackTraceElement... stackTraceElements) {
 		if (!stream.equals(System.out) && !stream.equals(System.err)) {
 			log(time, stream, logMsg, stackTraceElements);
 			return;
@@ -71,7 +79,7 @@ public final class ANSI {
 		stream.println(ANSI.fg(Color.gray) + timeStr + " -> " + ANSI.RST + color + logMsg + ANSI.RST);
 	}
 
-	public static void logError(PrintStream stream, String errorMessage, Throwable... optional) {
+	public synchronized static void logError(PrintStream stream, String errorMessage, Throwable... optional) {
 		long time = System.currentTimeMillis();
 		boolean emptyMsg = errorMessage == null || errorMessage.isEmpty();
 		if (!emptyMsg) log(time, stream, errorMessage, ANSI.LRED.bd(), Thread.currentThread().getStackTrace()[2]);
@@ -89,11 +97,31 @@ public final class ANSI {
 		}
 	}
 
-	public static void log(String message) {
+	public synchronized static Response createErrorResponse(Request req, String errorMessage, Throwable e) {
+		return req.response(Response.INTERNAL_SERVER_ERROR,
+				MGson.makeJsonObject("message", errorMessage, "error", e.getMessage(),
+						"stackTrace", Arrays.stream(e.getStackTrace()).map(Object::toString).collect(Collectors.toList())));
+	}
+
+	public synchronized static void printErrorResponse(String errorMessage, Response res) {
+		log(errorMessage, LRED.bd(), false);
+		if (res.getStatus() != Response.INTERNAL_SERVER_ERROR)
+			return;
+		JsonObject errObj = res.getBody();
+		String message = errObj.get("message").getAsString();
+		String error = errObj.get("error").getAsString();
+		List<String> stackTrace = MGson.get(false, false)
+				.fromJson(errObj.get("stackTrace"), TypeToken.getParameterized(List.class, String.class).getType());
+		log(message, ANSI.RED, false);
+		log(error, ANSI.RED, false);
+		stackTrace.forEach(e -> log(System.currentTimeMillis(), System.err, e, ANSI.RED));
+	}
+
+	public synchronized static void log(String message) {
 		log(System.currentTimeMillis(), System.err, message, ANSI.DEF_FG);
 	}
 
-	public static void log(String message, ANSI color, boolean printLineNumber) {
+	public synchronized static void log(String message, ANSI color, boolean printLineNumber) {
 		if (printLineNumber)
 			log(System.currentTimeMillis(), System.err, message, color, Thread.currentThread().getStackTrace()[2]);
 		else

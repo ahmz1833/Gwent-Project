@@ -7,6 +7,7 @@ import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.ServerSocket;
@@ -14,7 +15,9 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 public class ServerMain {
 	public static final String SERVER_FOLDER = System.getProperty("user.home") + "/gwent-data/";
@@ -104,9 +107,11 @@ public class ServerMain {
 								}
 							}
 							return (Response) method.invoke(null, client, req);
-						} catch (Exception e) {
-							ANSI.logError(System.err, "Failed to invoke method", e);
-							return req.response(Response.INTERNAL_SERVER_ERROR);
+						} catch (InvocationTargetException e) {
+							ANSI.logError(System.err, "Failed to invoke method " + method.getName(), e.getCause());
+							return ANSI.createErrorResponse(req, "Failed to invoke method " + method.getName(), e.getCause());
+						} catch (IllegalAccessException e) {
+							throw new RuntimeException(e);
 						}
 					});
 				}

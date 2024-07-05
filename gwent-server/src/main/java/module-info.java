@@ -8,5 +8,6 @@ open module gwent.server {
 	requires com.auth0.jwt;
 	requires java.sql;
 	requires jdk.httpserver;
+	requires java.net.http;
 	exports org.apgrp10.gwent.server;
 }

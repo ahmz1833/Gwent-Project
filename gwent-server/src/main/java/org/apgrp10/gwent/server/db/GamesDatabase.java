@@ -8,10 +8,8 @@ import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.DatabaseTable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class GamesDatabase extends DatabaseTable {
@@ -32,14 +30,6 @@ public class GamesDatabase extends DatabaseTable {
 			}
 		}
 		return instance;
-	}
-
-	private<T> String listToString(List<T> list, Function<T, String> mapper) {
-		return list.stream().map(mapper).collect(Collectors.joining(","));
-	}
-
-	private<T> List<T> stringToList(String str, Function<String, T> mapper) {
-		return Arrays.stream(str.split(",")).map(mapper).collect(Collectors.toList());
 	}
 
 	public synchronized GameRecord addGame(boolean isPublic, long player1ID, long player2ID, long seed, Deck deck1, Deck deck2, List<Command> commands,

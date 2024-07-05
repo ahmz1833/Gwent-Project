@@ -32,7 +32,7 @@ def send_email():
     if not recipient or not subject or not content:
         return jsonify({'error': 'Missing required fields'}), 400
 
-    msg = MIMEText(content)
+    msg = MIMEText(content, 'html')
     msg['Subject'] = subject
     msg['From'] = SENDER_NAME + ' <' + SENDER_ADDRESS + '>'
     msg['To'] = recipient
