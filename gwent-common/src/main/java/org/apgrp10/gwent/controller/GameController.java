@@ -4,10 +4,12 @@ import org.apgrp10.gwent.utils.WaitExec;
 import org.apgrp10.gwent.view.GameMenuInterface;
 import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.Deck;
+import org.apgrp10.gwent.model.GameRecord;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.card.*;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class GameController {
@@ -23,8 +25,10 @@ public class GameController {
 		public boolean leaderUsed;
 		public boolean leaderCancelled;
 		public boolean cheatHorn;
+		public final String originalDeckJson;
 
 		public PlayerData(Deck deck, InputController controller) {
+			originalDeckJson = deck.toJsonString();
 			this.user = deck.getUser();
 			this.deck = deck;
 			this.controller = controller;
@@ -60,7 +64,8 @@ public class GameController {
 		return lastPassed;
 	}
 
-	private Runnable onEnd;
+	private Consumer<GameRecord> onEnd;
+	private long seed;
 
 	public GameController(
 			InputController c0,
@@ -69,9 +74,10 @@ public class GameController {
 			Deck d1,
 			long seed,
 			GameMenuInterface gameMenu,
-			Runnable onEnd
+			Consumer<GameRecord> onEnd
 	) {
 		this.onEnd = onEnd;
+		this.seed = seed;
 		playerData[0] = new PlayerData(d0, c0);
 		playerData[1] = new PlayerData(d1, c1);
 		turn = 0;
@@ -437,14 +443,20 @@ public class GameController {
 		return us > them || (us == them && ourFaction == Faction.NILFGAARD && theirFaction != Faction.NILFGAARD);
 	}
 
+	private List<Integer> roundWinner = new ArrayList<>();
+	private List<Integer> p1Sc = new ArrayList<>();
+	private List<Integer> p2Sc = new ArrayList<>();
+
 	private void nextRound() {
-		boolean draw = true;
 		playerData[turn].controller.endTurn();
+		p1Sc.add(calcPlayerScore(0));
+		p2Sc.add(calcPlayerScore(1));
 		boolean end = false;
+		int winner = -1;
 		for (int i = 0; i < 2; i++) {
 			boolean win = gonnaWin(i);
 			if (win) {
-				draw = false;
+				winner = i;
 				if (gameMenu != null)
 					gameMenu.showWinner(i);
 			}
@@ -453,10 +465,24 @@ public class GameController {
 				moveCard(playerData[i].deck.getDeck().get(0), playerData[i].handCards);
 			end |= playerData[i].hp == 0;
 		}
-		if (draw && gameMenu != null)
+		roundWinner.add(winner);
+		if (winner == -1 && gameMenu != null)
 			gameMenu.showDraw();
 		if (end) {
-			onEnd.run();
+			int gameWinner = -1;
+			if (playerData[0].hp > 0) gameWinner = 0;
+			if (playerData[1].hp > 0) gameWinner = 1;
+			GameRecord gr = new GameRecord(playerData[0].user.id(),
+			                               playerData[1].user.id(),
+			                               seed,
+			                               playerData[0].originalDeckJson,
+			                               playerData[1].originalDeckJson,
+			                               new ArrayList<>(cmdHistory),
+			                               gameWinner,
+			                               new ArrayList<>(roundWinner),
+			                               new ArrayList<>(p1Sc),
+			                               new ArrayList<>(p2Sc));
+			onEnd.accept(gr);
 			return;
 		}
 
@@ -667,8 +693,11 @@ public class GameController {
 			gameMenu.redraw();
 	}
 
+	private List<Command> cmdHistory = new ArrayList<>();
+
 	public void sendCommand(int player, Command cmd) {
 		System.out.println(cmd);
+		cmdHistory.add(cmd);
 
 		if (cmd instanceof Command.Sync) {
 			if (!syncLock)

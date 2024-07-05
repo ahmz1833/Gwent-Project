@@ -14,6 +14,8 @@ import org.apgrp10.gwent.model.net.Response;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+
+import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
 
 public class PreGameController {
@@ -53,7 +55,10 @@ public class PreGameController {
 		c1 = isLocal1 ? new MouseInputController() : new ServerInputController();
 		c2 = isLocal2 ? new MouseInputController() : new ServerInputController();
 		GameMenu gameMenu = new GameMenu(PreGameStage.getInstance());
-		GameController controller = new GameController(c1, c2, deck1, deck2, seed, gameMenu, () -> System.exit(1));
+		GameController controller = new GameController(c1, c2, deck1, deck2, seed, gameMenu, gr -> {
+			ANSI.log("game record: " + gr);
+			System.exit(1);
+		});
 
 		if (!isLocal1 || !isLocal2) {
 			Server.setListener("command", req -> {

@@ -5,6 +5,7 @@ import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
+import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
 import org.apgrp10.gwent.utils.Random;
 
@@ -58,10 +59,11 @@ public class GameTask extends Task {
 				d2,
 				seed,
 				null,
-				() -> {
+				gr -> {
 					done = true;
 					c1.setListener("command", null);
 					c2.setListener("command", null);
+					ANSI.log("game record: " + gr);
 				}
 			);
 
