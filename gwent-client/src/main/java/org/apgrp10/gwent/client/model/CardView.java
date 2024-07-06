@@ -187,16 +187,17 @@ public class CardView extends Pane {
 	private void addSymbol() {
 		ImageView image = new ImageView(R.getImage("icons/preview_count.png"));
 		image.setX(width - 52);
-		image.setY(height - 30);
+		image.setY(height - 46);
 		this.getChildren().add(image);
 	}
 
 	private void addCountLabel() {
 		countLabel = new Text(String.valueOf(count));
-		countLabel.setStyle("-fx-font-size: 22px;");
-		countLabel.setFill(Color.BLUE);
+		countLabel.setStyle("-fx-font-size: 22px; " +
+		                    "-fx-font-family: 'Comfortaa Bold';");
+		countLabel.setFill(Color.rgb(71,31,19));
 		countLabel.setX(width - 20);
-		countLabel.setY(height - 10);
+		countLabel.setY(height - 26);
 		this.getChildren().add(countLabel);
 	}
 

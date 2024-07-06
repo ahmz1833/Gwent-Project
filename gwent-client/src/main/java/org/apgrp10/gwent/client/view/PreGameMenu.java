@@ -1,5 +1,6 @@
 package org.apgrp10.gwent.client.view;
 
+import io.github.palexdev.materialfx.dialogs.MFXDialogs;
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -28,6 +29,7 @@ import org.apgrp10.gwent.utils.Utils;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Map;
 
 
 public class PreGameMenu extends Application {
@@ -308,7 +310,10 @@ public class PreGameMenu extends Application {
 
 	public void accessioningChangeFaction(Faction faction) {
 		if (this.faction != faction) {
-			new MessagePreGame(this, pane, faction, primaryX);
+			AbstractStage stage = PreGameStage.getInstance();
+			stage.showDialogAndWait(MFXDialogs.warn(), "Caution!", "Changing factions will clear the current deck.\nContinue?",
+					Map.entry("#OK", e->{this.loadFactionDeck(faction);}),
+					Map.entry("*Cancel", e->{}));
 		}
 	}
 
@@ -373,10 +378,10 @@ public class PreGameMenu extends Application {
 		button.setArcWidth(20);
 		button.setArcHeight(20);
 		button.setOnMouseClicked(k -> startGame());
-		Text text = new Text("start game");
+		Text text = new Text("Start game");
+		text.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-font-size: 18px");
 		text.setOnMouseClicked(k -> startGame());
 		text.setFill(Color.WHITE);
-		text.setStyle("-fx-font-size: 18px");
 		buttonBorder.getChildren().add(button);
 		buttonBorder.getChildren().add(text);
 		infoVBox.getChildren().add(buttonBorder);
@@ -465,7 +470,8 @@ public class PreGameMenu extends Application {
 			}
 			updateInfo();
 		} else {
-			new MessagePreGame(pane, primaryX);
+			AbstractStage stage = PreGameStage.getInstance();
+			stage.showAlert(MFXDialogs.error(), "Error!", "Uploaded deck is not formatted correctly!");
 		}
 	}
 

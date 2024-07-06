@@ -26,6 +26,7 @@ public class PreGameController {
 	private final boolean isLocal1, isLocal2;
 	private Long seed = null;
 
+
 	// TODO: support when !isLocal1 && !isLocal2
 	public PreGameController(User.PublicInfo user1, User.PublicInfo user2, boolean isLocal1, boolean isLocal2) {
 		this.user1 = user1;

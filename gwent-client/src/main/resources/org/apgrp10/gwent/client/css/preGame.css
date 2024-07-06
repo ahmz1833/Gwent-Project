@@ -57,10 +57,10 @@ MFXScrollPane, MFXScrollPane > .viewport {
 }
 
 .textInfo {
-    -fx-font-size: 17px;
+    -fx-font-size: 13px;
     -fx-alignment: center;
     -fx-text-alignment: center;
-    -fx-font-family: 'Yrsa SemiBold';
+    -fx-font-family: 'Comfortaa SemiBold';
     -fx-min-width: 145;
     -fx-max-width: 145;
 }

@@ -21,6 +21,7 @@ public class PreGameStage extends AbstractStage {
 	@Override
 	protected boolean onCreate() {
 		Scene scene = new Scene(pane);
+
 		setScene(scene);
 		return true;
 	}
