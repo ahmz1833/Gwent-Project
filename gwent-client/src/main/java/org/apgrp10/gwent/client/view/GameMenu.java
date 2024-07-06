@@ -9,9 +9,11 @@ import java.util.function.Consumer;
 import javafx.event.Event;
 import javafx.scene.effect.DropShadow;
 import org.apgrp10.gwent.client.R;
+import org.apgrp10.gwent.client.model.AvatarView;
 import org.apgrp10.gwent.client.model.CardView;
 import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.controller.GameController.PlayerData;
+import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.card.Card;
 import org.apgrp10.gwent.view.GameMenuInterface;
 
@@ -95,8 +97,8 @@ public class GameMenu extends Application implements GameMenuInterface {
 				new RectPos(0.016406, 0.62138, 0.064062, 0.7227)
 		};
 		public static final RectPos profAvatarBorder[] = {
-				new RectPos(0.011406, 0.24738, 0.069062, 0.3707),
-				new RectPos(0.011406, 0.61738, 0.069062, 0.7407)
+				new RectPos(0.016406, 0.24938, 0.065062, 0.3457),
+				new RectPos(0.016406, 0.6178, 0.065062, 0.7151),
 		};
 		public static final RectPos special[] = {
 				new RectPos(0.2963, 0.0212, 0.3640, 0.1250),
@@ -194,6 +196,13 @@ public class GameMenu extends Application implements GameMenuInterface {
 		imageView.setX(pos.x());
 		imageView.setY(pos.y());
 		rootPane.getChildren().add(imageView);
+	}
+	private void addAvatar(Avatar avatar, Position.RectPos pos){
+		AvatarView view = new AvatarView(avatar);
+		view.setLayoutX(pos.x());
+		view.setLayoutY(pos.y());
+		view.setPrefWidth(pos.w());
+		rootPane.getChildren().add(view);
 	}
 
 	private void addSelectionRect(Position.RectPos pos, int code) {
@@ -456,7 +465,8 @@ public class GameMenu extends Application implements GameMenuInterface {
 
 	private void addProfile(boolean up) {
 		addNameProfile(up);
-		addImage(R.getImage("icons/profile.png"), Position.profAvatar[up ? 0 : 1]);
+		addAvatar(controller.getPlayer(up? controller.getActivePlayer() : 1 - controller.getActivePlayer()).user.avatar(),
+				Position.profAvatar[up ? 0 : 1]);
 		addImage(R.getImage("icons/icon_player_border.png"), Position.profAvatarBorder[up ? 0 : 1]);
 
 		if (up) {
@@ -471,7 +481,9 @@ public class GameMenu extends Application implements GameMenuInterface {
 		cardMap.clear();
 		rootPane.getChildren().clear();
 		overlayPane.getChildren().clear();
-
+		rootPane.setOnMouseClicked(k->{
+			System.out.println(k.getSceneY() / HEIGHT);
+		});
 		addBackground(R.image.board[controller.getActivePlayer()]);
 		// TODO: hide cheat buttons
 		addCheatButtons();
