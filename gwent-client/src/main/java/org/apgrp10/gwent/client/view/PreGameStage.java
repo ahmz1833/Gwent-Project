@@ -37,6 +37,7 @@ public class PreGameStage extends AbstractStage {
 	protected boolean onCreate() {
 		this.setWidth(PreGameMenu.screenWidth);
 		this.setHeight(PreGameMenu.screenHeight);
+		deck1 = deck2 = null;
 		pane = new Pane();
 		setScene(new Scene(pane));
 		pane.getStylesheets().add(R.get("css/preGame.css").toExternalForm());
@@ -58,14 +59,9 @@ public class PreGameStage extends AbstractStage {
 		else
 		{
 			deck2 = deck;
-			// Start Game TODO: tof
-			InputController c1, c2;
-			c1 = new MouseInputController() ;
-			c2 = new MouseInputController() ;
-			GameMenu gameMenu = new GameMenu(PreGameStage.getInstance()); // TODO : must be changed
-			GameController controller = new GameController(c1, c2, deck1, deck2, System.currentTimeMillis(), gameMenu, gr -> {
-				ANSI.log("END");
-			});
+			GameStage.setLocal(deck1, deck2);
+			GameStage.getInstance().start();
+			this.close();
 		}
 //		showDialogAndWait(MFXDialogs.info(), "Start Game", "How ?",
 //				Map.entry("Make an Offline play", e->{

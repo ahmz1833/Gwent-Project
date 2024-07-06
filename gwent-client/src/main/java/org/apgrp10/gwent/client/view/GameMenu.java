@@ -41,7 +41,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 //TODO: Not Exetend Application
-public class GameMenu extends Application implements GameMenuInterface {
+public class GameMenu implements GameMenuInterface {
 	private GameController controller;
 	private Pane realRoot = new Pane();
 	private Pane rootPane = new Pane();
@@ -155,8 +155,7 @@ public class GameMenu extends Application implements GameMenuInterface {
 		start(stage);
 	}
 
-	@Override
-	public void start(Stage stage) {
+	private void start(Stage stage) {
 		this.stage = stage;
 		realRoot.getChildren().add(rootPane);
 		realRoot.getChildren().add(messagePane);
