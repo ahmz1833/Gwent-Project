@@ -39,7 +39,10 @@ import javafx.util.Duration;
 
 public class GameMenu extends Application implements GameMenuInterface {
 	private GameController controller;
-	private Pane rootPane;
+	private Pane realRoot = new Pane();
+	private Pane rootPane = new Pane();
+	private Pane messagePane = new Pane();
+	private Pane overlayPane = new Pane();
 	private Stage stage;
 
 	public static GameMenu currentMenu;
@@ -132,6 +135,7 @@ public class GameMenu extends Application implements GameMenuInterface {
 				new RectPos(0.0713, 0.0740, 0.1244, 0.1990),
 				new RectPos(0.0713, 0.7712, 0.1244, 0.8962),
 		};
+		public static final RectPos switchBtn = new RectPos(0.9734, 0.0166, 0.9968, 0.1583);
 	}
 
 
@@ -150,8 +154,10 @@ public class GameMenu extends Application implements GameMenuInterface {
 	@Override
 	public void start(Stage stage) {
 		this.stage = stage;
-		rootPane = new Pane();
-		Scene scene = new Scene(rootPane);
+		realRoot.getChildren().add(rootPane);
+		realRoot.getChildren().add(messagePane);
+		realRoot.getChildren().add(overlayPane);
+		Scene scene = new Scene(realRoot);
 		stage.setScene(scene);
 		stage.setResizable(false);
 		stage.setWidth(WIDTH);
@@ -364,7 +370,7 @@ public class GameMenu extends Application implements GameMenuInterface {
 	}
 
 	public void beginRound() {
-		messages.add(new MessageGame(rootPane, R.getImage("icons/notif_round_start.png"), "NEW Round Started"));
+		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_round_start.png"), "NEW Round Started"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
 			controller.waitExec.run(1100, this::showAllMessages);
@@ -372,7 +378,7 @@ public class GameMenu extends Application implements GameMenuInterface {
 	}
 
 	public void userPassed(int player) {
-		messages.add(new MessageGame(rootPane, R.getImage("icons/notif_round_passed.png"), controller.getPlayer(player).user.nickname() + " passed"));
+		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_round_passed.png"), controller.getPlayer(player).user.nickname() + " passed"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
 			controller.waitExec.run(1100, this::showAllMessages);
@@ -380,14 +386,14 @@ public class GameMenu extends Application implements GameMenuInterface {
 	}
 
 	public void showWinner(int player) {
-		messages.add(new MessageGame(rootPane, R.getImage("icons/notif_win_round.png"), controller.getPlayer(player).user.nickname() + " won"));
+		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_win_round.png"), controller.getPlayer(player).user.nickname() + " won"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
 			controller.waitExec.run(1100, this::showAllMessages);
 		}
 	}
 	public void showDraw() {
-		messages.add(new MessageGame(rootPane, R.getImage("icons/notif_draw_round.png"), "	 Draw!"));
+		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_draw_round.png"), "	 Draw!"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
 			controller.waitExec.run(1100, this::showAllMessages);
@@ -395,7 +401,7 @@ public class GameMenu extends Application implements GameMenuInterface {
 	}
 
 	public void userTurn(int player) {
-		messages.add(new MessageGame(rootPane, R.getImage("icons/notif_me_turn.png"), controller.getPlayer(1 - player).user.nickname() + "'s turn"));
+		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_me_turn.png"), controller.getPlayer(1 - player).user.nickname() + "'s turn"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
 			controller.waitExec.run(1100, this::showAllMessages);
@@ -462,9 +468,10 @@ public class GameMenu extends Application implements GameMenuInterface {
 
 		cardMap.clear();
 		rootPane.getChildren().clear();
+		overlayPane.getChildren().clear();
 
 		addBackground(R.image.board[controller.getActivePlayer()]);
-		// TODO: hide these
+		// TODO: hide cheat buttons
 		addCheatButtons();
 		addButton(rootPane, "Pass", "pass", Position.pass);
 		addDeckCards(true);
@@ -565,6 +572,16 @@ public class GameMenu extends Application implements GameMenuInterface {
 		addWinnerSign();
 		if (pickList != null)
 			addPicker();
+
+		if (controller.hasSwitchableSides()) {
+			Button btn = new Button("S\ni\nd\ne");
+			btn.setOnAction(e -> {
+				controller.setActivePlayer(1 - player);
+				redraw();
+			});
+			Position.switchBtn.setBounds(btn);
+			overlayPane.getChildren().add(btn);
+		}
 	}
 
 	protected List<Card> pickList;

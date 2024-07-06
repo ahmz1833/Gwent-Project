@@ -80,7 +80,7 @@ public class MainStage extends AbstractStage {
 			ReplayInputController c1 = new ReplayInputController(gr.commands());
 			ReplayInputController c2 = new ReplayInputController(gr.commands());
 			GameMenu gameMenu = new GameMenu(getInstance());
-			new GameController(c1, c2, deck1, deck2, seed, gameMenu, dard -> { System.exit(0); });
+			new GameController(c1, c2, deck1, deck2, seed, gameMenu, dard -> { System.exit(0); }, 0, true);
 		});
 		pane.getChildren().add(btn3);
 

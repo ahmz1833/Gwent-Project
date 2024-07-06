@@ -46,6 +46,7 @@ public class GameController {
 	private boolean lastPassed;
 	private Random rand;
 	private int currentRound = 0;
+	private boolean switchableSides = false;
 	public final WaitExec waitExec;
 
 	public boolean leaderAbilityInUse(int player, Ability ability) {
@@ -76,11 +77,28 @@ public class GameController {
 			GameMenuInterface gameMenu,
 			Consumer<GameRecord> onEnd
 	) {
+		this(c0, c1, d0, d1, seed, gameMenu, onEnd, 0, false);
+	}
+
+	public GameController(
+			InputController c0,
+			InputController c1,
+			Deck d0,
+			Deck d1,
+			long seed,
+			GameMenuInterface gameMenu,
+			Consumer<GameRecord> onEnd,
+			int firstSide,
+			boolean switchableSides
+	) {
 		this.onEnd = onEnd;
 		this.seed = seed;
 		playerData[0] = new PlayerData(d0, c0);
 		playerData[1] = new PlayerData(d1, c1);
 		turn = 0;
+
+		activePlayer = firstSide;
+		this.switchableSides = switchableSides;
 
 		for (int i = 0; i < 6; i++) {
 			row.add(new ArrayList<>());
@@ -122,6 +140,8 @@ public class GameController {
 		c0.veto();
 		c1.veto();
 	}
+
+	public boolean hasSwitchableSides() { return switchableSides; }
 
 	private void beginRound() {
 		currentRound++;
