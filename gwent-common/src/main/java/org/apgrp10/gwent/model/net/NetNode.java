@@ -16,8 +16,7 @@ public class NetNode implements Closeable, Runnable {
 	protected final InputStream inputStream;
 	protected final OutputStream outputStream;
 	private final ArrayList<Runnable> onClose = new ArrayList<>();
-
-	private AsyncReader asyncReader;
+	private final AsyncReader asyncReader;
 
 	public NetNode(Socket socket, Consumer<byte[]> onReceive) {
 		this.socket = socket;

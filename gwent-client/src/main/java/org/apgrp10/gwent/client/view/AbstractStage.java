@@ -1,6 +1,7 @@
 package org.apgrp10.gwent.client.view;
 
 import io.github.palexdev.materialfx.controls.MFXButton;
+import io.github.palexdev.materialfx.dialogs.MFXDialogs;
 import io.github.palexdev.materialfx.dialogs.MFXGenericDialogBuilder;
 import io.github.palexdev.materialfx.dialogs.MFXStageDialog;
 import io.github.palexdev.materialfx.enums.ScrimPriority;
@@ -17,12 +18,17 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import org.apgrp10.gwent.client.R;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractStage extends Stage {
+	private final ArrayList<MFXStageDialog> showingDialogs = new ArrayList<>();
+
 	protected AbstractStage(String title, Image icon) {
 		super();
 		setOpacity(0.0);
@@ -56,8 +62,7 @@ public abstract class AbstractStage extends Stage {
 		return (T) getScene().lookup(id);
 	}
 
-	public void setOnPressListener(String buttonID, EventHandler<Event> handler) {
-		MFXButton button = lookup(buttonID);
+	public void setOnPressListener(Button button, EventHandler<Event> handler) {
 		button.setOnMouseClicked(handler);
 		button.setOnKeyReleased(e -> {
 			if (e.getCode().getName().equals("Enter")) handler.handle(e);
@@ -65,7 +70,9 @@ public abstract class AbstractStage extends Stage {
 	}
 
 	private MFXStageDialog makeDialog(MFXGenericDialogBuilder base) {
-		base.addStylesheets(getScene().getStylesheets().toArray(new String[0]));
+		var styles = getScene().getStylesheets();
+		styles.add(R.get("css/styles.css").toExternalForm());
+		base.addStylesheets(styles.toArray(new String[0]));
 
 		MFXStageDialog dialog = MFXGenericDialogBuilder.build(base.get())
 				.toStageDialogBuilder()
@@ -127,7 +134,10 @@ public abstract class AbstractStage extends Stage {
 			Button finalCancelBtn1 = cancelBtn;
 			dialog.setOnCloseRequest(e -> finalCancelBtn1.fireEvent(emptyMouseEvent()));
 		}
+		dialog.setTitle(title);
+		showingDialogs.add(dialog);
 		dialog.showAndWait();
+		showingDialogs.remove(dialog);
 	}
 
 	@SafeVarargs
@@ -157,18 +167,41 @@ public abstract class AbstractStage extends Stage {
 		showDialogAndWait(base, title, message, Map.entry("#*OK", e -> {}));
 	}
 
-//	public void showExitDialog() {
-//		if (UserController.getCurrentUser() != null) {
-//			User user = UserController.getCurrentUser();
-//			showDialogAndWait(MFXDialogs.warn(), "Confirmation",
-//					"Are you sure you want to exit? '" + user.getUsername() + "' will be logged out.",
-//					Map.entry("Exit", e -> Platform.exit()),
-//					Map.entry("Logout Only", e -> UserController.logout()),
-//					Map.entry("*Cancel", e -> {}));
-//		} else if (showConfirmDialog(MFXDialogs.warn(), "Exit Confirmation",
-//				"Are you sure you want to exit?", "Yes", "No"))
-//			Platform.exit();
-//	}
+	public void connectionLost() {
+		Platform.runLater(() -> {
+			if (!showingDialogs.isEmpty() &&
+			    showingDialogs.getLast().getTitle().equals("Connection Lost")) return;
+			disable();
+			showAlert(MFXDialogs.error(),
+					"Connection Lost",
+					"Connection to server lost, Trying to reconnect ...");
+		});
+	}
+
+	public void connectionEstablished() {
+		Platform.runLater(() -> {
+			enable();
+			if (showingDialogs.isEmpty() ||
+			    !showingDialogs.getLast().getTitle().equals("Connection Lost")) return;
+			showingDialogs.getLast().close();
+			showingDialogs.remove(showingDialogs.getLast());
+		});
+	}
+
+	public void showExitDialog() {
+		if (!(this instanceof MainStage)) {
+			showDialogAndWait(MFXDialogs.warn(), "Confirmation",
+					"Are you sure you want to exit? ",
+					Map.entry("Exit", e -> Platform.exit()),
+					Map.entry("Back to Main", e -> {
+						close();
+						MainStage.getInstance().start();
+					}),
+					Map.entry("*Cancel", e -> {}));
+		} else if (showConfirmDialog(MFXDialogs.warn(), "Exit Confirmation",
+				"Are you sure you want to exit?", "Yes", "No"))
+			Platform.exit();
+	}
 
 	protected abstract boolean onCreate();
 
@@ -177,4 +210,12 @@ public abstract class AbstractStage extends Stage {
 	protected abstract void onGetFocus();
 
 	protected abstract void onLostFocus();
+
+	public void disable() {
+		getScene().getRoot().setDisable(true);
+	}
+
+	public void enable() {
+		getScene().getRoot().setDisable(false);
+	}
 }

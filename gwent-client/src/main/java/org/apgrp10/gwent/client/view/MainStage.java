@@ -4,6 +4,7 @@ import io.github.palexdev.materialfx.controls.MFXButton;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.WindowEvent;
+import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.Server;
 import org.apgrp10.gwent.client.controller.PreGameController;
 import org.apgrp10.gwent.model.Avatar;
@@ -29,10 +30,7 @@ public class MainStage extends AbstractStage {
 
 	@Override
 	protected boolean onCreate() {
-		Pane pane = new Pane();
-		Scene scene = new Scene(pane);
-		pane.setPrefWidth(400);
-		pane.setPrefHeight(300);
+		setScene(R.scene.main);
 		MFXButton btn = new MFXButton("Salam");
 //		Server.send(new Request("fastPlay"), res -> {
 //			playerId = res.getBody().get("playerId").getAsInt();
@@ -43,22 +41,21 @@ public class MainStage extends AbstractStage {
 //			Server.setListener("makeDeck", null);
 //			return req.response(Response.OK_NO_CONTENT);
 //		});
-		btn.setOnMouseClicked(event -> {
-			if (!start)
-				return;
-			this.close();
-			User.PublicInfo publicInfo = new User.PublicInfo(1337, "user1", "nick1", Avatar.random());
-			User.PublicInfo publicInfo2 = new User.PublicInfo(1984, "user2", "nick2", Avatar.random());
-			new PreGameController(publicInfo, publicInfo2, playerId != 1, playerId != 0);
-		});
-		pane.getChildren().add(btn);
-
-
-		MFXButton btn2 = new MFXButton("Salam2");
-		btn2.setLayoutY(50);
-		btn2.setOnMouseClicked(event -> LoginStage.getInstance().start());
-		pane.getChildren().add(btn2);
-		setScene(scene);
+//		btn.setOnMouseClicked(event -> {
+//			if (!start)
+//				return;
+//			this.close();
+//			User.PublicInfo publicInfo = new User.PublicInfo(1337, "user1", "nick1", Avatar.random());
+//			User.PublicInfo publicInfo2 = new User.PublicInfo(1984, "user2", "nick2", Avatar.random());
+//			new PreGameController(publicInfo, publicInfo2, playerId != 1, playerId != 0);
+//		});
+//		pane.getChildren().add(btn);
+//
+//		MFXButton btn2 = new MFXButton("Salam2");
+//		btn2.setLayoutY(50);
+//		btn2.setOnMouseClicked(event -> LoginStage.getInstance().start());
+//		pane.getChildren().add(btn2);
+//		setScene(scene);
 		return true;
 	}
 

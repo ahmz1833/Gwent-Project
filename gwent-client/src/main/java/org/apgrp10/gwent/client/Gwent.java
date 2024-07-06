@@ -48,7 +48,7 @@ public class Gwent extends Application {
 	public void stop() throws Exception {
 		System.out.println();
 		System.out.println(ANSI.LCYAN.bd() + "Goodbye! Thank you for playing Gwent!" + ANSI.RST);
-		// TODO: disconnect from server
+		Server.disconnect();
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})

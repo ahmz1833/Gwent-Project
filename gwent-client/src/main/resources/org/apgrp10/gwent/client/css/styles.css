@@ -27,6 +27,7 @@ Label, MFXButton, MFXTextField, MFXTableView {
     -fx-font-family: 'Comfortaa SemiBold';
 }
 
+
 .mfx-button {
     -fx-padding: 10px 24px;
     -fx-text-align: center;
@@ -40,6 +41,24 @@ Label, MFXButton, MFXTextField, MFXTableView {
     -fx-background-color: #EEEEEE;
 }
 
+.dark-button {
+    -fx-background-color: #422a14;
+    -fx-text-fill: #FFFFFF;
+}
+
+.dark-button:hover {
+    -fx-background-color: #452f18;
+}
+
+.light-button {
+    -fx-background-color: #c6a281;
+}
+
+.light-button:hover {
+    -fx-background-color: #a8906d;
+}
+
+
 .actions-pane MFXButton {
     -fx-background-color: #EEEEEE;
     -fx-background-radius: 8px;
@@ -51,7 +70,7 @@ Label, MFXButton, MFXTextField, MFXTableView {
 
 .mfx-text-field {
     -fx-background-color: #FFFFFF;
-    -fx-border-color: #695181;
+    -fx-border-color: #7b5d4a;
     -fx-border-radius: 10px;
     -fx-text-fill: #000000;
     -fx-font-size: 16px;
@@ -64,7 +83,7 @@ Label, MFXButton, MFXTextField, MFXTableView {
 }
 
 .mfx-text-field:focus-within .floating-text {
-    -fx-background-color: #f5c6ff;
+    -fx-background-color: #f0c79c;
 }
 
 .validation-label {

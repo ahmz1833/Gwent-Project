@@ -1,17 +1,29 @@
 @import "styles.css";
 
-#login, #register {
-    -fx-background-color: #4CAF50; /* Green */
+#title {
+    -fx-font-family: 'Visby Round CF Bold';
+    -fx-font-size: 25px;
+    -fx-text-fill: #2e1d00;
 }
 
-#login:hover, #register:hover {
-    -fx-background-color: #45a049;
+#secQ {
+    -fx-border-color: transparent;
+    -fx-border-radius: 0;
+    -fx-background-color: #c39062;
+    -fx-background-radius: 10;
+    -fx-text-fill: #000000;
+    -fx-background-insets: 0 0 0 -3;
 }
 
-#guestplay {
-    -fx-background-color: #008CBA; /* Blue */
+#secQ .floating-text {
+    -fx-background-color: transparent;
+    -fx-text-fill: #3f2813;
 }
 
-#guestplay:hover {
-    -fx-background-color: #007B9E;
+#secQ .caret .mfx-font-icon {
+    -mfx-color: white;
+}
+
+#secQ .caret .mfx-ripple-generator {
+    -mfx-ripple-color: rgba(255, 255, 255, 0.5);
 }
