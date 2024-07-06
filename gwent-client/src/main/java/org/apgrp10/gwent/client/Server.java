@@ -125,8 +125,10 @@ public class Server {
 		if (!running) return;
 		Platform.runLater(Server::fxLoop);
 
-		if (packetHandler.getNetNode().isClosed())
+		if (packetHandler.getNetNode().isClosed()) {
 			running = false;
+			return;
+		}
 
 		long time = System.currentTimeMillis();
 		if (time - lastPing >= 5000) {

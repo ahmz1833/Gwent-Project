@@ -26,4 +26,8 @@ public class WaitExec {
 	public WaitExec(boolean dummy) {
 		this.dummy = dummy;
 	}
+
+	public void setDummy(boolean b) {
+		dummy = b;
+	}
 }

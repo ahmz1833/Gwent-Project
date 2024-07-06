@@ -34,7 +34,7 @@ public class GameController {
 			this.controller = controller;
 		}
 	}
-	private final GameMenuInterface gameMenu;
+	private GameMenuInterface gameMenu;
 	private final PlayerData playerData[] = new PlayerData[2];
 	private final List<List<Card>> row = new ArrayList<>();
 	private final List<List<Card>> special = new ArrayList<>();
@@ -721,6 +721,18 @@ public class GameController {
 		// we make a deep copy because some listeners might remove themselves while we are iterating
 		for (Consumer<Command> cb : new ArrayList<>(commandListeners))
 			cb.accept(cmd);
+	}
+
+	public void fastForward(List<Command> cmds) {
+		GameMenuInterface gm = gameMenu;
+		waitExec.setDummy(true);
+		gameMenu = null;
+
+		for (Command cmd : cmds)
+			sendCommand(cmd);
+
+		gameMenu = gm;
+		waitExec.setDummy(gm == null);
 	}
 
 	public void setActivePlayer(int player) {
