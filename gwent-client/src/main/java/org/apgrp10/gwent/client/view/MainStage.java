@@ -121,19 +121,4 @@ public class MainStage extends AbstractStage {
 //		});
 		return true;
 	}
-
-	@Override
-	protected void onCloseRequest(WindowEvent event) {
-
-	}
-
-	@Override
-	protected void onGetFocus() {
-
-	}
-
-	@Override
-	protected void onLostFocus() {
-
-	}
 }

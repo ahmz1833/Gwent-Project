@@ -749,6 +749,5 @@ public class PreGameMenu {
 			} catch (Exception ignored) {
 			}
 		}
-
 	}
 }

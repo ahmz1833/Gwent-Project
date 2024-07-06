@@ -5,15 +5,23 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.WindowEvent;
 import org.apgrp10.gwent.client.R;
+import org.apgrp10.gwent.client.controller.MouseInputController;
+import org.apgrp10.gwent.client.controller.ServerInputController;
+import org.apgrp10.gwent.controller.GameController;
+import org.apgrp10.gwent.controller.InputController;
 import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.User;
+import org.apgrp10.gwent.utils.ANSI;
+import org.apgrp10.gwent.utils.MGson;
+import org.apgrp10.gwent.utils.Utils;
 
 import java.util.Map;
 
 public class PreGameStage extends AbstractStage {
 	private static PreGameStage INSTANCE;
 	private Pane pane;
+	private Deck deck1, deck2;
 
 	private PreGameStage() {
 		super("PreGame Menu", R.icon.app_icon);
@@ -39,23 +47,37 @@ public class PreGameStage extends AbstractStage {
 	// This method will be called when we click on Start game button (And the deck is correct)
 	public void startClicked(Deck deck) {
 		// TODO: determine that if I am first player or second
-		// (Do we have to open GameStage or make a new Deck?)
-		showDialogAndWait(MFXDialogs.info(), "Start Game", "", Map.entry("#OK", e->{}));
+
+
+		// TODO; this is Tof:
+		if(deck1 == null)
+		{
+			deck1 = deck;
+			new PreGameMenu(pane, false, new User.PublicInfo(0, "droud", "badi", Avatar.random()));
+		}
+		else
+		{
+			deck2 = deck;
+			// Start Game TODO: tof
+			InputController c1, c2;
+			c1 = new MouseInputController() ;
+			c2 = new MouseInputController() ;
+			GameMenu gameMenu = new GameMenu(PreGameStage.getInstance()); // TODO : must be changed
+			GameController controller = new GameController(c1, c2, deck1, deck2, System.currentTimeMillis(), gameMenu, gr -> {
+				ANSI.log("END");
+			});
+		}
+//		showDialogAndWait(MFXDialogs.info(), "Start Game", "How ?",
+//				Map.entry("Make an Offline play", e->{
+//
+//				}),
+//				Map.entry("", e->{}),
+//				Map.entry("", e->{}));
 	}
 
 	@Override
 	protected void onCloseRequest(WindowEvent event) {
-//		event.consume();
-		// TODO:  show Exit Confirmation
-	}
-
-	@Override
-	protected void onGetFocus() {
-
-	}
-
-	@Override
-	protected void onLostFocus() {
-
+		event.consume();
+		showExitDialog();
 	}
 }

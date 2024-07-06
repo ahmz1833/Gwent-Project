@@ -205,11 +205,15 @@ public abstract class AbstractStage extends Stage {
 
 	protected abstract boolean onCreate();
 
-	protected abstract void onCloseRequest(WindowEvent event);
+	protected void onCloseRequest(WindowEvent event)
+	{
+		event.consume();
+		showExitDialog();
+	}
 
-	protected abstract void onGetFocus();
+	protected void onGetFocus() {}
 
-	protected abstract void onLostFocus();
+	protected void onLostFocus() {}
 
 	public void disable() {
 		getScene().getRoot().setDisable(true);
