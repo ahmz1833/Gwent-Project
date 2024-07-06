@@ -50,9 +50,7 @@ public class MainStage extends AbstractStage {
 			// if (!start)
 			// 	return;
 			this.close();
-			User.PublicInfo publicInfo = new User.PublicInfo(1337, "user1", "nick1", Avatar.random());
-			User.PublicInfo publicInfo2 = new User.PublicInfo(1984, "user2", "nick2", Avatar.random());
-			new PreGameController(publicInfo, publicInfo2, playerId != 1, playerId != 0);
+			PreGameStage.getInstance().start();
 		});
 		pane.getChildren().add(btn);
 
