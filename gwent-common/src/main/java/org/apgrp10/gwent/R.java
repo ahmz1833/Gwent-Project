@@ -19,7 +19,6 @@ public class R {
 		DEFAULT_AVATARS.add(Avatar.fromImage(new Image(getAsStream("avatars/6.png"))));
 		DEFAULT_AVATARS.add(Avatar.fromImage(new Image(getAsStream("avatars/7.png"))));
 		DEFAULT_AVATARS.add(Avatar.fromImage(new Image(getAsStream("avatars/8.png"))));
-		DEFAULT_AVATARS.add(Avatar.fromImage(new Image(getAsStream("avatars/9.png"))));
 	}
 
 	public static URL get(String path) {
