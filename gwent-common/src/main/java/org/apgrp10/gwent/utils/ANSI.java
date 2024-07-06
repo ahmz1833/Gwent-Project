@@ -104,7 +104,7 @@ public final class ANSI {
 	}
 
 	public synchronized static void printErrorResponse(String errorMessage, Response res) {
-		log(errorMessage, LRED.bd(), false);
+		if(errorMessage != null) log(errorMessage, LRED.bd(), false);
 		if (res.getStatus() != Response.INTERNAL_SERVER_ERROR)
 			return;
 		JsonObject errObj = res.getBody();

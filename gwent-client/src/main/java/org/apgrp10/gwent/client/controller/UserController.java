@@ -2,6 +2,7 @@ package org.apgrp10.gwent.client.controller;
 
 
 import com.google.gson.JsonObject;
+import javafx.animation.Animation;
 import org.apgrp10.gwent.client.Gwent;
 import org.apgrp10.gwent.client.Server;
 import org.apgrp10.gwent.client.model.StoredList;
@@ -92,6 +93,8 @@ public class UserController {
 				ANSI.log("User ID: " + toVerifyUser);
 			} else {
 				ANSI.log("Failed to login, error code " + res.getStatus());
+				if(res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
 			}
 		});
 	}
@@ -106,8 +109,8 @@ public class UserController {
 				if(saveJWT) saveJWTToFile();
 			} else {
 				ANSI.log("Failed to verify, error code " + res.getStatus());
-//				if(res.getStatus() == Response.INTERNAL_SERVER_ERROR)
-
+				if(res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
 			}
 		});
 	}

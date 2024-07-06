@@ -65,7 +65,7 @@ public class Requests {
 			return req.response(Response.OK, MGson.makeJsonObject("jwt", jwt));
 		} catch (Exception e) {
 			ANSI.logError(System.err, "Failed to verify login code", e);
-			return ANSI.createErrorResponse(req, )
+			return ANSI.createErrorResponse(req, "Failed to verify Code", e);
 		}
 		else
 			return req.response(Response.UNAUTHORIZED);
@@ -82,7 +82,7 @@ public class Requests {
 			return req.response(Response.ACCEPTED, (JsonObject) MGson.toJsonElement(user));
 		} catch (Exception e) {
 			ANSI.logError(System.err, "Failed to get user by id", e);
-			return req.response(Response.INTERNAL_SERVER_ERROR);
+			return ANSI.createErrorResponse(req, "Failed to get user by id", e);
 		}
 		else
 			return req.response(Response.UNAUTHORIZED);
