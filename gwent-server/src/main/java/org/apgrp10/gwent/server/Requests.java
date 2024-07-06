@@ -30,7 +30,7 @@ public class Requests {
 				return req.response(Response.OK_NO_CONTENT);
 			} catch (Exception e) {
 				ANSI.logError(System.err, "Failed to send email", e);
-				return req.response(Response.INTERNAL_SERVER_ERROR);
+				return ANSI.createErrorResponse(req, "Failed to send mail", e);
 			}
 		}
 	}
@@ -50,7 +50,7 @@ public class Requests {
 				return req.response(Response.UNAUTHORIZED); // Incorrect password
 		} catch (Exception e) {
 			ANSI.logError(System.err, "Failed to login user", e);
-			return req.response(Response.INTERNAL_SERVER_ERROR);
+			return ANSI.createErrorResponse(req, "Failed to login user", e);
 		}
 	}
 
@@ -60,13 +60,12 @@ public class Requests {
 		String code = req.getBody().get("code").getAsString();
 		if (Email2FAUtils.verifyLoginCode(client, code, userId)) try {
 			JsonObject userJson = MGson.makeJsonObject("sub", userId,
-					"name", UserDatabase.getInstance().getUserById(userId).registerInfo().username(),
 					"exp", System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7); // 1 week
 			String jwt = SecurityUtils.makeJWT(userJson, ServerMain.SECRET_KEY);
 			return req.response(Response.OK, MGson.makeJsonObject("jwt", jwt));
 		} catch (Exception e) {
 			ANSI.logError(System.err, "Failed to verify login code", e);
-			return req.response(Response.INTERNAL_SERVER_ERROR);
+			return ANSI.createErrorResponse(req, "Failed to verify Code", e);
 		}
 		else
 			return req.response(Response.UNAUTHORIZED);
@@ -83,7 +82,7 @@ public class Requests {
 			return req.response(Response.ACCEPTED, (JsonObject) MGson.toJsonElement(user));
 		} catch (Exception e) {
 			ANSI.logError(System.err, "Failed to get user by id", e);
-			return req.response(Response.INTERNAL_SERVER_ERROR);
+			return ANSI.createErrorResponse(req, "Failed to get user by id", e);
 		}
 		else
 			return req.response(Response.UNAUTHORIZED);

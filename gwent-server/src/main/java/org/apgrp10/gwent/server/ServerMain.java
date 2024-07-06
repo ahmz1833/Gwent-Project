@@ -82,12 +82,8 @@ public class ServerMain {
 					if (method.getParameterTypes()[1] != Request.class) continue;
 					if (method.getReturnType() != Response.class) continue;
 
-					ANSI.log("Method: " + method.getName(), ANSI.LGREEN, false);
-
 					// Check if the method has the Authorizations annotation
 					Requests.Authorizations auth = method.getAnnotation(Requests.Authorizations.class);
-
-					ANSI.log("Auth: " + auth, ANSI.LGREEN, false);
 
 					// Add the method as a listener
 					client.setListener(method.getName(), req -> {
