@@ -11,6 +11,7 @@ import javafx.scene.effect.DropShadow;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.model.AvatarView;
 import org.apgrp10.gwent.client.model.CardView;
+import org.apgrp10.gwent.client.model.TerminalAsyncReader;
 import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.controller.GameController.PlayerData;
 import org.apgrp10.gwent.model.Avatar;
@@ -166,7 +167,29 @@ public class GameMenu implements GameMenuInterface {
 		stage.setWidth(WIDTH);
 		stage.setHeight(HEIGHT);
 		stage.centerOnScreen();
+		addTerminalListener();
 		redraw();
+	}
+
+	public void endGame() {
+		removeTerminalListener();
+	}
+
+	private Object terminalListener;
+	private void addTerminalListener() {
+		terminalListener = TerminalAsyncReader.addListener(str -> {
+			if (str.equals("¯\\_(ツ)_/¯") && !showCheats) {
+				showCheats = true;
+				redraw();
+			}
+			if (str.equals("hide") && showCheats) {
+				showCheats = false;
+				redraw();
+			}
+		});
+	}
+	private void removeTerminalListener() {
+		TerminalAsyncReader.removeListener(terminalListener);
 	}
 
 	private final Map<Card, CardView> cardMap = new HashMap<>();
@@ -473,6 +496,8 @@ public class GameMenu implements GameMenuInterface {
 		}
 	}
 
+	private boolean showCheats;
+
 	public void redraw() {
 		final int player = controller.getActivePlayer();
 		activeCardView = null;
@@ -484,8 +509,8 @@ public class GameMenu implements GameMenuInterface {
 			System.out.println(k.getSceneY() / HEIGHT);
 		});
 		addBackground(R.image.board[controller.getActivePlayer()]);
-		// TODO: hide cheat buttons
-		addCheatButtons();
+		if (showCheats)
+			addCheatButtons();
 		addButton(rootPane, "Pass", "pass", Position.pass);
 		addDeckCards(true);
 		addProfile(true);

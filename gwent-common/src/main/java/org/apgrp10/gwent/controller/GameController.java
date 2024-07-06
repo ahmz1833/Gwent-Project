@@ -503,6 +503,7 @@ public class GameController {
 			                               new ArrayList<>(roundWinner),
 			                               new ArrayList<>(p1Sc),
 			                               new ArrayList<>(p2Sc));
+			gameMenu.endGame();
 			onEnd.accept(gr);
 			return;
 		}

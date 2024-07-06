@@ -16,7 +16,7 @@ public class NetNode implements Closeable, Runnable {
 	protected final InputStream inputStream;
 	protected final OutputStream outputStream;
 	private final ArrayList<Runnable> onClose = new ArrayList<>();
-	private final AsyncReader asyncReader;
+	private final NetAsyncReader asyncReader;
 
 	public NetNode(Socket socket, Consumer<byte[]> onReceive) {
 		this.socket = socket;
@@ -27,7 +27,7 @@ public class NetNode implements Closeable, Runnable {
 			throw new RuntimeException("Failed to create input/output streams for device", e);
 		}
 
-		asyncReader = new AsyncReader(inputStream, onReceive, e -> {
+		asyncReader = new NetAsyncReader(inputStream, onReceive, e -> {
 			// TODO: proper error handling
 			close();
 		});
@@ -72,7 +72,7 @@ public class NetNode implements Closeable, Runnable {
 		try {
 			// output stream might not be buffered
 			byte arr[] = new byte[4 + data.length];
-			System.arraycopy(AsyncReader.intToBytes(data.length), 0, arr, 0, 4);
+			System.arraycopy(NetAsyncReader.intToBytes(data.length), 0, arr, 0, 4);
 			System.arraycopy(data, 0, arr, 4, data.length);
 			outputStream.write(arr);
 			outputStream.flush();

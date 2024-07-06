@@ -37,4 +37,6 @@ public interface GameMenuInterface {
 	void showWinner(int player);
 	void showDraw();
 	void userTurn(int player);
+
+	void endGame();
 }
