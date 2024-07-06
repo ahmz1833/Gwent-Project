@@ -21,8 +21,7 @@ import org.apgrp10.gwent.utils.Utils;
 
 public class MainStage extends AbstractStage {
 	private static MainStage INSTANCE;
-	private int playerId = -1;
-	private boolean start;
+	private MFXButton gameBtn, replayBtn, playingBtn, profileBtn, friendsBtn, rankingsBtn;
 
 	private MainStage() {
 		super("Gwent Main", null);// TODO: set icon
@@ -37,6 +36,36 @@ public class MainStage extends AbstractStage {
 	@Override
 	protected boolean onCreate() {
 		setScene(R.scene.main);
+
+		gameBtn = lookup("#gameBtn");
+		replayBtn = lookup("#replayBtn");
+		playingBtn = lookup("#playingBtn");
+		profileBtn = lookup("#profileBtn");
+		friendsBtn = lookup("#friendsBtn");
+		rankingsBtn = lookup("#rankingsBtn");
+
+		setOnPressListener(gameBtn, event -> PreGameStage.getInstance().start());
+
+		setOnPressListener(replayBtn, event -> {
+			//TODO: show a dialog , User specifies whether he wants to review a file record or a recording on server
+
+			// TODO: if user chooses to review a file record, check if the file is valid and then start the replay
+//			String path = Utils.chooseFileToUpload("Choose recording", getInstance());
+		});
+
+		setOnPressListener(playingBtn, event -> {
+			// TODO: implement
+		});
+
+		setOnPressListener(profileBtn, event -> ProfileStage.getInstance().start());
+
+		setOnPressListener(friendsBtn, event -> {
+			// TODO: show a dialog , User specifies whether he wants to add a friend or view friends list
+		});
+
+		setOnPressListener(rankingsBtn, event -> {
+			// TODO: start the rankings stage
+		});
 
 //		Pane pane = new Pane();
 //		Scene scene = new Scene(pane);

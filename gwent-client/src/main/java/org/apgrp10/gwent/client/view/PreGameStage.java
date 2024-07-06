@@ -30,10 +30,8 @@ public class PreGameStage extends AbstractStage {
 		this.setWidth(PreGameMenu.screenWidth);
 		this.setHeight(PreGameMenu.screenHeight);
 		pane = new Pane();
-		Scene scene = new Scene(pane);
-		setScene(scene);
+		setScene(new Scene(pane));
 		pane.getStylesheets().add(R.get("css/preGame.css").toExternalForm());
-
 		new PreGameMenu(pane, true, new User.PublicInfo(0, "salam", "khobi", Avatar.random()));
 		return true;
 	}
