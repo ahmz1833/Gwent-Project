@@ -21,7 +21,7 @@ public class ClientMain {
 			} else {
 				ANSI.log("Disconnected from server", ANSI.LRED, false);
 				for (Window window : Window.getWindows())
-					if (window instanceof AbstractStage stage)
+					if (window instanceof AbstractStage stage);
 						// stage.connectionLost(); // TODO: temporary disabled
 				new Timer().schedule(new TimerTask() {
 					@Override

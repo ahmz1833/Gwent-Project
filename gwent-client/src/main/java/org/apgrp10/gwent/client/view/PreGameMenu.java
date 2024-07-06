@@ -481,6 +481,11 @@ public class PreGameMenu {
 			Deck deck = createDeckFromPane(deckLists[1]);
 			PreGameStage.getInstance().startClicked(deck);
 		}
+		else
+		{
+			AbstractStage stage = PreGameStage.getInstance();
+			stage.showAlert(MFXDialogs.error(), "Error!", "Your Deck is not ready yet!");
+		}
 	}
 
 	private Deck createDeckFromPane(GridPane gridPane) {
