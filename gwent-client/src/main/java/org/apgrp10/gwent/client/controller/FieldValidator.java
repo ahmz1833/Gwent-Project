@@ -37,7 +37,7 @@ public class FieldValidator {
 	public static Constraint haveLowerUpperCase(TextField textField) {
 		return new Constraint(Severity.ERROR, "Must contain at least one lowercase and one uppercase characters",
 				Bindings.createBooleanBinding(() -> textField.getText().matches(
-						"(?=.*[a-z].*)(?=.*[A-Z].*)"
+						"(?=.*[a-z].*)(?=.*[A-Z].*).*"
 				), textField.textProperty()));
 	}
 

@@ -10,6 +10,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import org.apgrp10.gwent.client.Gwent;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -28,6 +29,9 @@ public abstract class AbstractStage extends Stage {
 		this.setOnCloseRequest(AbstractStage.this::onCloseRequest);
 	}
 
+	protected static MouseEvent emptyMouseEvent() {
+		return new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, null, 0, false, false, false, false, false, false, false, false, false, false, null);
+	}
 
 	public void start() {
 		Platform.runLater(() -> {
@@ -50,10 +54,9 @@ public abstract class AbstractStage extends Stage {
 	public void setOnPressListener(Button button, EventHandler<Event> handler) {
 		button.setOnMouseClicked(handler);
 		button.setOnKeyReleased(e -> {
-			if (e.getCode().getName().equals("Enter")) handler.handle(e);
+			if (e.getCode().getName().equals("Enter") && handler != null) handler.handle(e);
 		});
 	}
-
 
 	public void connectionLost() {
 		Platform.runLater(() -> {
@@ -84,7 +87,7 @@ public abstract class AbstractStage extends Stage {
 			AtomicBoolean returnValue = new AtomicBoolean(true);
 			showDialogAndWait(Dialogs.WARN(), "Confirmation",
 					"Are you sure you want to exit? ",
-					Map.entry("Exit", e -> Platform.exit()),
+					Map.entry("Exit", e -> Gwent.exit()),
 					Map.entry("Back to Main", e -> {
 						close();
 						MainStage.getInstance().start();
@@ -94,7 +97,7 @@ public abstract class AbstractStage extends Stage {
 		} else if ((this instanceof LoginStage || this instanceof MainStage) &&
 		           showConfirmDialog(Dialogs.WARN(), "Exit Confirmation",
 				           "Are you sure you want to exit?", "Yes", "No"))
-			Platform.exit();
+			Gwent.exit();
 		else return false;
 		return true;
 	}

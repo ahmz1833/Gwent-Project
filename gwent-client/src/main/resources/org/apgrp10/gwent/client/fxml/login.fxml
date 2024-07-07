@@ -79,12 +79,12 @@
                </VBox.margin>
             </Label>
             <HBox fx:id="secPane" spacing="10.0">
-               <MFXComboBox fx:id="secQ" floatingText="Security Question" prefHeight="50.0" prefWidth="190.0" />
-               <MFXPasswordField fx:id="secAns" floatMode="BORDER" floatingText="Security Answer" prefHeight="50.0" prefWidth="200.0" textLimit="32">
+               <MFXComboBox fx:id="secQ" floatingText="Security Question" prefHeight="50.0" maxWidth="210" />
+               <MFXTextField fx:id="secAns" floatMode="BORDER" floatingText="Security Answer" prefHeight="50.0" prefWidth="180" maxWidth="180" textLimit="32">
                   <VBox.margin>
                      <Insets />
                   </VBox.margin>
-               </MFXPasswordField>
+               </MFXTextField>
             </HBox>
             <Label fx:id="sec_v" maxWidth="400" styleClass="validation-label" visible="false" wrapText="true">
                <padding>
@@ -107,7 +107,7 @@
                   <Insets top="-10.0" />
                </VBox.margin>
             </Label>
-            <MFXCheckbox fx:id="remember" prefHeight="20.0" prefWidth="100.0" text="Stay Logged In" />
+            <MFXCheckbox fx:id="remember" prefHeight="20.0" prefWidth="100.0" text="Stay Logged In" selected="true" />
             <HBox alignment="CENTER" prefHeight="34.0" prefWidth="400.0" spacing="10.0">
                <MFXButton fx:id="btnLeft" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="40.0" prefWidth="200.0" styleClass="dark-button" />
                <MFXButton fx:id="btnRight" defaultButton="true" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="40.0" prefWidth="200.0" styleClass="light-button" />

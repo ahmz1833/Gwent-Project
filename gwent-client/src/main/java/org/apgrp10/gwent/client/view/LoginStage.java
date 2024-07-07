@@ -6,6 +6,7 @@ import io.github.palexdev.materialfx.controls.MFXPasswordField;
 import io.github.palexdev.materialfx.controls.MFXTextField;
 import io.github.palexdev.materialfx.validation.Constraint;
 import io.github.palexdev.materialfx.validation.Severity;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;
@@ -15,6 +16,7 @@ import javafx.scene.layout.HBox;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.model.net.Response;
+import org.apgrp10.gwent.utils.Random;
 
 import static io.github.palexdev.mfxcore.validation.Validated.INVALID_PSEUDO_CLASS;
 import static org.apgrp10.gwent.client.controller.FieldValidator.*;
@@ -61,7 +63,6 @@ public class LoginStage extends AbstractStage {
 	}
 
 	private void resetAllFields() {
-		resetField(username, username_v);
 		resetField(password, password_v);
 		resetField(nickname, nickname_v);
 		resetField(email, email_v);
@@ -108,11 +109,10 @@ public class LoginStage extends AbstractStage {
 		secAns = lookup("#secAns");
 		sec_v = lookup("#sec_v");
 		secQ.setItems(FXCollections.observableArrayList(
-				"What is your favorite color?",
-				"What is your favorite food?",
-				"What is your favorite animal?",
-				"What is your favorite sport?",
-				"What is your favorite place?"));
+				"Favorite color?",
+				"Favorite food?",
+				"Your Cousin Name?",
+				"Birth Town?"));
 		configureConstraints(secAns, sec_v, nonEmpty(secAns),
 				new Constraint(Severity.ERROR, "Select a security question",
 						Bindings.createBooleanBinding(() -> secQ.getValue() != null, secQ.valueProperty())));
@@ -130,6 +130,7 @@ public class LoginStage extends AbstractStage {
 	}
 
 	private void initLogin() {
+		resetAllFields();
 		btnLeft.setText("Login");
 		btnRight.setText("Register");
 		btnBelow.setText("Forgot Password?");
@@ -139,6 +140,7 @@ public class LoginStage extends AbstractStage {
 
 		setNext(username, password);
 		setNext(password, btnLeft);
+		username.requestFocus();
 
 		setOnPressListener(btnLeft, event -> {
 			// Validate and send login request
@@ -160,12 +162,12 @@ public class LoginStage extends AbstractStage {
 			}
 		});
 
-		btnRight.setOnAction(event -> {
+		setOnPressListener(btnRight, event -> {
 			// Register
 			initRegister();
 		});
 
-		btnBelow.setOnAction(event -> {
+		setOnPressListener(btnBelow, event -> {
 			// Forgot Password
 			initForgot();
 		});
@@ -196,31 +198,32 @@ public class LoginStage extends AbstractStage {
 						showAlert(Dialogs.ERROR(), "Incorrect Code", "The code you entered is incorrect!");
 					else
 						showAlert(Dialogs.ERROR(), "Server Exception", "An error occurred while trying to verify!\n"
-						                                                 + res.getBody().get("message").getAsString());
+						                                               + res.getBody().get("message").getAsString());
 				});
 			} else {
 				showAlert(Dialogs.ERROR(), "Invalid Code", "The code you entered is not valid!");
 			}
 		});
 
-		btnRight.setOnAction(event -> {
+		setOnPressListener(btnRight, event -> {
 			// Resend Code
 			UserController.sendLoginRequest(username.getText(), password.getText(), res -> {
 				if (res.isOk())
 					showAlert(Dialogs.INFO(), "Code Sent", "A new verification code has been sent to your email!");
 				else
 					showAlert(Dialogs.ERROR(), "Server Exception", "An error occurred while trying to resend code!\n"
-					                                                 + res.getBody().get("message").getAsString());
+					                                               + res.getBody().get("message").getAsString());
 			});
 		});
 
-		btnBelow.setOnAction(event -> {
+		setOnPressListener(btnBelow, event -> {
 			// Cancel
 			initLogin();
 		});
 	}
 
 	private void initForgot() {
+		resetAllFields();
 		btnLeft.setText("Send Code");
 		btnRight.setText("Reset Password");
 		btnBelow.setText("Cancel");
@@ -236,50 +239,72 @@ public class LoginStage extends AbstractStage {
 	}
 
 	private void initRegister() {
+		resetAllFields();
 		btnLeft.setText("Register");
 		btnRight.setText("Cancel");
-		btnBelow.setManaged(false);
-		btnBelow.setVisible(false);
+
+
+		setNodesEnabled(true, username, username_v, passPane, password, password_v, passRand,
+				nickname, nickname_v, email, email_v, secPane, secQ, secAns, sec_v);
+		setNodesEnabled(false, stayLogged, code, code_v, btnBelow);
+
+		username.requestFocus();
+		setNext(username, password);
+		setNext(password, nickname);
+		setNext(nickname, email);
+		setNext(email, secQ);
+		setNext(secAns, btnLeft);
+
+		setOnPressListener(btnLeft, event -> {
+			// Validate and send register request
+			boolean valid = username.getValidator().isValid() && password.getValidator().isValid()
+			                && nickname.getValidator().isValid() && email.getValidator().isValid()
+			                && secAns.getValidator().isValid();
+			if (valid) {
+				// Send register request
+				UserController.sendRegisterRequest(username.getText(), password.getText(), nickname.getText(),
+						email.getText(), secQ.getValue(), secAns.getText(), res -> {
+							if (res.isOk()) {
+								showAlert(Dialogs.INFO(), "Registered Successfully",
+										"An email has been sent to you with a verification link!");
+								initLogin();
+							} else if (res.getStatus() == Response.CONFLICT) {
+								// show a conflict dialog
+								String newRandom = username.getText() + "_" + Integer.toHexString(Random.nextInt(0, 256));
+								boolean result = showConfirmDialog(Dialogs.WARN(), "Username Conflict",
+										("The username '%s' is already taken!\n" +
+										 "Do you want to try use '%s'?").formatted(username.getText(), newRandom),
+										"Yes", "No");
+
+								if (result) {
+									// Register with new random username
+									username.setText(newRandom);
+									Platform.runLater(() -> btnLeft.getOnMouseClicked().handle(emptyMouseEvent()));
+								}
+							} else
+								showAlert(Dialogs.ERROR(), "Server Exception", "An error occurred while trying to register!\n"
+								                                               + res.getBody().get("message").getAsString());
+						});
+			} else {
+				showAlert(Dialogs.ERROR(), "Invalid Inputs", "Your inputs are not valid!");
+			}
+		});
+
+		setOnPressListener(btnRight, event -> {
+			// Cancel
+			initLogin();
+		});
+
+		setOnPressListener(btnBelow, null);
 	}
 
 	@Override
 	protected boolean onCreate() {
 		setScene(R.scene.login);
 		prepareViews();
+		resetField(username, username_v);
 		resetAllFields();
 		initLogin();
-//		btn.setOnMouseClicked(event -> {
-//			User.RegisterInfo ureg = new User.RegisterInfo(
-//					new User.PublicInfo(0, username.getText(), nickname.getText(), Avatar.random()),
-//					User.hashPassword(password.getText()),
-//					email.getText(),
-//					User.hashSecurityQ("What is your name?", "Ahmad"));
-//
-//
-//			Server.send(new Request("register", (JsonObject) MGson.toJsonElement(ureg)), res -> {
-//				if (res.isOk()) {
-//					ANSI.log("Registered successfully");
-//				} else {
-//					ANSI.log("Failed to register " + res.getStatus());
-//				}
-//			});
-//		});
-//
-//		login.setOnMouseClicked(event -> {
-//			if (toVerifyUser != 0) {
-//				JsonObject jsonn = MGson.makeJsonObject("userId", toVerifyUser, "code", code.getText());
-//				Server.send(new Request("verifyLogin", jsonn), res -> {
-//					if (res.isOk()) {
-//						ANSI.log("Verified successfully");
-//						// Print the JWT received from the server
-//						ANSI.log(res.getBody().get("jwt").getAsString());
-//					} else if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
-//						ANSI.printErrorResponse("Internal Server Error in verify login:", res);
-//				});
-//			} else {
-//
-//			}
-//		});
 		return true;
 	}
 }

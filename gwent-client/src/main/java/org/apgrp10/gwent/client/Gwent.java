@@ -3,8 +3,10 @@ package org.apgrp10.gwent.client;
 import io.github.palexdev.materialfx.theming.UserAgentBuilder;
 import io.github.palexdev.materialfx.theming.base.Theme;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.stage.Stage;
 
+import javafx.stage.Window;
 import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.client.model.TerminalAsyncReader;
 import org.apgrp10.gwent.client.view.LoginStage;
@@ -15,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Set;
 
 public class Gwent extends Application {
@@ -34,6 +37,16 @@ public class Gwent extends Application {
 			}
 		}
 		launch(args);
+	}
+
+	public static void exit() {
+		Platform.runLater(()->{
+			for (Window window : new ArrayList<>(Window.getWindows()))
+				if(window instanceof Stage stage && stage.isShowing())
+					stage.close();
+			Server.disconnect();
+			Platform.exit();
+		});
 	}
 
 	@Override

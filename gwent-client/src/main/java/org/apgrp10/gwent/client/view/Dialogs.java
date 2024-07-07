@@ -2,7 +2,6 @@ package org.apgrp10.gwent.client.view;
 
 import io.github.palexdev.materialfx.controls.MFXButton;
 import io.github.palexdev.materialfx.dialogs.MFXDialogs;
-import io.github.palexdev.materialfx.dialogs.MFXGenericDialog;
 import io.github.palexdev.materialfx.dialogs.MFXGenericDialogBuilder;
 import io.github.palexdev.materialfx.dialogs.MFXStageDialog;
 import io.github.palexdev.materialfx.enums.ScrimPriority;
@@ -52,10 +51,6 @@ public class Dialogs {
 		return dialog;
 	}
 
-	protected static MouseEvent emptyMouseEvent() {
-		return new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, null, 0, false, false, false, false, false, false, false, false, false, false, null);
-	}
-
 	@SafeVarargs
 	public static void showDialogAndWait(Stage owner, MFXGenericDialogBuilder base, String title, Node content,
 	                                     Orientation actionsOrientation, Map.Entry<String, EventHandler<? super MouseEvent>>... actions) {
@@ -84,9 +79,9 @@ public class Dialogs {
 		for (Node button : actionsBtns) {
 			button.setOnKeyReleased(event -> {
 				if (event.getCode().getName().equals("Enter") && finalDefaultBtn != null)
-					finalDefaultBtn.fireEvent(emptyMouseEvent());
+					finalDefaultBtn.fireEvent(AbstractStage.emptyMouseEvent());
 				else if (event.getCode().getName().equals("Esc") && finalCancelBtn != null)
-					finalCancelBtn.fireEvent(emptyMouseEvent());
+					finalCancelBtn.fireEvent(AbstractStage.emptyMouseEvent());
 			});
 		}
 		base.setHeaderText(title).setContent(content);
@@ -108,7 +103,7 @@ public class Dialogs {
 
 		if (cancelBtn != null) {
 			Button finalCancelBtn1 = cancelBtn;
-			dialog.setOnCloseRequest(e -> finalCancelBtn1.fireEvent(emptyMouseEvent()));
+			dialog.setOnCloseRequest(e -> finalCancelBtn1.fireEvent(AbstractStage.emptyMouseEvent()));
 		}
 		dialog.setTitle(title);
 		if (showingDialogs.containsKey(owner)) {

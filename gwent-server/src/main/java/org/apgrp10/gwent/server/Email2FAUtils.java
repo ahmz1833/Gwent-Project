@@ -68,66 +68,54 @@ public class Email2FAUtils {
 					registerCallback.accept(userInfo);  // Register the user
 					// a pretty html with beautiful colors
 					response = """
-								 <!DOCTYPE html>
-							     <html lang="en">
-							     <head>
-							         <meta charset="UTF-8">
-							         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-							         <title>Email Verified</title>
-							         <style>
-							             body {
-							                 font-family: 'Arial', sans-serif;
-							                 background-color: #FFEDD5;
-							                 color: #5D3A00;
-							                 display: flex;
-							                 justify-content: center;
-							                 align-items: center;
-							                 height: 100vh;
-							                 margin: 0;
-							                 padding: 10px;
-							                 box-sizing: border-box;
-							             }
-							             .card {
-							                 background-color: #FFDAB9;
-							                 border: 2px solid #FFA07A;
-							                 border-radius: 10px;
-							                 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-							                 padding: 20px;
-							                 text-align: center;
-							                 width: 100%;
-							                 max-width: 400px;
-							                 margin: 0 auto;
-							                 box-sizing: border-box;
-							             }
-							             h1 {
-							                 color: #D2691E;
-							                 font-size: 24px;
-							             }
-							             p {
-							                 font-size: 18px;
-							                 margin-top: 10px;
-							             }
-							             @media (max-width: 600px) {
-							                 h1 {
-							                     font-size: 20px;
-							                 }
-							                 p {
-							                     font-size: 16px;
-							                 }
-							                 .card {
-							                     padding: 15px;
-							                 }
-							             }
-							         </style>
-							     </head>
-							     <body>
-							         <div class="card">
-							             <h1>Registration Completed!</h1>
-							             <p>Your registration is now complete. You can now login to your account.</p>
-							         </div>
-							     </body>
-							     </html>
-							""";
+							<!DOCTYPE html>
+							<html lang="en">
+								<head>
+								    <meta charset="UTF-8">
+								    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+								    <title>Email Verified</title>
+								    <style>
+							            body {
+											font-family: 'Arial', sans-serif;
+											background-color: #FFEDD5;
+											color: #5D3A00;
+											display: flex;
+											justify-content: center;
+											align-items: center;
+											height: 100vh;
+											margin: 0;
+											padding: 10px;
+											box-sizing: border-box;
+										}
+								        .card {
+								            background-color: #FFDAB9;
+								            border: 2px solid #FFA07A;
+								            border-radius: 10px;
+								            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+								            padding: 20px;
+								            text-align: center;
+								            width: 100%%;
+								            max-width: 400px;
+								            margin: 0 auto;
+								            box-sizing: border-box;
+								        }
+								        h1 { color: #D2691E; font-size: 24px; }
+								        p { font-size: 18px; margin-top: 10px; }
+								        @media (max-width: 600px) {
+								            h1 { font-size: 20px; }
+								            p { font-size: 16px; }
+								            .card { padding: 15px; }
+								        }
+								    </style>
+								</head>
+								<body>
+								    <div class="card">
+								        <h1>Registration Completed %s!</h1>
+								        <p>Your registration with user name '%s' is now complete. You can now login to your account.</p>
+								    </div>
+								</body>
+							</html>
+							""".formatted(userInfo.nickname(), userInfo.username());
 					responseCode = Response.OK;  // OK
 				}
 			}
@@ -239,12 +227,13 @@ public class Email2FAUtils {
 				</head>
 				<body>
 				    <div class="content">
+				        <p>Hello %s (%s),</p>
 				        <p>Please click on the following link to verify your email:</p>
 				        <b><a href="%s">%s</a></b>
 				    </div>
 				</body>
 				</html>
-				""".formatted(verificationLink, verificationLink);
+				""".formatted(userInfo.nickname(), userInfo.username(), verificationLink, verificationLink);
 		sendEmail(userInfo.email(), "Verify your email", emailContent);
 		registerQueue.put(uuid, userInfo);
 	}

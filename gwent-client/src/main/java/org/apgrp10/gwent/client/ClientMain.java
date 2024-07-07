@@ -25,25 +25,31 @@ public class ClientMain {
 		Gwent.main(args);
 	}
 
+	public static void performAuthentication() {
+		if (Server.isConnected()) {
+			UserController.authenticate(response -> {
+				if (response.isOk()) {
+					ANSI.log("Authenticated; Username: " + UserController.getCurrentUser().publicInfo().username(), ANSI.LGREEN, false);
+					for (Window window : new ArrayList<>(Window.getWindows()))
+						if (window instanceof AbstractStage stage)
+							stage.connectionEstablished();
+					if (MainStage.getInstance().isWaitingForAuth())
+						MainStage.getInstance().start();
+				} else {
+					ANSI.log("Failed to authenticate, Please Login again.", ANSI.LRED, false);
+					for (Window window : new ArrayList<>(Window.getWindows()))
+						if (window instanceof AbstractStage stage)
+							stage.close();
+					if (!LoginStage.getInstance().isShowing())
+						LoginStage.getInstance().start();
+				}
+			});
+		}
+	}
+
 	private static void onConnect() {
 		ANSI.log("Connected to server", ANSI.LGREEN, false);
-		UserController.authenticate(response -> {
-			if (response.isOk()) {
-				ANSI.log("Authenticated; Username: " + UserController.getCurrentUser().publicInfo().username(), ANSI.LGREEN, false);
-				for (Window window : new ArrayList<>(Window.getWindows()))
-					if (window instanceof AbstractStage stage)
-						stage.connectionEstablished();
-				if (MainStage.getInstance().isWaitingForAuth())
-					MainStage.getInstance().start();
-			} else {
-				ANSI.log("Failed to authenticate, Please Login again.", ANSI.LRED, false);
-				for (Window window : new ArrayList<>(Window.getWindows()))
-					if (window instanceof AbstractStage stage)
-						stage.close();
-				if(!LoginStage.getInstance().isShowing())
-					LoginStage.getInstance().start();
-			}
-		});
+		performAuthentication();
 	}
 
 	private static void onDisconnect() {
@@ -52,8 +58,8 @@ public class ClientMain {
 			LoginStage.getInstance().start();
 		UserController.onDisconnect();
 		for (Window window : new ArrayList<>(Window.getWindows()))
-			if (window instanceof AbstractStage stage);
-//				stage.connectionLost();
+			if (window instanceof AbstractStage stage)
+				stage.connectionLost();
 		connectionTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {

@@ -2,10 +2,10 @@ package org.apgrp10.gwent.client.controller;
 
 
 import com.google.gson.JsonObject;
-import javafx.animation.Animation;
+import org.apgrp10.gwent.client.ClientMain;
 import org.apgrp10.gwent.client.Gwent;
 import org.apgrp10.gwent.client.Server;
-import org.apgrp10.gwent.client.model.StoredList;
+import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
@@ -17,7 +17,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.function.Consumer;
 
 public class UserController {
@@ -51,8 +50,20 @@ public class UserController {
 		}
 	}
 
-	public static void register(User.RegisterInfo registerInfo) {
-
+	public static void sendRegisterRequest(String username, String password, String nickname, String email, String secQuestion, String secAnswer, Consumer<Response> callback) {
+		User.RegisterInfo registerInfo = new User.RegisterInfo(new User.PublicInfo(0, username, nickname, Avatar.random()),
+				User.hashPassword(password), email, User.hashSecurityQ(secQuestion, secAnswer));
+		JsonObject jsonn = (JsonObject) MGson.toJsonElement(registerInfo);
+		Server.send(new Request("register", jsonn), res -> {
+			if (res.isOk()) {
+				ANSI.log("Registered successfully");
+			} else {
+				ANSI.log("Failed to register, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+			callback.accept(res);
+		});
 	}
 
 	public static void logout() {
@@ -91,6 +102,7 @@ public class UserController {
 				// Print the JWT received from the server
 				jwt = res.getBody().get("jwt").getAsString();
 				if (saveJWT) saveJWTToFile();
+				ClientMain.performAuthentication(); // Perform authentication (send jwt back to server)
 			} else {
 				ANSI.log("Failed to verify, error code " + res.getStatus());
 				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
@@ -103,7 +115,7 @@ public class UserController {
 	public static void authenticate(Consumer<Response> callback) {
 		// if we have jwt, send it to server. and put the User (in response) in static variable
 		loadJWTFromFile();
-		Server.send(new Request("jwt", MGson.makeJsonObject("jwt", jwt)), res -> {
+		Server.send(new Request("jwt", MGson.makeJsonObject("jwt", UserController.jwt)), res -> {
 			if (!res.isOk()) {
 				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
 					ANSI.printErrorResponse(null, res);
