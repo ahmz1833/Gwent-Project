@@ -2,6 +2,8 @@ package org.apgrp10.gwent.model.net;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.apgrp10.gwent.model.AbstractAsyncReader;
@@ -39,6 +41,8 @@ public class NetAsyncReader extends AbstractAsyncReader {
 		if (receive == null)
 			return;
 
+		List<byte[]> data = new ArrayList<>();
+
 		try {
 			while (size >= 4) {
 				int len = bytesToInt(buf);
@@ -48,7 +52,7 @@ public class NetAsyncReader extends AbstractAsyncReader {
 					break;
 
 				if (len > 0)
-					receive.accept(part(4, len));
+					data.add(part(4, len));
 
 				skip(4 + len);
 			}
@@ -56,5 +60,9 @@ public class NetAsyncReader extends AbstractAsyncReader {
 			ANSI.logError(System.err, "NetAsyncReader failure", e);
 			failure.accept(e);
 		}
+
+		// this must be last because some callbacks might indirectly call run while we are working
+		for (byte b[] : data)
+			receive.accept(b);
 	}
 }
