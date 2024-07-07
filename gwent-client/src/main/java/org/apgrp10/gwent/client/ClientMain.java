@@ -7,6 +7,7 @@ import org.apgrp10.gwent.client.view.LoginStage;
 import org.apgrp10.gwent.client.view.MainStage;
 import org.apgrp10.gwent.utils.ANSI;
 
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -29,14 +30,14 @@ public class ClientMain {
 		UserController.authenticate(response -> {
 			if (response.isOk()) {
 				ANSI.log("Authenticated; Username: " + UserController.getCurrentUser().publicInfo().username(), ANSI.LGREEN, false);
-				for (Window window : Window.getWindows())
+				for (Window window : new ArrayList<>(Window.getWindows()))
 					if (window instanceof AbstractStage stage)
 						stage.connectionEstablished();
 				if (MainStage.getInstance().isWaitingForAuth())
 					MainStage.getInstance().start();
 			} else {
 				ANSI.log("Failed to authenticate, Please Login again.", ANSI.LRED, false);
-				for (Window window : Window.getWindows())
+				for (Window window : new ArrayList<>(Window.getWindows()))
 					if (window instanceof AbstractStage stage)
 						stage.close();
 				if(!LoginStage.getInstance().isShowing())
@@ -50,7 +51,7 @@ public class ClientMain {
 		if (UserController.loadJWTFromFile() == null && !LoginStage.getInstance().isShowing())
 			LoginStage.getInstance().start();
 		UserController.onDisconnect();
-		for (Window window : Window.getWindows())
+		for (Window window : new ArrayList<>(Window.getWindows()))
 			if (window instanceof AbstractStage stage);
 //				stage.connectionLost();
 		connectionTimer.schedule(new TimerTask() {

@@ -24,10 +24,14 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Dialogs {
-	public static final MFXGenericDialogBuilder ERROR = MFXDialogs.error();
-	public static final MFXGenericDialogBuilder WARNING = MFXDialogs.warn();
-	public static final MFXGenericDialogBuilder INFO = MFXDialogs.info();
+
 	private static final HashMap<Stage, ArrayList<MFXStageDialog>> showingDialogs = new HashMap<>();
+
+	public static MFXGenericDialogBuilder ERROR() {return MFXDialogs.error();}
+
+	public static MFXGenericDialogBuilder WARN() {return MFXDialogs.warn();}
+
+	public static MFXGenericDialogBuilder INFO() {return MFXDialogs.info();}
 
 	private static MFXStageDialog makeDialog(Stage owner, MFXGenericDialogBuilder base) {
 		base.addStylesheets(R.get("css/styles.css").toExternalForm());

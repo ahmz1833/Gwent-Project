@@ -105,7 +105,6 @@ public class UserController {
 		loadJWTFromFile();
 		Server.send(new Request("jwt", MGson.makeJsonObject("jwt", jwt)), res -> {
 			if (!res.isOk()) {
-				ANSI.log("Failed to authenticate, error code " + res.getStatus());
 				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
 					ANSI.printErrorResponse(null, res);
 			}

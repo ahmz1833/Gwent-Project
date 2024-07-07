@@ -1,5 +1,6 @@
 package org.apgrp10.gwent.server;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.net.Request;
@@ -73,7 +74,8 @@ public class Requests {
 
 	@Authorizations(ALL)
 	public static Response jwt(Client client, Request req) {
-		String jwt = req.getBody().get("jwt").getAsString();
+		JsonElement jwtElement = req.getBody().get("jwt");
+		String jwt = jwtElement != null ? jwtElement.getAsString() : "";
 		JsonObject payload = SecurityUtils.verifyJWT(jwt, SECRET_KEY);
 		if (payload != null && payload.get("exp").getAsLong() > System.currentTimeMillis()) try {
 			// Return user object

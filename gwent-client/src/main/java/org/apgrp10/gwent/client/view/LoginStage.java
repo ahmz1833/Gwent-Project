@@ -4,17 +4,14 @@ import io.github.palexdev.materialfx.controls.MFXButton;
 import io.github.palexdev.materialfx.controls.MFXComboBox;
 import io.github.palexdev.materialfx.controls.MFXPasswordField;
 import io.github.palexdev.materialfx.controls.MFXTextField;
-import io.github.palexdev.materialfx.dialogs.MFXDialogs;
 import io.github.palexdev.materialfx.validation.Constraint;
 import io.github.palexdev.materialfx.validation.Severity;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import javafx.stage.WindowEvent;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.model.net.Response;
@@ -152,14 +149,14 @@ public class LoginStage extends AbstractStage {
 					if (res.isOk())
 						initVerify();
 					else if (res.getStatus() == Response.NOT_FOUND)
-						Dialogs.showAlert(this, Dialogs.ERROR, "User not found", "The username you entered does not exist!");
+						showAlert(Dialogs.ERROR(), "User not found", "The username you entered does not exist!");
 					else if (res.getStatus() == Response.UNAUTHORIZED)
-						Dialogs.showAlert(this, Dialogs.ERROR, "Incorrect Password", "The password you entered is incorrect!");
+						showAlert(Dialogs.ERROR(), "Incorrect Password", "The password you entered is incorrect!");
 					else
-						Dialogs.showAlert(this, Dialogs.ERROR, "Server Exception", "An error occurred while trying to login!\n" + res.getBody().get("message").getAsString());
+						showAlert(Dialogs.ERROR(), "Server Exception", "An error occurred while trying to login!\n" + res.getBody().get("message").getAsString());
 				});
 			} else {
-				Dialogs.showAlert(this, Dialogs.ERROR, "Invalid Inputs", "Your inputs are not valid!");
+				showAlert(Dialogs.ERROR(), "Invalid Inputs", "Your inputs are not valid!");
 			}
 		});
 
@@ -196,13 +193,13 @@ public class LoginStage extends AbstractStage {
 						MainStage.getInstance().start();
 						close();
 					} else if (res.getStatus() == Response.UNAUTHORIZED)
-						Dialogs.showAlert(this, Dialogs.ERROR, "Incorrect Code", "The code you entered is incorrect!");
+						showAlert(Dialogs.ERROR(), "Incorrect Code", "The code you entered is incorrect!");
 					else
-						Dialogs.showAlert(this, Dialogs.ERROR, "Server Exception", "An error occurred while trying to verify!\n"
+						showAlert(Dialogs.ERROR(), "Server Exception", "An error occurred while trying to verify!\n"
 						                                                 + res.getBody().get("message").getAsString());
 				});
 			} else {
-				Dialogs.showAlert(this, Dialogs.ERROR, "Invalid Code", "The code you entered is not valid!");
+				showAlert(Dialogs.ERROR(), "Invalid Code", "The code you entered is not valid!");
 			}
 		});
 
@@ -210,9 +207,9 @@ public class LoginStage extends AbstractStage {
 			// Resend Code
 			UserController.sendLoginRequest(username.getText(), password.getText(), res -> {
 				if (res.isOk())
-					Dialogs.showAlert(this, Dialogs.INFO, "Code Sent", "A new verification code has been sent to your email!");
+					showAlert(Dialogs.INFO(), "Code Sent", "A new verification code has been sent to your email!");
 				else
-					Dialogs.showAlert(this, Dialogs.ERROR, "Server Exception", "An error occurred while trying to resend code!\n"
+					showAlert(Dialogs.ERROR(), "Server Exception", "An error occurred while trying to resend code!\n"
 					                                                 + res.getBody().get("message").getAsString());
 			});
 		});

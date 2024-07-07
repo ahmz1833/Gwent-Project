@@ -105,7 +105,7 @@ public class FieldValidator {
 		passwordConfirmationField.setFloatingText(title);
 		passwordConfirmationField.setPrefColumnCount(20);
 
-		boolean result = Dialogs.showConfirmDialog(stage, Dialogs.INFO, title,
+		boolean result = Dialogs.showConfirmDialog(stage, Dialogs.INFO(), title,
 				passwordConfirmationField, "OK", "Cancel");
 		if (!result) return null;
 		return passwordConfirmationField.getText();
