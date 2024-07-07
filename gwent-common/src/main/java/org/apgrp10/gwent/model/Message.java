@@ -1,9 +1,15 @@
 package org.apgrp10.gwent.model;
 
 
-import java.time.Instant;
+import com.google.gson.Gson;
+import org.apgrp10.gwent.utils.ANSI;
+import org.apgrp10.gwent.utils.MGson;
 
-public class Message {
+import java.io.*;
+import java.time.Instant;
+import java.util.Base64;
+
+public class Message implements Serializable {
 	private final int id;
 	private final int numberOfReaction;
 	private final long userId;
@@ -77,5 +83,25 @@ public class Message {
 
 	public byte getType() {
 		return type;
+	}
+	public String toString (){
+		try(ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		    ObjectOutputStream oos = new ObjectOutputStream(baos)){
+			oos.writeObject(this);
+			return Base64.getEncoder().encodeToString(baos.toByteArray());
+		} catch (IOException e) {
+			ANSI.logError(System.err, "invalid message", e);
+			return null;
+		}
+	}
+	public static Message fromString(String json) {
+		byte[] data = Base64.getDecoder().decode(json);
+		try (ByteArrayInputStream bais = new ByteArrayInputStream(data);
+		     ObjectInputStream ois = new ObjectInputStream(bais)) {
+				return (Message) ois.readObject();
+		} catch (IOException | ClassNotFoundException e) {
+			ANSI.logError(System.err, "invalid message", e);
+			return null;
+		}
 	}
 }

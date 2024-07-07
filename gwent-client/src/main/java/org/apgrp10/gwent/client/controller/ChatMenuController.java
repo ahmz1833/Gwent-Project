@@ -27,11 +27,11 @@ public class ChatMenuController {
 		return ++lastId;
 	}
 	public void sendMessage(Message message){
-		getMessage(message);
+		getMessage(message.toString());
 		//TODO should send this message to server instead of calling getMessage
 		//server should call all users "getMessage(message)"
 	}
-	public void getMessage(Message message){
+	public void getMessage(String message){
 		chatMenu.addMessage(message);
 	}
 

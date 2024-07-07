@@ -17,6 +17,7 @@ public class ClientMain {
 	private static final Timer connectionTimer = new Timer("connectionTimer", true);
 
 	public static void main(String[] args) {
+
 		Locale.setDefault(Locale.ENGLISH);
 		Server.connect();
 		Server.connectionProperty.addListener((observable, oldValue, newValue) -> {

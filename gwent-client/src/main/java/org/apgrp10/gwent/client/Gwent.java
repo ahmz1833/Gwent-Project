@@ -9,6 +9,7 @@ import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.client.model.TerminalAsyncReader;
 import org.apgrp10.gwent.client.view.LoginStage;
 import org.apgrp10.gwent.client.view.MainStage;
+import org.apgrp10.gwent.client.view.PreGameStage;
 import org.apgrp10.gwent.utils.ANSI;
 
 import java.io.IOException;
@@ -39,6 +40,7 @@ public class Gwent extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		// requires javafx so must be here
+		PreGameStage.getInstance().start();
 		if (Server.isConnected())
 			Server.run();
 		TerminalAsyncReader.instanceRun();

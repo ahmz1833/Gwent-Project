@@ -42,7 +42,6 @@ public class MessageStage extends AbstractStage {
 		setOnCloseRequest(e -> setPlaceGameWithoutChat());
 		setPlaceGameWithChat();
 		new WaitExec(false).run(50, () -> {
-			System.out.println(":HI");
 			MessageStage.instance.setX(GameStage.getInstance().getX() + GameStage.getInstance().getWidth() + 5);
 			MessageStage.instance.setY(GameStage.getInstance().getY());
 		});

@@ -206,7 +206,8 @@ public class ChatMenu extends Pane {
 		messagesScroll.setVvalue(1.0);
 	}
 
-	public void addMessage(Message message) {
+	public void addMessage(String  messageS) {
+		Message message = Message.fromString(messageS);
 		try {
 			if (message.getType() == (byte) 0) {
 				MessageView messageView;
