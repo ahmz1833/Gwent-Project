@@ -10,15 +10,15 @@ import org.apgrp10.gwent.model.User;
 
 public class ChatMenuController {
 	private final ChatMenu chatMenu;
+	private final Scene scene;
 
 	public ChatMenuController() {
 		this.chatMenu = new ChatMenu(this);
+		scene = new Scene(chatMenu);
+		scene.getStylesheets().add(R.get("css/chat.css").toExternalForm());
 	}
 	public void show(Stage stage){
-		Scene scene = new Scene(chatMenu);
-		scene.getStylesheets().add(R.get("css/chat.css").toExternalForm());
 		stage.setScene(scene);
-
 	}
 	private int lastId = 0;
 	public int getId(){

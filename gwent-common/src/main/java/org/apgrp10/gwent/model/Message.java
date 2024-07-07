@@ -6,43 +6,43 @@ import java.time.Instant;
 public class Message {
 	private final int id;
 	private final int numberOfReaction;
+	private final long userId;
 	private final byte type;    //0 -> new text message
 	//1 -> new reaction message
 	//2 -> delete text message
 	//3 -> delete reaction
 	//4 -> edit a message
-	private final User.PublicInfo owner;
 	private final Instant creationTime;
 	private final int replyOn;
 	private String text;
 
-	private Message(int id, String text, int numberOfReaction, byte type, User.PublicInfo owner, Instant creationTime, int replyOn) {
+	private Message(int id, String text, int numberOfReaction, byte type, long userId, Instant creationTime, int replyOn) {
 		this.replyOn = replyOn;
 		this.id = id;
 		this.text = text;
 		this.numberOfReaction = numberOfReaction;
 		this.type = type;
-		this.owner = owner;
+		this.userId = userId;
 		this.creationTime = creationTime;
 	}
 
-	public static Message newTextMessage(int id, String text, User.PublicInfo owner, int replyOn) {
+	public static Message newTextMessage(int id, String text, long owner, int replyOn) {
 		return new Message(id, text, -1, (byte) (0), owner, Instant.now(), replyOn);
 	}
 
-	public static Message deleteTextMessage(int id, User.PublicInfo owner) {
+	public static Message deleteTextMessage(int id, long owner) {
 		return new Message(id, "", -1, (byte) (2), owner, Instant.now(), 0);
 	}
 
-	public static Message newReactionMessage(int id, int reaction, User.PublicInfo owner) {
+	public static Message newReactionMessage(int id, int reaction, long owner) {
 		return new Message(id, "", reaction, (byte) (1), owner, Instant.now(), 0);
 	}
 
-	public static Message deleteReactionMessage(int id, int reaction, User.PublicInfo owner) {
+	public static Message deleteReactionMessage(int id, int reaction, long owner) {
 		return new Message(id, "", reaction, (byte) (3), owner, Instant.now(), 0);
 	}
 
-	public static Message editMessage(int id, String text, User.PublicInfo owner) {
+	public static Message editMessage(int id, String text, long owner) {
 		return new Message(id, text, -1, (byte) (4), owner, Instant.now(), 0);
 	}
 
@@ -63,7 +63,8 @@ public class Message {
 	}
 
 	public User.PublicInfo getOwner() {
-		return owner;
+		//TODO return PublicInfo of this user id;
+		return new User.PublicInfo(System.currentTimeMillis(), "salam", "khobi?", Avatar.random());
 	}
 
 	public Instant getCreationTime() {

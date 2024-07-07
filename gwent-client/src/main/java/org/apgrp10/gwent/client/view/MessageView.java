@@ -1,4 +1,4 @@
-package org.apgrp10.gwent.client.model;
+package org.apgrp10.gwent.client.view;
 
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -11,8 +11,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import org.apgrp10.gwent.client.R;
+import org.apgrp10.gwent.client.model.AvatarView;
+import org.apgrp10.gwent.client.model.ChatMenu;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.User;
+import org.apgrp10.gwent.utils.ANSI;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -65,8 +68,7 @@ public class MessageView extends HBox {
 			pane.getChildren().add(time);
 			messageBox.getChildren().add(pane);
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			System.out.println(e.getStackTrace());
+			ANSI.logError(System.err, "", e);
 		}
 	}
 
@@ -111,8 +113,7 @@ public class MessageView extends HBox {
 					reply.setText(string);
 				}
 			} catch (Exception e) {
-				System.out.println(e.getMessage());
-				System.out.println(e.getStackTrace());
+				ANSI.logError(System.err, "", e);
 			}
 		}
 	}
@@ -141,11 +142,9 @@ public class MessageView extends HBox {
 	}
 
 	private Node getImage() {
-		//TODO set avatar image of message.getOwner in here instead of sample image
-		ImageView imageView = new ImageView(R.getImage("icons/card_ability_frost.png"));
-		imageView.setFitWidth(30);
-		imageView.setFitHeight(30);
-		return imageView;
+		AvatarView avatarView = new AvatarView(user.avatar());
+		avatarView.setPrefWidth(30);
+		return avatarView;
 	}
 
 	private void addImage() {

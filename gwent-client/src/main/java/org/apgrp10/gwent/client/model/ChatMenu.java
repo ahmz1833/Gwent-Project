@@ -18,6 +18,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.ChatMenuController;
+import org.apgrp10.gwent.client.view.MessageView;
 import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.User;
@@ -52,7 +53,9 @@ public class ChatMenu extends Pane {
 		addMessagesBox();
 	}
 	private void updateUser(){
-		user = new User.PublicInfo(System.currentTimeMillis(), "abc", "abcd", Avatar.random());
+		//TODO this user should be loggedIn User
+		//user = UserController.getCurrentUser().publicInfo();
+		user = new User.PublicInfo(52, "a", "ab", Avatar.random());
 	}
 
 	public static StackPane getMessageReplyView(Message replyOn, User.PublicInfo user, boolean isReply) {
@@ -189,9 +192,9 @@ public class ChatMenu extends Pane {
 	private void sendMessage() {
 		if (textInput.getText().trim().equals("")) return;
 		if (editID == 0) {
-			controller.sendMessage(Message.newTextMessage(controller.getId(), textInput.getText(), user, replyId));
+			controller.sendMessage(Message.newTextMessage(controller.getId(), textInput.getText(), user.id(), replyId));
 		} else {
-			controller.sendMessage(Message.editMessage(editID, textInput.getText(), user));
+			controller.sendMessage(Message.editMessage(editID, textInput.getText(), user.id()));
 		}
 		changeReplyNumber(0);
 		textInput.setText("");
@@ -275,12 +278,12 @@ public class ChatMenu extends Pane {
 
 	public void sendDeleteReaction(int id, int index) {
 		reactionList.put(id, -1);
-		controller.sendMessage(Message.deleteReactionMessage(id, index, user));
+		controller.sendMessage(Message.deleteReactionMessage(id, index, user.id()));
 	}
 
 	public void sendNewReaction(int id, int index) {
 		reactionList.put(id, index);
-		controller.sendMessage(Message.newReactionMessage(id, index, user));
+		controller.sendMessage(Message.newReactionMessage(id, index, user.id()));
 	}
 
 	public void changeReplyNumber(int id) {
@@ -312,12 +315,11 @@ public class ChatMenu extends Pane {
 				textInput.setText(Objects.requireNonNull(getMessageById(id)).getMessage().getText());
 			}
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			System.out.println(e.getStackTrace());
+			ANSI.logError(System.err, "", e);
 		}
 	}
 
 	public void deleteMessage(int id) {
-		controller.sendMessage(Message.deleteTextMessage(id, user));
+		controller.sendMessage(Message.deleteTextMessage(id, user.id()));
 	}
 }

@@ -44,7 +44,6 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-//TODO: Not Exetend Application
 public class GameMenu implements GameMenuInterface {
 	private GameController controller;
 	private Pane realRoot = new Pane();
@@ -160,6 +159,7 @@ public class GameMenu implements GameMenuInterface {
 	}
 
 	private void start(Stage stage) {
+		MessageStage.deleteInstance();
 		this.stage = stage;
 		realRoot.getChildren().add(rootPane);
 		realRoot.getChildren().add(messagePane);

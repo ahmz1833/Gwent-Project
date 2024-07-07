@@ -17,10 +17,11 @@ import java.util.PropertyPermission;
 
 public class MessageStage extends AbstractStage {
 	private static MessageStage instance;
-	private boolean isUpdating = false;
+	private ChatMenuController controller;
 
 	private MessageStage() {
 		super("chat", R.getImage("chat/icon.jpeg"));
+		controller = new ChatMenuController();
 	}
 
 	public static MessageStage getInstance() {
@@ -31,8 +32,6 @@ public class MessageStage extends AbstractStage {
 
 	@Override
 	protected boolean onCreate() {
-		if (!GameStage.getInstance().isShowing())
-			return false;
 		GameStage.getInstance().xProperty().addListener((obs, oldVal, newVal) -> {
 			this.setX(newVal.doubleValue() + GameStage.getInstance().getWidth() + 5);
 		});
@@ -42,20 +41,15 @@ public class MessageStage extends AbstractStage {
 		GameStage.getInstance().setOnCloseRequest(e -> this.close());
 		setOnCloseRequest(e -> setPlaceGameWithoutChat());
 		setPlaceGameWithChat();
-		new WaitExec(false).run(50, new Runnable() {
-			@Override
-			public void run() {
-				System.out.println(":HI");
-				MessageStage.instance.setX(GameStage.getInstance().getX() + GameStage.getInstance().getWidth() + 5);
-				MessageStage.instance.setY(GameStage.getInstance().getY());
-
-			}
+		new WaitExec(false).run(50, () -> {
+			System.out.println(":HI");
+			MessageStage.instance.setX(GameStage.getInstance().getX() + GameStage.getInstance().getWidth() + 5);
+			MessageStage.instance.setY(GameStage.getInstance().getY());
 		});
 		this.setWidth(250);
 		this.setHeight(720);
-		ChatMenuController controller = new ChatMenuController();
 		controller.show(this);
-		return true;
+		return GameStage.getInstance().isShowing();
 	}
 
 	private void setPlaceGameWithChat() {
@@ -66,5 +60,8 @@ public class MessageStage extends AbstractStage {
 	private void setPlaceGameWithoutChat() {
 		Stage primaryStage = GameStage.getInstance();
 		primaryStage.setX(primaryStage.getX() + 125);
+	}
+	public static void deleteInstance(){
+		instance = null;
 	}
 }
