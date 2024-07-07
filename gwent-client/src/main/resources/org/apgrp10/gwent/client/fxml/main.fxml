@@ -1,19 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import io.github.palexdev.materialfx.controls.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Group?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.Scene?>
 
 <Scene stylesheets="@../css/main.css" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1">
     <StackPane prefHeight="600.0" prefWidth="1024.0">
-        <VBox alignment="CENTER" spacing="10">
-            <MFXButton fx:id="gameBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Start New Game" />
-            <MFXButton fx:id="replayBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Load a Recorded Game" />
-            <MFXButton fx:id="playingBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Current Playing Games" />
-            <MFXButton fx:id="profileBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Profile Menu" />
-            <MFXButton fx:id="friendsBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Friends" />
-            <MFXButton fx:id="rankingsBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Rankings" />
-        </VBox>
+        <ImageView fitHeight="600.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@../image/main_bkg.png" />
+        </ImageView>
+        <Group>
+            <VBox alignment="CENTER_LEFT" fillWidth="false" spacing="10.0" styleClass="frame" StackPane.alignment="CENTER">
+                <padding>
+                    <Insets left="10.0"  />
+                </padding>
+                <MFXButton fx:id="gameBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Start New Game" />
+                <MFXButton fx:id="replayBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Load a Recorded Game" />
+                <MFXButton fx:id="playingBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Current Playing Games" />
+                <MFXButton fx:id="profileBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Profile Menu" />
+                <MFXButton fx:id="friendsBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Friends" />
+                <MFXButton fx:id="rankingsBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Rankings" />
+            </VBox>
+        </Group>
     </StackPane>
 
 </Scene>
