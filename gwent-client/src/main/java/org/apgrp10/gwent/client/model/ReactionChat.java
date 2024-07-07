@@ -7,13 +7,13 @@ import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.model.ChatMenu;
 
 public class ReactionChat extends Pane {
-	private final int id;
+	private final long id;
 	private final ChatMenu chatMenu;
 	private final boolean isForOwner;
 	private final int reaction;
 	private final VBox menu = new VBox();
 
-	public ReactionChat(int X, int Y, int id, ChatMenu chatMenu, boolean isForOwner, int reaction) {
+	public ReactionChat(int X, int Y, long id, ChatMenu chatMenu, boolean isForOwner, int reaction) {
 		this.isForOwner = isForOwner;
 		this.reaction = reaction;
 		this.chatMenu = chatMenu;

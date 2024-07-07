@@ -34,13 +34,13 @@ public class ChatMenu extends Pane {
 	private final VBox messagesBox = new VBox();
 	private final int screenWidth;
 	private final ChatMenuController controller;
-	private final HashMap<Integer, Integer> reactionList = new HashMap<>();
+	private final HashMap<Long, Integer> reactionList = new HashMap<>();
 	private User.PublicInfo user;
 	private final ImageView deleteReply = new ImageView(R.getImage("chat/clear.png"));
 	private ScrollPane messagesScroll;
 	//this is a map from each message id to reaction number
-	private int replyId = 0;
-	private int editID = 0;
+	private long replyId = 0;
+	private long editID = 0;
 	private StackPane massageReplyViw = new StackPane();
 
 	public ChatMenu(ChatMenuController controller) {
@@ -256,7 +256,7 @@ public class ChatMenu extends Pane {
 		}
 	}
 
-	private User.PublicInfo getUserById(int id) {
+	private User.PublicInfo getUserById(long id) {
 		try {
 			return Objects.requireNonNull(getMessageById(id)).getMessage().getOwner();
 		} catch (NullPointerException e) {
@@ -264,7 +264,7 @@ public class ChatMenu extends Pane {
 		}
 	}
 
-	private MessageView getMessageById(int id) {
+	private MessageView getMessageById(long id) {
 		for (Node node : messagesBox.getChildren()) {
 			if (id == ((MessageView) (node)).getMessage().getId()) {
 				return ((MessageView) node);
@@ -273,33 +273,33 @@ public class ChatMenu extends Pane {
 		return null;
 	}
 
-	private void openNewWindow(double X, double Y, int id) {
+	private void openNewWindow(double X, double Y, long id) {
 		new ReactionChat((int) (X - screenWidth + width), (int) Y, id, this, user.equals(getUserById(id)), reactionList.get(id));
 	}
 
-	public void sendDeleteReaction(int id, int index) {
+	public void sendDeleteReaction(long id, int index) {
 		reactionList.put(id, -1);
 		controller.sendMessage(Message.deleteReactionMessage(id, index, user.id()));
 	}
 
-	public void sendNewReaction(int id, int index) {
+	public void sendNewReaction(long id, int index) {
 		reactionList.put(id, index);
 		controller.sendMessage(Message.newReactionMessage(id, index, user.id()));
 	}
 
-	public void changeReplyNumber(int id) {
+	public void changeReplyNumber(long id) {
 		this.replyId = id;
 		this.editID = 0;
 		addInfoTopInput(true, id);
 	}
 
-	public void changeEditNumber(int id) {
+	public void changeEditNumber(long id) {
 		this.editID = id;
 		this.replyId = 0;
 		addInfoTopInput(false, id);
 	}
 
-	private void addInfoTopInput(boolean isReply, int id) {
+	private void addInfoTopInput(boolean isReply, long id) {
 		try {
 			this.getChildren().remove(massageReplyViw);
 			this.getChildren().remove(deleteReply);
@@ -320,7 +320,7 @@ public class ChatMenu extends Pane {
 		}
 	}
 
-	public void deleteMessage(int id) {
+	public void deleteMessage(long id) {
 		controller.sendMessage(Message.deleteTextMessage(id, user.id()));
 	}
 }

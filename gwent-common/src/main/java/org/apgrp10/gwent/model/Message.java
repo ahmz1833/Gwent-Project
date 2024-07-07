@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.util.Base64;
 
 public class Message implements Serializable {
-	private final int id;
+	private long id;
 	private final int numberOfReaction;
 	private final long userId;
 	private final byte type;    //0 -> new text message
@@ -19,10 +19,10 @@ public class Message implements Serializable {
 	//3 -> delete reaction
 	//4 -> edit a message
 	private final Instant creationTime;
-	private final int replyOn;
+	private final long replyOn;
 	private String text;
 
-	private Message(int id, String text, int numberOfReaction, byte type, long userId, Instant creationTime, int replyOn) {
+	private Message(long id, String text, int numberOfReaction, byte type, long userId, Instant creationTime, long replyOn) {
 		this.replyOn = replyOn;
 		this.id = id;
 		this.text = text;
@@ -32,27 +32,31 @@ public class Message implements Serializable {
 		this.creationTime = creationTime;
 	}
 
-	public static Message newTextMessage(int id, String text, long owner, int replyOn) {
+	public void setId(long id) {
+		this.id = id;
+	}
+
+	public static Message newTextMessage(long id, String text, long owner, long replyOn) {
 		return new Message(id, text, -1, (byte) (0), owner, Instant.now(), replyOn);
 	}
 
-	public static Message deleteTextMessage(int id, long owner) {
+	public static Message deleteTextMessage(long id, long owner) {
 		return new Message(id, "", -1, (byte) (2), owner, Instant.now(), 0);
 	}
 
-	public static Message newReactionMessage(int id, int reaction, long owner) {
+	public static Message newReactionMessage(long id, int reaction, long owner) {
 		return new Message(id, "", reaction, (byte) (1), owner, Instant.now(), 0);
 	}
 
-	public static Message deleteReactionMessage(int id, int reaction, long owner) {
+	public static Message deleteReactionMessage(long id, int reaction, long owner) {
 		return new Message(id, "", reaction, (byte) (3), owner, Instant.now(), 0);
 	}
 
-	public static Message editMessage(int id, String text, long owner) {
+	public static Message editMessage(long id, String text, long owner) {
 		return new Message(id, text, -1, (byte) (4), owner, Instant.now(), 0);
 	}
 
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 
@@ -77,7 +81,7 @@ public class Message implements Serializable {
 		return creationTime;
 	}
 
-	public int getReplyOn() {
+	public long getReplyOn() {
 		return replyOn;
 	}
 

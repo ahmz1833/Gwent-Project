@@ -94,7 +94,7 @@ public class MessageView extends HBox {
 		}
 	}
 
-	public void deleteReply(int id) {
+	public void deleteReply(long id) {
 		if (replyOn != null) {
 			if (replyOn.getId() == id) {
 				messageBox.getChildren().remove(1);
@@ -103,7 +103,7 @@ public class MessageView extends HBox {
 		}
 	}
 
-	public void editReply(int id, String text) {
+	public void editReply(long id, String text) {
 		if (replyOn != null) {
 			try {
 				if (replyOn.getId() == id) {

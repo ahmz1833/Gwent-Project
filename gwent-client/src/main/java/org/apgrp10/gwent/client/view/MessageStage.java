@@ -21,7 +21,7 @@ public class MessageStage extends AbstractStage {
 
 	private MessageStage() {
 		super("chat", R.getImage("chat/icon.jpeg"));
-		controller = new ChatMenuController();
+		controller = ChatMenuController.cleanInstance();
 	}
 
 	public static MessageStage getInstance() {
@@ -61,6 +61,9 @@ public class MessageStage extends AbstractStage {
 		primaryStage.setX(primaryStage.getX() + 125);
 	}
 	public static void deleteInstance(){
-		instance = null;
+		if (instance != null) {
+			instance.controller.stop();
+			instance = null;
+		}
 	}
 }

@@ -24,5 +24,9 @@ public class Random {
 	}
 
 	public static long nextPosLong() {return get().nextLong() & 0x7f_ff_ff_ff_ff_ff_ff_ffl;}
-	public static long nextId() {return nextPosLong();}
+	public static long nextId() {
+		long id;
+		do id = nextPosLong(); while (id < 0x1_00_00_00_00l);
+		return id;
+	}
 }

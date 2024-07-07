@@ -51,6 +51,7 @@ public class GameMenu implements GameMenuInterface {
 	private Pane messagePane = new Pane();
 	private Pane overlayPane = new Pane();
 	private Stage stage;
+	private boolean hasChat;
 
 	public static GameMenu currentMenu;
 	private static final int WIDTH = 1280, HEIGHT = 720;
@@ -145,9 +146,9 @@ public class GameMenu implements GameMenuInterface {
 		public static final RectPos switchBtn = new RectPos(0.9734, 0.0166, 0.9968, 0.1583);
 	}
 
-
-	public GameMenu(Stage stage) {
+	public GameMenu(Stage stage, boolean hasChat) {
 		this.stage = stage;
+		this.hasChat = hasChat;
 	}
 
 	public void setController(GameController controller) {
@@ -619,17 +620,20 @@ public class GameMenu implements GameMenuInterface {
 			Position.switchBtn.setBounds(btn);
 			overlayPane.getChildren().add(btn);
 		}
-		Button b = new Button("chat");
-		b.setOnAction(k->{
-			if(!MessageStage.getInstance().isShowing())
-				MessageStage.getInstance().start();
-			else {
-				MessageStage.getInstance().close();
-				Stage primaryStage = GameStage.getInstance();
-				primaryStage.setX(primaryStage.getX() + 125);
-			}
-		});
-		rootPane.getChildren().add(b);
+
+		if (hasChat) {
+			Button b = new Button("Chat");
+			b.setOnAction(k->{
+				if(!MessageStage.getInstance().isShowing())
+					MessageStage.getInstance().start();
+				else {
+					MessageStage.getInstance().close();
+					Stage primaryStage = GameStage.getInstance();
+					primaryStage.setX(primaryStage.getX() + 125);
+				}
+			});
+			overlayPane.getChildren().add(b);
+		}
 	}
 
 	protected List<Card> pickList;

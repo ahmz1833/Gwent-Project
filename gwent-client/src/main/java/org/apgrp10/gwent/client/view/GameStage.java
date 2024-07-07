@@ -98,7 +98,7 @@ public class GameStage extends AbstractStage {
 	private void createLocal() {
 		InputController c1 = new MouseInputController();
 		InputController c2 = new MouseInputController();
-		GameMenu gm = new GameMenu(this);
+		GameMenu gm = new GameMenu(this, false);
 		// TODO: better way to save recording
 		new GameController(c1, c2, deck1, deck2, seed, gm, gr -> {
 			Utils.choosePlaceAndDownload("Choose place to save recording", "recording.gwent", this,
@@ -110,7 +110,7 @@ public class GameStage extends AbstractStage {
 	private void createOnline() {
 		InputController c1 = player == 0? new MouseInputController(): new ServerInputController();
 		InputController c2 = player == 1? new MouseInputController(): new ServerInputController();
-		GameMenu gm = new GameMenu(this);
+		GameMenu gm = new GameMenu(this, true);
 		GameController gc = new GameController(c1, c2, deck1, deck2, seed, gm, gr -> { this.close(); });
 		setupServer(gc);
 	}
@@ -118,7 +118,7 @@ public class GameStage extends AbstractStage {
 	private void createLive() {
 		InputController c1 = new ServerInputController();
 		InputController c2 = new ServerInputController();
-		GameMenu gm = new GameMenu(this);
+		GameMenu gm = new GameMenu(this, true);
 		GameController gc = new GameController(c1, c2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, true);
 		gc.fastForward(cmds);
 		setupServer(gc);
@@ -127,7 +127,7 @@ public class GameStage extends AbstractStage {
 	private void createReplay() {
 		InputController c1 = new ReplayInputController(cmds);
 		InputController c2 = new ReplayInputController(cmds);
-		GameMenu gm = new GameMenu(this);
+		GameMenu gm = new GameMenu(this, false);
 		new GameController(c1, c2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, true);
 	}
 
