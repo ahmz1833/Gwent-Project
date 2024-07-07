@@ -1,8 +1,16 @@
 package org.apgrp10.gwent.utils;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Pattern;
 
 public class Random {
+	private static final String PASS_CHAR_SET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+{}|;:,.<>?/~";
+	private static final int PASS_MIN_LENGTH = 8;
+	private static final int PASS_MAX_LENGTH = 20;
+	private static final Pattern PASSWORD_PATTERN = Pattern.compile(
+			"^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()\\-_=+\\[\\]{}|;:,.<>?/~])[^ ]{" + PASS_MIN_LENGTH + "," + PASS_MAX_LENGTH + "}$"
+	);
+
 	public static ThreadLocalRandom get() {
 		return ThreadLocalRandom.current();
 	}
@@ -24,5 +32,27 @@ public class Random {
 	}
 
 	public static long nextPosLong() {return get().nextLong() & 0x7f_ff_ff_ff_ff_ff_ff_ffl;}
+
 	public static long nextId() {return nextPosLong();}
+
+	public static String nextPassword() {
+		String password;
+		do {
+			password = generateRandomString();
+		} while (!isValidPassword(password));
+		return password;
+	}
+
+	private static String generateRandomString() {
+		int length = nextInt(PASS_MIN_LENGTH, PASS_MAX_LENGTH + 1);
+		StringBuilder password = new StringBuilder(length);
+		for (int i = 0; i < length; i++) {
+			password.append(PASS_CHAR_SET.charAt(get().nextInt(PASS_CHAR_SET.length())));
+		}
+		return password.toString();
+	}
+
+	private static boolean isValidPassword(String password) {
+		return PASSWORD_PATTERN.matcher(password).matches();
+	}
 }

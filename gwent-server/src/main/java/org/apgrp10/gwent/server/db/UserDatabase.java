@@ -85,6 +85,17 @@ public class UserDatabase extends DatabaseTable {
 		return getId("WHERE username = ('" + username + "')");
 	}
 
+	public synchronized void updateUser (User user) throws Exception {
+		updateInfo(user.getId(), UserDBColumns.username, user.publicInfo().username());
+		updateInfo(user.getId(), UserDBColumns.nickname, user.publicInfo().nickname());
+		updateInfo(user.getId(), UserDBColumns.email, user.registerInfo().email());
+		updateInfo(user.getId(), UserDBColumns.avatar, user.publicInfo().avatar().toBase64());
+	}
+
+	public synchronized void updatePassword(long id, String newPassHash) throws Exception {
+		updateInfo(id, UserDBColumns.passHash, newPassHash);
+	}
+
 	public synchronized List<Long> getFriendsIds(long id) throws Exception {
 		return stringToList(getValue(id, UserDBColumns.friends), Long::parseLong);
 	}

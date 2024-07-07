@@ -2,9 +2,13 @@ package org.apgrp10.gwent.client.controller;
 
 
 import com.google.gson.JsonObject;
+import javafx.stage.Window;
 import org.apgrp10.gwent.client.ClientMain;
 import org.apgrp10.gwent.client.Gwent;
 import org.apgrp10.gwent.client.Server;
+import org.apgrp10.gwent.client.view.AbstractStage;
+import org.apgrp10.gwent.client.view.LoginStage;
+import org.apgrp10.gwent.client.view.MainStage;
 import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.net.Request;
@@ -17,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public class UserController {
@@ -102,7 +107,7 @@ public class UserController {
 				// Print the JWT received from the server
 				jwt = res.getBody().get("jwt").getAsString();
 				if (saveJWT) saveJWTToFile();
-				ClientMain.performAuthentication(); // Perform authentication (send jwt back to server)
+				performAuthentication(); // Perform authentication (send jwt back to server)
 			} else {
 				ANSI.log("Failed to verify, error code " + res.getStatus());
 				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
@@ -112,15 +117,36 @@ public class UserController {
 		});
 	}
 
-	public static void authenticate(Consumer<Response> callback) {
+	public static void performAuthentication() {
+		if (Server.isConnected()) {
+			authenticate(response -> {
+				if (response.isOk()) {
+					ANSI.log("Authenticated; Username: " + UserController.getCurrentUser().publicInfo().username(), ANSI.LGREEN, false);
+					for (Window window : new ArrayList<>(Window.getWindows()))
+						if (window instanceof AbstractStage stage)
+							stage.connectionEstablished();
+					if (MainStage.getInstance().isWaitingForAuth())
+						MainStage.getInstance().start();
+				} else {
+					ANSI.log("Failed to authenticate, Please Login again.", ANSI.LRED, false);
+					for (Window window : new ArrayList<>(Window.getWindows()))
+						if (window instanceof AbstractStage stage)
+							stage.close();
+					if (!LoginStage.getInstance().isShowing())
+						LoginStage.getInstance().start();
+				}
+			});
+		}
+	}
+
+	private static void authenticate(Consumer<Response> callback) {
 		// if we have jwt, send it to server. and put the User (in response) in static variable
 		loadJWTFromFile();
 		Server.send(new Request("jwt", MGson.makeJsonObject("jwt", UserController.jwt)), res -> {
 			if (!res.isOk()) {
 				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
 					ANSI.printErrorResponse(null, res);
-			}
-			else currentUser = MGson.fromJson(res.getBody(), User.class);
+			} else currentUser = MGson.fromJson(res.getBody(), User.class);
 			callback.accept(res);
 		});
 	}
@@ -129,5 +155,82 @@ public class UserController {
 		currentUser = null;
 	}
 
+	public static void requestForgetPasswordVerifyCode(String username, String email, String secQ, String secA, Consumer<Response> callback) {
+		JsonObject jsonn = MGson.makeJsonObject("username", username, "email", email, "secQ", User.hashSecurityQ(secQ, secA));
+		Server.send(new Request("forgetPassword", jsonn), res -> {
+			if (res.isOk()) {
+				ANSI.log("Code sent successfully");
+				// received userID
+				toVerifyUser = res.getBody().get("userId").getAsLong();
+				ANSI.log("User ID: " + toVerifyUser);
+			} else {
+				ANSI.log("Failed to send code, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+			callback.accept(res);
+		});
+	}
+
+	public static void forgetPasswordVerify(String code, Consumer<Response> callback) {
+		JsonObject jsonn = MGson.makeJsonObject("userId", toVerifyUser, "code", code);
+		Server.send(new Request("verifyForgetPassword", jsonn), res -> {
+			if (res.isOk()) {
+				ANSI.log("Verified successfully");
+			} else {
+				ANSI.log("Failed to verify, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+			callback.accept(res);
+		});
+	}
+
+	public static void resetPassword(String newPassword, Consumer<Response> callback) {
+		JsonObject jsonn = MGson.makeJsonObject("userId", toVerifyUser, "newPassHash", User.hashPassword(newPassword));
+		toVerifyUser = 0;
+		Server.send(new Request("resetPassword", jsonn), res -> {
+			if (res.isOk()) {
+				ANSI.log("Password changed successfully");
+			} else {
+				ANSI.log("Failed to change password, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+			callback.accept(res);
+		});
+	}
+
+	public static void syncUserInformation(User user, Consumer<Response> callback) {
+		JsonObject jsonn = (JsonObject) MGson.toJsonElement(user);
+		Server.send(new Request("updateUser", jsonn), res -> {
+			if (res.isOk()) {
+				ANSI.log("User information updated successfully");
+			} else {
+				ANSI.log("Failed to update user information, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+			performAuthentication(); // for the changes to take effect to local user
+			callback.accept(res);
+		});
+	}
+
+	public static void changePassword(User user, String newPassword, Consumer<Response> callback) {
+		JsonObject jsonn = MGson.makeJsonObject("userId", user.getId(),
+				"oldHash", user.registerInfo().passwordHash(),
+				"newHash", User.hashPassword(newPassword));
+		Server.send(new Request("changePassword", jsonn), res -> {
+			if (res.isOk()) {
+				ANSI.log("Password changed successfully");
+			} else {
+				ANSI.log("Failed to change password, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+			performAuthentication(); // for the changes to take effect to local user
+			callback.accept(res);
+		});
+	}
 //	public static void updateUser() {authenticate();}
 }

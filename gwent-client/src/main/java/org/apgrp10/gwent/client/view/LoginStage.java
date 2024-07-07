@@ -14,6 +14,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import org.apgrp10.gwent.client.R;
+import org.apgrp10.gwent.client.controller.FieldValidator;
 import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.model.net.Response;
 import org.apgrp10.gwent.utils.Random;
@@ -31,7 +32,7 @@ public class LoginStage extends AbstractStage {
 	private CheckBox stayLogged;
 
 	private LoginStage() {
-		super("Login Gwent", null);  // TODO: icon
+		super("Login Gwent", R.icon.login);
 		if (INSTANCE != null) throw new RuntimeException("Duplicate Instance of LoginStage");
 	}
 
@@ -51,6 +52,7 @@ public class LoginStage extends AbstractStage {
 			node.setManaged(enable);
 			node.setVisible(enable);
 			node.setDisable(!enable);
+			if (node instanceof Label) ((Label) node).setText("");
 			if (node.equals(passRand)) password.setPrefWidth(enable ? 300 : 400);
 		}
 	}
@@ -83,9 +85,11 @@ public class LoginStage extends AbstractStage {
 		password = lookup("#password");
 		password_v = lookup("#password_v");
 		passRand = lookup("#passRand");
+		((MFXPasswordField) password).setAllowPaste(true);
 		setOnPressListener(passRand, event -> {
-			password.setText(makeRandomPassword());
+			password.setText(Random.nextPassword());
 			((MFXPasswordField) password).setShowPassword(true);
+			((MFXPasswordField) password).setAllowCopy(true);
 		});
 		configureConstraints(password, password_v, nonEmpty(password),
 				minimumLength(password, 8),
@@ -225,24 +229,101 @@ public class LoginStage extends AbstractStage {
 	private void initForgot() {
 		resetAllFields();
 		btnLeft.setText("Send Code");
-		btnRight.setText("Reset Password");
-		btnBelow.setText("Cancel");
-		btnBelow.setManaged(true);
-		btnBelow.setVisible(true);
+		btnRight.setText("Cancel");
+
+		setNodesEnabled(true, username, username_v, email, email_v, secPane, secQ, secAns, sec_v);
+		setNodesEnabled(false, passPane, password, password_v, passRand, nickname, nickname_v, stayLogged, code, code_v, btnBelow);
+
+		setNext(username, email);
+		setNext(email, secQ);
+		setNext(secAns, btnLeft);
+		username.requestFocus();
+
+		setOnPressListener(btnLeft, event -> {
+			// Validate and  forgot-password-verify-code-email-send request
+			boolean valid = !username.getText().isBlank() && email.getValidator().isValid()
+			                && secAns.getValidator().isValid();
+			if (valid) {
+				// Send forgot-password-verify-code-email-send request
+				UserController.requestForgetPasswordVerifyCode(username.getText(), email.getText(), secQ.getValue(), secAns.getText(), res -> {
+					if (res.isOk()) {
+						showAlert(Dialogs.INFO(), "Code Sent", "A verification code has been sent to your email!");
+						initVerifyForgot();
+					} else if (res.getStatus() == Response.NOT_FOUND)
+						showAlert(Dialogs.ERROR(), "User not found", "The username you entered does not exist!");
+					else if (res.getStatus() == Response.UNAUTHORIZED)
+						showAlert(Dialogs.ERROR(), "Incorrect Data", "The email or security answer you entered is incorrect!");
+					else
+						showAlert(Dialogs.ERROR(), "Server Exception", "An error occurred while trying to send code!\n"
+						                                               + res.getBody().get("message").getAsString());
+				});
+			} else {
+				showAlert(Dialogs.ERROR(), "Invalid Inputs", "Your inputs are not valid!");
+			}
+		});
+
+		setOnPressListener(btnRight, event -> {
+			// Cancel
+			initLogin();
+		});
+	}
+
+	private void initVerifyForgot() {
+		username.setDisable(true);
+		email.setDisable(true);
+		secPane.setDisable(true);
+		setNodesEnabled(true, code, code_v);
+		code.requestFocus();
+		setNext(code, btnLeft);
+		setOnPressListener(btnLeft, event1 -> {
+			// Validate and send verification code
+			boolean valid1 = code.getValidator().isValid();
+			if (valid1) {
+				// Send verification code
+				UserController.forgetPasswordVerify(code.getText(), res1 -> {
+					if (res1.isOk()) {
+						initReset();
+					} else if (res1.getStatus() == Response.UNAUTHORIZED)
+						showAlert(Dialogs.ERROR(), "Incorrect Code", "The code you entered is incorrect!");
+					else
+						showAlert(Dialogs.ERROR(), "Server Exception", "An error occurred while trying to verify!\n"
+						                                               + res1.getBody().get("message").getAsString());
+				});
+			} else {
+				showAlert(Dialogs.ERROR(), "Invalid Code", "The code you entered is not valid!");
+			}
+		});
 	}
 
 	private void initReset() {
-		btnLeft.setText("Reset");
-		btnRight.setText("Cancel");
-		btnBelow.setManaged(false);
-		btnBelow.setVisible(false);
+		btnLeft.setText("Reset Password");
+		setNodesEnabled(false, username, username_v, email, email_v, secPane, secQ, secAns, sec_v, code, code_v);
+		setNodesEnabled(true, passPane, password, password_v, passRand);
+		password.requestFocus();
+		setNext(password, btnLeft);
+		setOnPressListener(btnLeft, event -> {
+			// Validate and send reset password request
+			boolean valid = password.getValidator().isValid();
+			if (valid && password.getText().equals(FieldValidator.passwordCheckingDialog(this, "Confirm Your Password"))) {
+				// Send reset password request
+				UserController.resetPassword(password.getText(), res -> {
+					if (res.isOk()) {
+						showAlert(Dialogs.INFO(), "Password Reset", "Your password has been reset successfully!");
+					} else
+						showAlert(Dialogs.ERROR(), "Server Exception", "An error occurred while trying to reset password!\n"
+						                                               + res.getBody().get("message").getAsString());
+					initLogin();
+				});
+			} else {
+				showAlert(Dialogs.ERROR(), "Invalid Password", "The password you entered is not valid!");
+			}
+		});
 	}
 
 	private void initRegister() {
 		resetAllFields();
 		btnLeft.setText("Register");
 		btnRight.setText("Cancel");
-
 
 		setNodesEnabled(true, username, username_v, passPane, password, password_v, passRand,
 				nickname, nickname_v, email, email_v, secPane, secQ, secAns, sec_v);
@@ -260,7 +341,7 @@ public class LoginStage extends AbstractStage {
 			boolean valid = username.getValidator().isValid() && password.getValidator().isValid()
 			                && nickname.getValidator().isValid() && email.getValidator().isValid()
 			                && secAns.getValidator().isValid();
-			if (valid) {
+			if (valid && password.getText().equals(FieldValidator.passwordCheckingDialog(this, "Confirm Your Password"))) {
 				// Send register request
 				UserController.sendRegisterRequest(username.getText(), password.getText(), nickname.getText(),
 						email.getText(), secQ.getValue(), secAns.getText(), res -> {

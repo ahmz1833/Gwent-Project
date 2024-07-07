@@ -94,16 +94,12 @@ public class FieldValidator {
 		});
 	}
 
-	public static String makeRandomPassword() {
-		// TODO: implement
-		return "1234AA@aa";
-	}
-
 	public static String passwordCheckingDialog(AbstractStage stage, String title) {
 		MFXPasswordField passwordConfirmationField = new MFXPasswordField();
 		passwordConfirmationField.setFloatMode(FloatMode.BORDER);
 		passwordConfirmationField.setFloatingText(title);
 		passwordConfirmationField.setPrefColumnCount(20);
+		passwordConfirmationField.setAllowPaste(true);
 
 		boolean result = Dialogs.showConfirmDialog(stage, Dialogs.INFO(), title,
 				passwordConfirmationField, "OK", "Cancel");

@@ -40,9 +40,9 @@ public class Gwent extends Application {
 	}
 
 	public static void exit() {
-		Platform.runLater(()->{
+		Platform.runLater(() -> {
 			for (Window window : new ArrayList<>(Window.getWindows()))
-				if(window instanceof Stage stage && stage.isShowing())
+				if (window instanceof Stage stage && stage.isShowing())
 					stage.close();
 			Server.disconnect();
 			Platform.exit();

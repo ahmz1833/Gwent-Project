@@ -148,6 +148,7 @@ public class Dialogs {
 	}
 
 	public static ArrayList<MFXStageDialog> getShowingDialogs(Stage owner) {
+		if(!showingDialogs.containsKey(owner)) showingDialogs.put(owner, new ArrayList<>());
 		return showingDialogs.get(owner);
 	}
 }

@@ -167,13 +167,13 @@ public class Email2FAUtils {
 				</head>
 				<body>
 				    <div class="content">
-				        <p>Your login code is:</p>
+				        <p>Your verification code is:</p>
 				        <h1><u><b>%s</b></u></h1>
 				    </div>
 				</body>
 				</html>
 				""".formatted(code);
-		sendEmail(email, "Login code", emailContent);
+		sendEmail(email, "Verification code", emailContent);
 		loginQueue.add(new LoginInfo(code, client, userId, System.currentTimeMillis()));
 	}
 

@@ -12,6 +12,8 @@ import org.apgrp10.gwent.utils.SecurityUtils;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.apgrp10.gwent.server.Client.AuthLevel.*;
 
@@ -88,6 +90,59 @@ public class Requests {
 		}
 		else
 			return req.response(Response.UNAUTHORIZED);
+	}
+
+	@Authorizations(NOT_LOGGED_IN)
+	public static Response forgetPassword(Client client, Request req) {
+		String username = req.getBody().get("username").getAsString(),
+				email = req.getBody().get("email").getAsString(),
+				secQ = req.getBody().get("secQ").getAsString();
+
+		if (!UserDatabase.getInstance().isUsernameTaken(username))
+			return req.response(Response.NOT_FOUND); // Username not found
+		try {
+			User user = UserDatabase.getInstance().getUserByUsername(username);
+			if (user.registerInfo().email().equals(email) && user.registerInfo().securityQ().equals(secQ)) {
+				Email2FAUtils.sendLoginCodeAndAddToQueue(user.registerInfo().email(), client, user.getId());
+				return req.response(Response.OK, MGson.makeJsonObject("userId", user.getId()));
+			} else
+				return req.response(Response.UNAUTHORIZED); // Incorrect email or security question
+		} catch (Exception e) {
+			ANSI.logError(System.err, "Failed to forget password", e);
+			return ANSI.createErrorResponse(req, "Failed to forget password", e);
+		}
+	}
+
+	final static HashMap<Client, Long> resetPassQueue = new HashMap<>();
+
+	@Authorizations(NOT_LOGGED_IN)
+	public static Response verifyForgetPassword(Client client, Request req) {
+		long userId = req.getBody().get("userId").getAsLong();
+		String code = req.getBody().get("code").getAsString();
+		if (Email2FAUtils.verifyLoginCode(client, code, userId)) try{
+			resetPassQueue.put(client, userId);
+			return req.response(Response.OK_NO_CONTENT);
+		} catch (Exception e) {
+			ANSI.logError(System.err, "Failed to verify forget password code", e);
+			return ANSI.createErrorResponse(req, "Failed to verify forget password code", e);
+		}
+		else
+			return req.response(Response.UNAUTHORIZED);
+	}
+
+	@Authorizations(NOT_LOGGED_IN)
+	public static Response resetPassword(Client client, Request req) {
+		long userId = req.getBody().get("userId").getAsLong();
+		if(!resetPassQueue.containsKey(client) || resetPassQueue.get(client) != userId)
+			return req.response(Response.UNAUTHORIZED); // Unauthorized
+		String newPassHash = req.getBody().get("newPassHash").getAsString();
+		try {
+			UserDatabase.getInstance().updatePassword(userId, newPassHash);
+			return req.response(Response.OK_NO_CONTENT);
+		} catch (Exception e) {
+			ANSI.logError(System.err, "Failed to reset password", e);
+			return ANSI.createErrorResponse(req, "Failed to reset password", e);
+		}
 	}
 
 	@Retention(RetentionPolicy.RUNTIME)
