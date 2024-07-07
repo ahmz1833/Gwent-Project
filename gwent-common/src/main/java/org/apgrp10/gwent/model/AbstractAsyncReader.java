@@ -15,6 +15,7 @@ public class AbstractAsyncReader implements Runnable {
 
 	public AbstractAsyncReader(InputStream stream, Consumer<byte[]> onReceive, Consumer<Exception> onFailure) {
 		this.stream = stream;
+		this.receive = onReceive;
 		this.failure = onFailure;
 	}
 

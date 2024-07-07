@@ -125,7 +125,7 @@ public class Server {
 		if (!running) return;
 		Platform.runLater(Server::fxLoop);
 
-		if (packetHandler.getNetNode().isClosed()) {
+		if (!isConnected()) {
 			running = false;
 			return;
 		}
