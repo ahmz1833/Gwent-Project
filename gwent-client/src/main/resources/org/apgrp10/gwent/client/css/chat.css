@@ -1,8 +1,4 @@
-.chatPane{
-    -fx-background-image: url("../image/chat/chatBackground.jpg");
-    -fx-border-width: 2px;
-    -fx-border-color: #0d17d7;
-}
+
 .replyText{
     -fx-text-fill: #1162de;
 }

@@ -1,42 +1,57 @@
 package org.apgrp10.gwent.client.controller;
 
-import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
 import org.apgrp10.gwent.client.R;
-import org.apgrp10.gwent.client.model.ChatMenu;
+import org.apgrp10.gwent.client.Server;
+import org.apgrp10.gwent.client.model.ChatPane;
 import org.apgrp10.gwent.model.Message;
-import org.apgrp10.gwent.model.User;
+import org.apgrp10.gwent.model.net.Request;
+import org.apgrp10.gwent.model.net.Response;
+import org.apgrp10.gwent.utils.MGson;
+import org.apgrp10.gwent.utils.Random;
+
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
 public class ChatMenuController {
-	private final ChatMenu chatMenu;
-	private final Pane pane;
+	private ChatPane chatMenu;
+	private Scene scene;
+	private static final ChatMenuController instance = new ChatMenuController();
 
-	public ChatMenuController(Pane pane, User.PublicInfo user, double screenWidth, Scene scene) {
+	private ChatMenuController() {}
+
+	private void reset() {
+		this.chatMenu = new ChatPane(this);
+		scene = new Scene(chatMenu);
 		scene.getStylesheets().add(R.get("css/chat.css").toExternalForm());
-		this.chatMenu = new ChatMenu(screenWidth, this, user);
-		this.pane = pane;
+
+		Server.setListener("chatMessage", req -> {
+			getMessage(req.getBody().get("msg").getAsString());
+			return req.response(Response.OK_NO_CONTENT);
+		});
 	}
 
-	public void show() {
-		pane.getChildren().add(chatMenu);
+	public static void stop() {
+		Server.setListener("chatMessage", null);
 	}
 
-	public void endShow() {
-		pane.getChildren().remove(chatMenu);
-	}
-	private int lastId = 0;
-	public int getId(){
-		//TODO server should send a uniq id (synchronized) instead of calculating locally
-		//index should be ( > 0) && ( != 0)
-		return ++lastId;
-	}
-	public void sendMessage(Message message){
-		getMessage(message);
-		//TODO should send this message to server instead of calling getMessage
-		//server should call all users "getMessage(message)"
-	}
-	public void getMessage(Message message){
-		chatMenu.addMessage(message);
+	public static ChatMenuController cleanInstance() {
+		instance.reset();
+		return instance;
 	}
 
+	public void show(Stage stage){
+		stage.setScene(scene);
+	}
+
+	public long getId() {
+		return Random.nextId();
+	}
+
+	public void sendMessage(Message message) {
+		Server.send(new Request("chatMessage", MGson.makeJsonObject("msg", message.toString())));
+	}
+
+	public void getMessage(String str) {
+		chatMenu.addMessage(str);
+	}
 }

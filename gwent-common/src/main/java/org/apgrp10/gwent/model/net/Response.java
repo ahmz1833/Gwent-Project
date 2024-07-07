@@ -32,7 +32,7 @@ public class Response extends Packet {
 
 	public int getStatus() {return header.get("status").getAsInt();}
 
-	public boolean isOk() {return getStatus() == OK || getStatus() == OK_NO_CONTENT || getStatus() == ACCEPTED;}
+	public boolean isOk() {return 200 <= getStatus() && getStatus() <= 299;}
 
 	public long getRequestId() {return header.get("id").getAsLong();}
 }

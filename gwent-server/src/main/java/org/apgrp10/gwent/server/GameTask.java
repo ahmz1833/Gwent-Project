@@ -1,8 +1,12 @@
 package org.apgrp10.gwent.server;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.Deck;
+import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
 import org.apgrp10.gwent.utils.ANSI;
@@ -14,9 +18,10 @@ import com.google.gson.JsonPrimitive;
 
 public class GameTask extends Task {
 	private GameController gameController;
-	private Client c1, c2;
+	private final Client c1, c2;
 	private Deck d1, d2;
 	private boolean done;
+	private List<Message> msgs = new ArrayList<>();
 
 	public GameTask(Client c1, Client c2) {
 		this.c1 = c1;
@@ -40,6 +45,20 @@ public class GameTask extends Task {
 			});
 			return req.response(Response.OK_NO_CONTENT);
 		});
+
+		c1.setListener("chatMessage", this::handleMessage);
+		c2.setListener("chatMessage", this::handleMessage);
+	}
+
+	private Response handleMessage(Request req) {
+		Message msg = Message.fromString(req.getBody().get("msg").getAsString());
+		msg.setId(Random.nextId());
+		c1.send(new Request("chatMessage", MGson.makeJsonObject("msg", msg.toString())));
+		c2.send(new Request("chatMessage", MGson.makeJsonObject("msg", msg.toString())));
+		addCommand(() -> {
+			msgs.add(msg);
+		});
+		return req.response(Response.OK_NO_CONTENT);
 	}
 
 	private void start() {

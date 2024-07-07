@@ -7,8 +7,11 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import javafx.event.Event;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.effect.DropShadow;
+import javafx.stage.Screen;
 import org.apgrp10.gwent.client.R;
+import org.apgrp10.gwent.client.controller.ChatMenuController;
 import org.apgrp10.gwent.client.model.AvatarView;
 import org.apgrp10.gwent.client.model.CardView;
 import org.apgrp10.gwent.client.model.TerminalAsyncReader;
@@ -41,7 +44,6 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-//TODO: Not Exetend Application
 public class GameMenu implements GameMenuInterface {
 	private GameController controller;
 	private Pane realRoot = new Pane();
@@ -49,6 +51,7 @@ public class GameMenu implements GameMenuInterface {
 	private Pane messagePane = new Pane();
 	private Pane overlayPane = new Pane();
 	private Stage stage;
+	private boolean hasChat;
 
 	public static GameMenu currentMenu;
 	private static final int WIDTH = 1280, HEIGHT = 720;
@@ -133,7 +136,7 @@ public class GameMenu implements GameMenuInterface {
 				new RectPos(0.8041, 0.7657, 0.8619, 0.9009),
 		};
 		public static final RectPos hp[] = {
-				new RectPos(0.125, 0.240277, 0.2140, 0.28611),
+				new RectPos(0.125, 0.300277, 0.2140, 0.34611),
 				new RectPos(0.127, 0.68472, 0.2156, 0.74445)
 		};
 		public static final RectPos leader[] = {
@@ -147,9 +150,9 @@ public class GameMenu implements GameMenuInterface {
 		};
 	}
 
-
-	public GameMenu(Stage stage) {
+	public GameMenu(Stage stage, boolean hasChat) {
 		this.stage = stage;
+		this.hasChat = hasChat;
 	}
 
 	public void setController(GameController controller) {
@@ -161,6 +164,7 @@ public class GameMenu implements GameMenuInterface {
 	}
 
 	private void start(Stage stage) {
+		MessageStage.deleteInstance();
 		this.stage = stage;
 		realRoot.getChildren().add(rootPane);
 		realRoot.getChildren().add(messagePane);
@@ -505,13 +509,9 @@ public class GameMenu implements GameMenuInterface {
 	public void redraw() {
 		final int player = controller.getActivePlayer();
 		activeCardView = null;
-
 		cardMap.clear();
 		rootPane.getChildren().clear();
 		overlayPane.getChildren().clear();
-		// rootPane.setOnMouseClicked(k->{
-		// 	System.out.println(k.getSceneY() / HEIGHT);
-		// });
 		addBackground(R.image.board[controller.getActivePlayer()]);
 		if (showCheats)
 			addCheatButtons();
@@ -554,7 +554,7 @@ public class GameMenu implements GameMenuInterface {
 			int actualRow = player == 1 ? 5 - i : i;
 
 			if (player == controller.getTurn()
-					&& controller.getPlayer(player).handCards.contains(controller.getActiveCard())) {
+			    && controller.getPlayer(player).handCards.contains(controller.getActiveCard())) {
 				if (controller.canPlace(player, actualRow, controller.getActiveCard()))
 					addSelectionRect(Position.row[i], actualRow);
 				if (controller.canPlaceSpecial(player, actualRow, controller.getActiveCard()))
@@ -562,8 +562,8 @@ public class GameMenu implements GameMenuInterface {
 			}
 		}
 		if (player == controller.getTurn()
-				&& controller.getPlayer(player).handCards.contains(controller.getActiveCard())
-				&& controller.canPlaceWeather(player, controller.getActiveCard()))
+		    && controller.getPlayer(player).handCards.contains(controller.getActiveCard())
+		    && controller.canPlaceWeather(player, controller.getActiveCard()))
 			addSelectionRect(Position.weather, 12);
 
 		if (controller.hasRain()) {
@@ -624,6 +624,20 @@ public class GameMenu implements GameMenuInterface {
 			});
 			Position.switchBtn.setBounds(btn);
 			overlayPane.getChildren().add(btn);
+		}
+
+		if (hasChat) {
+			Button b = new Button("Chat");
+			b.setOnAction(k->{
+				if(!MessageStage.getInstance().isShowing())
+					MessageStage.getInstance().start();
+				else {
+					MessageStage.getInstance().close();
+					Stage primaryStage = GameStage.getInstance();
+					primaryStage.setX(primaryStage.getX() + 125);
+				}
+			});
+			overlayPane.getChildren().add(b);
 		}
 	}
 
@@ -724,8 +738,8 @@ public class GameMenu implements GameMenuInterface {
 		int side = controller.getActivePlayer() == controller.getTurn()? 1: 0;
 		CardView cardView = cardMap.get(card);
 		Point2D from = cardView != null
-		                 ? cardView.localToScene(0, 0)
-		                 : new Point2D(Position.react[side].x(), Position.react[side].y());
+				? cardView.localToScene(0, 0)
+				: new Point2D(Position.react[side].x(), Position.react[side].y());
 		Point2D to = from.add(0, -0.1 * HEIGHT);
 
 		ImageView animationView = new ImageView(R.image.reactions[reactId]);

@@ -89,7 +89,11 @@ public class Server {
 
 	public static void send(Request req) {
 		if (!isConnected()) return;
-		send(req, res -> {});
+		send(req, res -> {
+			if (!res.isOk()) {
+				ANSI.logError(System.err, "error: " + res);
+			}
+		});
 	}
 
 	public static void send(Request req, Consumer<Response> onReceive) {

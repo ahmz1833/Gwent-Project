@@ -92,7 +92,7 @@ public class Dialogs {
 
 		} else {
 			actionsPane = new VBox(10.0);
-			((VBox) actionsPane).setAlignment(Pos.TOP_RIGHT);
+			((VBox) actionsPane).setAlignment(Pos.CENTER_LEFT);
 		}
 		actionsPane.getChildren().addAll(actionsBtns);
 		base.addActions(actionsPane);

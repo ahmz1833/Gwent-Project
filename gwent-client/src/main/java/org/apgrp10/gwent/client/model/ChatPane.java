@@ -18,6 +18,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.ChatMenuController;
+import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.utils.ANSI;
@@ -25,30 +26,35 @@ import org.apgrp10.gwent.utils.ANSI;
 import java.util.HashMap;
 import java.util.Objects;
 
-public class ChatMenu extends Pane {
-	public final static int width = 250, height = 720;
+public class ChatPane extends Pane {
+	public final static int width = 250, height = 700;
 	private final Text replyBox = new Text();
 	private final TextArea textInput = new TextArea();
 	private final VBox messagesBox = new VBox();
 	private final int screenWidth;
 	private final ChatMenuController controller;
-	private final HashMap<Integer, Integer> reactionList = new HashMap<>();
-	private final User.PublicInfo user;
+	private final HashMap<Long, Integer> reactionList = new HashMap<>();
+	private User.PublicInfo user;
 	private final ImageView deleteReply = new ImageView(R.getImage("chat/clear.png"));
-	private MFXScrollPane messagesScroll;
+	private ScrollPane messagesScroll;
 	//this is a map from each message id to reaction number
-	private int replyId = 0;
-	private int editID = 0;
+	private long replyId = 0;
+	private long editID = 0;
 	private StackPane massageReplyViw = new StackPane();
 
-	public ChatMenu(double screenWidth, ChatMenuController controller, User.PublicInfo user) {
-		this.user = user;
-		this.screenWidth = (int) screenWidth;
+	public ChatPane(ChatMenuController controller) {
+		updateUser();
+		this.screenWidth = 250;
 		this.controller = controller;
-		setSize(screenWidth);
+		setSize();
 		setupDeleteReply();
 		addTextInput();
 		addMessagesBox();
+	}
+	private void updateUser(){
+		//TODO this user should be loggedIn User
+		//user = UserController.getCurrentUser().publicInfo();
+		user = new User.PublicInfo(52, "a", "ab", Avatar.random());
 	}
 
 	public static StackPane getMessageReplyView(Message replyOn, User.PublicInfo user, boolean isReply) {
@@ -95,12 +101,18 @@ public class ChatMenu extends Pane {
 		getChildren().add(messagesScroll);
 	}
 
-	private void setSize(double screenWidth) {
-		this.setLayoutX(screenWidth - 250);
+	private void setSize() {
+		this.setLayoutX(0);
 		this.setLayoutY(0);
 		this.setPrefWidth(width);
 		this.setPrefHeight(height);
-		this.getStyleClass().add("chatPane");
+		ImageView img = new ImageView(R.getImage("chat_bkg.png"));
+		img.setFitHeight(height); img.setFitWidth(width);
+		img.setX(0);
+		img.setY(0);
+		getChildren().add(img);
+		this.setStyle("-fx-border-width: 2px;" +
+		              "-fx-border-color: #0d17d7;");
 		this.setOnMouseClicked(k -> this.requestFocus());
 	}
 
@@ -179,9 +191,9 @@ public class ChatMenu extends Pane {
 	private void sendMessage() {
 		if (textInput.getText().trim().equals("")) return;
 		if (editID == 0) {
-			controller.sendMessage(Message.newTextMessage(controller.getId(), textInput.getText(), user, replyId));
+			controller.sendMessage(Message.newTextMessage(controller.getId(), textInput.getText(), user.id(), replyId));
 		} else {
-			controller.sendMessage(Message.editMessage(editID, textInput.getText(), user));
+			controller.sendMessage(Message.editMessage(editID, textInput.getText(), user.id()));
 		}
 		changeReplyNumber(0);
 		textInput.setText("");
@@ -193,7 +205,8 @@ public class ChatMenu extends Pane {
 		messagesScroll.setVvalue(1.0);
 	}
 
-	public void addMessage(Message message) {
+	public void addMessage(String  messageS) {
+		Message message = Message.fromString(messageS);
 		try {
 			if (message.getType() == (byte) 0) {
 				MessageView messageView;
@@ -242,7 +255,7 @@ public class ChatMenu extends Pane {
 		}
 	}
 
-	private User.PublicInfo getUserById(int id) {
+	private User.PublicInfo getUserById(long id) {
 		try {
 			return Objects.requireNonNull(getMessageById(id)).getMessage().getOwner();
 		} catch (NullPointerException e) {
@@ -250,7 +263,7 @@ public class ChatMenu extends Pane {
 		}
 	}
 
-	private MessageView getMessageById(int id) {
+	private MessageView getMessageById(long id) {
 		for (Node node : messagesBox.getChildren()) {
 			if (id == ((MessageView) (node)).getMessage().getId()) {
 				return ((MessageView) node);
@@ -259,33 +272,33 @@ public class ChatMenu extends Pane {
 		return null;
 	}
 
-	private void openNewWindow(double X, double Y, int id) {
+	private void openNewWindow(double X, double Y, long id) {
 		new ReactionChat((int) (X - screenWidth + width), (int) Y, id, this, user.equals(getUserById(id)), reactionList.get(id));
 	}
 
-	public void sendDeleteReaction(int id, int index) {
+	public void sendDeleteReaction(long id, int index) {
 		reactionList.put(id, -1);
-		controller.sendMessage(Message.deleteReactionMessage(id, index, user));
+		controller.sendMessage(Message.deleteReactionMessage(id, index, user.id()));
 	}
 
-	public void sendNewReaction(int id, int index) {
+	public void sendNewReaction(long id, int index) {
 		reactionList.put(id, index);
-		controller.sendMessage(Message.newReactionMessage(id, index, user));
+		controller.sendMessage(Message.newReactionMessage(id, index, user.id()));
 	}
 
-	public void changeReplyNumber(int id) {
+	public void changeReplyNumber(long id) {
 		this.replyId = id;
 		this.editID = 0;
 		addInfoTopInput(true, id);
 	}
 
-	public void changeEditNumber(int id) {
+	public void changeEditNumber(long id) {
 		this.editID = id;
 		this.replyId = 0;
 		addInfoTopInput(false, id);
 	}
 
-	private void addInfoTopInput(boolean isReply, int id) {
+	private void addInfoTopInput(boolean isReply, long id) {
 		try {
 			this.getChildren().remove(massageReplyViw);
 			this.getChildren().remove(deleteReply);
@@ -302,12 +315,11 @@ public class ChatMenu extends Pane {
 				textInput.setText(Objects.requireNonNull(getMessageById(id)).getMessage().getText());
 			}
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			System.out.println(e.getStackTrace());
+			ANSI.logError(System.err, "", e);
 		}
 	}
 
-	public void deleteMessage(int id) {
-		controller.sendMessage(Message.deleteTextMessage(id, user));
+	public void deleteMessage(long id) {
+		controller.sendMessage(Message.deleteTextMessage(id, user.id()));
 	}
 }

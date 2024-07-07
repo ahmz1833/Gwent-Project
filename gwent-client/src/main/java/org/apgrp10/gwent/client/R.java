@@ -104,6 +104,7 @@ public class R {
 		public static final Image app_icon = getImage("ic_gwent.png");
 		public static final Image profile = getImage("ic_profile.png");
 		public static final Image login = getImage("ic_login.png");
+		public static final Image chat = getImage("ic_chat.png");
 	}
 
 	public static class sound {
