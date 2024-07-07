@@ -75,6 +75,8 @@ public class Server {
 			});
 		} catch (IOException e) {
 			ANSI.log("Failed to connect to server.", ANSI.LRED, false);
+			invalidationListeners.forEach(invalidationListener -> invalidationListener.invalidated(connectionProperty));
+			changeListeners.forEach(changeListener -> changeListener.changed(connectionProperty, true, false));
 		}
 	}
 

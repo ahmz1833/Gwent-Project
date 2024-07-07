@@ -59,8 +59,8 @@ public abstract class AbstractStage extends Stage {
 	}
 
 	public void connectionLost() {
-		if (!isShowing()) return;
 		Platform.runLater(() -> {
+			if (!isShowing()) return;
 			var showingDialogs = Dialogs.getShowingDialogs(this);
 			if (!showingDialogs.isEmpty() &&
 			    showingDialogs.getLast().getTitle().equals("Connection Lost")) return;
@@ -72,8 +72,8 @@ public abstract class AbstractStage extends Stage {
 	}
 
 	public void connectionEstablished() {
-		if(!isShowing()) return;
 		Platform.runLater(() -> {
+			if(!isShowing()) return;
 			enable();
 			var showingDialogs = Dialogs.getShowingDialogs(this);
 			if (showingDialogs.isEmpty() ||

@@ -1,5 +1,6 @@
 package org.apgrp10.gwent.client;
 
+import javafx.application.Platform;
 import javafx.stage.Window;
 import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.client.view.AbstractStage;
@@ -17,10 +18,13 @@ public class ClientMain {
 
 	public static void main(String[] args) {
 		Locale.setDefault(Locale.ENGLISH);
-		Server.connect();
+		connectionTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {Server.connect();}
+		}, 400);
 		Server.connectionProperty.addListener((observable, oldValue, newValue) -> {
-			if (newValue) onConnect();
-			else onDisconnect();
+			if (newValue) Platform.runLater(ClientMain::onConnect);
+			else Platform.runLater(ClientMain::onDisconnect);
 		});
 		Gwent.main(args);
 	}
@@ -45,6 +49,6 @@ public class ClientMain {
 				Server.connect();
 				Server.run();
 			}
-		}, 500);
+		}, 1500);
 	}
 }
