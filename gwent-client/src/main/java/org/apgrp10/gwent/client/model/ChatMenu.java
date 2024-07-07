@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public class ChatMenu extends Pane {
-	public final static int width = 250, height = 720;
+	public final static int width = 250, height = 700;
 	private final Text replyBox = new Text();
 	private final TextArea textInput = new TextArea();
 	private final VBox messagesBox = new VBox();
@@ -46,7 +46,7 @@ public class ChatMenu extends Pane {
 		updateUser();
 		this.screenWidth = 250;
 		this.controller = controller;
-		setSize(screenWidth);
+		setSize();
 		setupDeleteReply();
 		addTextInput();
 		addMessagesBox();
@@ -99,12 +99,18 @@ public class ChatMenu extends Pane {
 		getChildren().add(messagesScroll);
 	}
 
-	private void setSize(double screenWidth) {
-		this.setLayoutX(screenWidth - 250);
+	private void setSize() {
+		this.setLayoutX(0);
 		this.setLayoutY(0);
 		this.setPrefWidth(width);
 		this.setPrefHeight(height);
-		this.getStyleClass().add("chatPane");
+		ImageView img = new ImageView(R.getImage("chat/chatBackground.jpg"));
+		img.setFitHeight(height); img.setFitWidth(width);
+		img.setX(0);
+		img.setY(0);
+		getChildren().add(img);
+		this.setStyle("-fx-border-width: 2px;" +
+		              "-fx-border-color: #0d17d7;");
 		this.setOnMouseClicked(k -> this.requestFocus());
 	}
 

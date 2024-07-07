@@ -16,7 +16,7 @@ public class ChatMenuController {
 	}
 	public void show(Stage stage){
 		Scene scene = new Scene(chatMenu);
-		scene.getStylesheets().add(R.get("css/preGame.css").toExternalForm());
+		scene.getStylesheets().add(R.get("css/chat.css").toExternalForm());
 		stage.setScene(scene);
 
 	}

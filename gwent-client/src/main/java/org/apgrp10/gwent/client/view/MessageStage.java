@@ -1,34 +1,70 @@
 package org.apgrp10.gwent.client.view;
 
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.ChatMenuController;
 import org.apgrp10.gwent.client.model.ChatMenu;
+import org.apgrp10.gwent.utils.WaitExec;
 
 import java.security.PrivateKey;
 import java.util.PropertyPermission;
 
-public class MessageStage extends AbstractStage{
+public class MessageStage extends AbstractStage {
 	private static MessageStage instance;
+	private boolean isUpdating = false;
+
 	private MessageStage() {
 		super("chat", R.getImage("chat/icon.jpeg"));
 	}
 
-	public static MessageStage getInstance(){
-		if(instance == null)
+	public static MessageStage getInstance() {
+		if (instance == null)
 			instance = new MessageStage();
 		return instance;
 	}
+
 	@Override
 	protected boolean onCreate() {
-//		if(!GameStage.getInstance().isShowing())
-//			return false;
-		this.setWidth(300);
-		this.setHeight(740);
+		if (!GameStage.getInstance().isShowing())
+			return false;
+		GameStage.getInstance().xProperty().addListener((obs, oldVal, newVal) -> {
+			this.setX(newVal.doubleValue() + GameStage.getInstance().getWidth() + 5);
+		});
+		GameStage.getInstance().yProperty().addListener((obs, oldVal, newVal) -> {
+			this.setY(newVal.doubleValue());
+		});
+		GameStage.getInstance().setOnCloseRequest(e -> this.close());
+		setOnCloseRequest(e -> setPlaceGameWithoutChat());
+		setPlaceGameWithChat();
+		new WaitExec(false).run(50, new Runnable() {
+			@Override
+			public void run() {
+				System.out.println(":HI");
+				MessageStage.instance.setX(GameStage.getInstance().getX() + GameStage.getInstance().getWidth() + 5);
+				MessageStage.instance.setY(GameStage.getInstance().getY());
+
+			}
+		});
+		this.setWidth(250);
+		this.setHeight(720);
 		ChatMenuController controller = new ChatMenuController();
 		controller.show(this);
 		return true;
+	}
+
+	private void setPlaceGameWithChat() {
+		Stage primaryStage = GameStage.getInstance();
+		primaryStage.setX(primaryStage.getX() - 125);
+	}
+
+	private void setPlaceGameWithoutChat() {
+		Stage primaryStage = GameStage.getInstance();
+		primaryStage.setX(primaryStage.getX() + 125);
 	}
 }

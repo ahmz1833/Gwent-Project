@@ -7,7 +7,9 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import javafx.event.Event;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.effect.DropShadow;
+import javafx.stage.Screen;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.ChatMenuController;
 import org.apgrp10.gwent.client.model.AvatarView;
@@ -621,8 +623,11 @@ public class GameMenu implements GameMenuInterface {
 		b.setOnAction(k->{
 			if(!MessageStage.getInstance().isShowing())
 				MessageStage.getInstance().start();
-			else
+			else {
 				MessageStage.getInstance().close();
+				Stage primaryStage = GameStage.getInstance();
+				primaryStage.setX(primaryStage.getX() + 125);
+			}
 		});
 		rootPane.getChildren().add(b);
 	}
