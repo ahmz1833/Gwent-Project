@@ -51,11 +51,7 @@ public class Gwent extends Application {
 
 	@Override
 	public void start(Stage primaryStage) {
-		// requires javafx so must be here
-		if (Server.isConnected())
-			Server.run();
 		TerminalAsyncReader.instanceRun();
-
 		primaryStage.getIcons().add(R.icon.app_icon);
 		primaryStage.setIconified(true);
 		primaryStage.close();
@@ -64,6 +60,7 @@ public class Gwent extends Application {
 			LoginStage.getInstance().start();
 		else
 			MainStage.getInstance().start();
+		ClientMain.connect(); // Start the connection javafx is fully ready
 	}
 
 	@Override

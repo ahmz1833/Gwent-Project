@@ -18,13 +18,9 @@ public class ClientMain {
 
 	public static void main(String[] args) {
 		Locale.setDefault(Locale.ENGLISH);
-		connectionTimer.schedule(new TimerTask() {
-			@Override
-			public void run() {Server.connect();}
-		}, 400);
 		Server.connectionProperty.addListener((observable, oldValue, newValue) -> {
-			if (newValue) Platform.runLater(ClientMain::onConnect);
-			else Platform.runLater(ClientMain::onDisconnect);
+			if (newValue) onConnect();
+			else onDisconnect();
 		});
 		Gwent.main(args);
 	}
@@ -46,9 +42,15 @@ public class ClientMain {
 		connectionTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				Server.connect();
-				Server.run();
+				connect();
 			}
-		}, 1500);
+		}, 2500);
+	}
+
+	public static void connect() {
+		Platform.runLater(()->{
+			Server.connect();
+			Server.run();
+		});
 	}
 }

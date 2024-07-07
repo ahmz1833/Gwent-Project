@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 
 <Scene stylesheets="@../css/main.css" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1">
-    <StackPane prefHeight="720.0" prefWidth="1280.0">
+    <StackPane prefHeight="600.0" prefWidth="1024.0">
         <VBox alignment="CENTER" spacing="10">
             <MFXButton fx:id="gameBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Start New Game" />
             <MFXButton fx:id="replayBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Load a Recorded Game" />

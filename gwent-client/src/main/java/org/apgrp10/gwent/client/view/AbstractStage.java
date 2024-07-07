@@ -65,15 +65,16 @@ public abstract class AbstractStage extends Stage {
 			if (!showingDialogs.isEmpty() &&
 			    showingDialogs.getLast().getTitle().equals("Connection Lost")) return;
 			disable();
-			Dialogs.showAlert(this, Dialogs.ERROR(),
+			Dialogs.showDialogAndWait(this, Dialogs.ERROR(),
 					"Connection Lost",
-					"Connection to server lost, Trying to reconnect ...");
+					"Connection to server lost, Trying to reconnect ...",
+					Map.entry("Exit", e -> Gwent.exit()));
 		});
 	}
 
 	public void connectionEstablished() {
 		Platform.runLater(() -> {
-			if(!isShowing()) return;
+			if (!isShowing()) return;
 			enable();
 			var showingDialogs = Dialogs.getShowingDialogs(this);
 			if (showingDialogs.isEmpty() ||

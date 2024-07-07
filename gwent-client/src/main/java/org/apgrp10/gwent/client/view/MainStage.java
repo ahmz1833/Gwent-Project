@@ -39,10 +39,9 @@ public class MainStage extends AbstractStage {
 		MFXButton gameBtn, replayBtn, playingBtn, profileBtn, friendsBtn, rankingsBtn;
 
 		setScene(R.scene.main);
-		if (UserController.getCurrentUser() == null) {
+		if (!Server.isConnected() || UserController.getCurrentUser() == null) {
 			disable();  // Disable the buttons until the user is authenticated
-			waitingForAuth = true;
-			return false;
+			waitingForAuth = UserController.getCurrentUser() == null;
 		}
 		else {
 			enable();
