@@ -150,12 +150,22 @@ public class MouseInputController implements InputController {
 		}
 	}
 
+	private long lastReact = 0;
+
 	private void buttonAction(Object obj) {
 		String str = (String) obj;
-		if (str.equals("pass"))
+		if (str.equals("pass")) {
 			controller.sendCommand(new Command.Pass(player));
-		if (str.startsWith("cheat_"))
+			controller.sendCommand(new Command.Sync(player));
+		}
+		if (str.startsWith("cheat_")) {
 			controller.sendCommand(new Command.Cheat(player, Integer.parseInt(str.substring(6))));
-		controller.sendCommand(new Command.Sync(player));
+			controller.sendCommand(new Command.Sync(player));
+		}
+		if (str.startsWith("react_") && System.currentTimeMillis() - lastReact > 2000 && controller.lastPlayed() != null) {
+			controller.sendCommand(new Command.React(player, Integer.parseInt(str.substring(6))));
+			controller.sendCommand(new Command.Sync(player));
+			lastReact = System.currentTimeMillis();
+		}
 	}
 }

@@ -47,6 +47,7 @@ public class GameController {
 	private Random rand;
 	private int currentRound = 0;
 	private boolean switchableSides = false;
+	private Card lastPlayed;
 	public final WaitExec waitExec;
 
 	public boolean leaderAbilityInUse(int player, Ability ability) {
@@ -202,6 +203,8 @@ public class GameController {
 
 	public PlayerData getPlayer(int player) { return playerData[player]; }
 
+	public Card lastPlayed() { return lastPlayed; }
+
 	private void moveCard(Card card, List<Card> to) {
 		if (card == null)
 			return;
@@ -352,6 +355,9 @@ public class GameController {
 
 		placeCard(card, rowIdx);
 
+		if (!lastPassed)
+			lastPlayed = card;
+
 		if (card.ability == Ability.SPY) {
 			List<Card> deck = playerData[player].deck.getDeck();
 			if (!deck.isEmpty()) moveCard(deck.get(0), playerData[player].handCards);
@@ -433,6 +439,9 @@ public class GameController {
 		Card c2 = cardById(cmd.cardId2());
 		if (gameMenu != null)
 			gameMenu.animationSwap(c1, c2);
+
+		if (!lastPassed)
+			lastPlayed = c1;
 
 		// there are some guarantees because of canSwap and we rely on them
 		int player = cmd.player();
@@ -676,6 +685,12 @@ public class GameController {
 		}
 	}
 
+	private void react(Command.React cmd) {
+		if (gameMenu == null)
+			return;
+		gameMenu.reactTo(lastPlayed, cmd.reactId());
+	}
+
 	private final List<Consumer<Command>> commandListeners = new ArrayList<>();
 
 	public void addCommandListener(Consumer<Command> cb) { commandListeners.add(cb); }
@@ -699,6 +714,7 @@ public class GameController {
 			if (cmd instanceof Command.SetActiveCard) setActiveCard((Command.SetActiveCard)cmd);
 			if (cmd instanceof Command.PickResponse) pickResponse((Command.PickResponse)cmd);
 			if (cmd instanceof Command.Cheat) cheat((Command.Cheat)cmd);
+			if (cmd instanceof Command.React) react((Command.React)cmd);
 		}
 		syncLock = false;
 		commandQueue.clear();

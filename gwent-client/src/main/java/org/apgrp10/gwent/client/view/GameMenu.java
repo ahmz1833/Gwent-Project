@@ -141,6 +141,10 @@ public class GameMenu implements GameMenuInterface {
 				new RectPos(0.0713, 0.7712, 0.1244, 0.8962),
 		};
 		public static final RectPos switchBtn = new RectPos(0.9734, 0.0166, 0.9968, 0.1583);
+		public static final RectPos react[] = {
+				RectPos.bySize(0.0117, 0.0930, 0.0480, 0.0882),
+				RectPos.bySize(0.0117, 0.7916, 0.0480, 0.0882),
+		};
 	}
 
 
@@ -205,7 +209,7 @@ public class GameMenu implements GameMenuInterface {
 
 	private void addButton(Pane parent, String str, String cmd, Position.RectPos pos) {
 		Button btn = new Button(str);
-		btn.setOnAction(e -> notifyListeners(buttonListeners, cmd));
+		btn.setOnMouseClicked(e -> notifyListeners(buttonListeners, cmd));
 		if (pos != null)
 			pos.setBounds(btn);
 		parent.getChildren().add(btn);
@@ -505,13 +509,14 @@ public class GameMenu implements GameMenuInterface {
 		cardMap.clear();
 		rootPane.getChildren().clear();
 		overlayPane.getChildren().clear();
-		rootPane.setOnMouseClicked(k->{
-			System.out.println(k.getSceneY() / HEIGHT);
-		});
+		// rootPane.setOnMouseClicked(k->{
+		// 	System.out.println(k.getSceneY() / HEIGHT);
+		// });
 		addBackground(R.image.board[controller.getActivePlayer()]);
 		if (showCheats)
 			addCheatButtons();
 		addButton(rootPane, "Pass", "pass", Position.pass);
+		addButton(rootPane, "React", "react_0", new Position.RectPos(0.1, 0.1, 0.2, 0.2));
 		addDeckCards(true);
 		addProfile(true);
 		if (hasNewDeath) {
@@ -613,7 +618,7 @@ public class GameMenu implements GameMenuInterface {
 
 		if (controller.hasSwitchableSides()) {
 			Button btn = new Button("S\ni\nd\ne");
-			btn.setOnAction(e -> {
+			btn.setOnMouseClicked(e -> {
 				controller.setActivePlayer(1 - player);
 				redraw();
 			});
@@ -670,18 +675,15 @@ public class GameMenu implements GameMenuInterface {
 
 	private class MoveAnimation extends Transition {
 		private final Node node;
-		private final Card card;
 		private final Point2D from, to;
 
-		public MoveAnimation(Card card, Node node, Point2D from, Point2D to) {
+		public MoveAnimation(int duration, Node node, Point2D from, Point2D to) {
 			animationNodes.add(node);
-			animationCards.add(card);
-			this.card = card;
 			this.node = node;
 			this.from = from;
 			this.to = to;
 			setCycleCount(1);
-			setCycleDuration(Duration.millis(500));
+			setCycleDuration(Duration.millis(duration));
 			setOnFinished(e -> finish());
 			play();
 		}
@@ -689,9 +691,11 @@ public class GameMenu implements GameMenuInterface {
 		private void finish() {
 			stop();
 			animationNodes.remove(node);
-			animationCards.remove(card);
+			finishChild();
 			redraw();
 		}
+
+		protected void finishChild() {}
 
 		@Override
 		protected void interpolate(double frac) {
@@ -699,12 +703,41 @@ public class GameMenu implements GameMenuInterface {
 			node.setLayoutX(pos.getX());
 			node.setLayoutY(pos.getY());
 		}
+	}
 
+	private class CardMoveAnimation extends MoveAnimation {
+		private final Card card;
+
+		public CardMoveAnimation(Card card, Node node, Point2D from, Point2D to) {
+			super(500, node, from, to);
+			this.card = card;
+			animationCards.add(card);
+		}
+
+		@Override
+		protected void finishChild() {
+			animationCards.remove(card);
+		}
+	}
+
+	public void reactTo(Card card, int reactId) {
+		int side = controller.getActivePlayer() == controller.getTurn()? 1: 0;
+		CardView cardView = cardMap.get(card);
+		Point2D from = cardView != null
+		                 ? cardView.localToScene(0, 0)
+		                 : new Point2D(Position.react[side].x(), Position.react[side].y());
+		Point2D to = from.add(0, -0.1 * HEIGHT);
+
+		ImageView animationView = new ImageView(R.image.reactions[reactId]);
+		animationView.setFitWidth(Position.react[side].w());
+		animationView.setFitHeight(Position.react[side].h());
+
+		new MoveAnimation(1500, animationView, from, to);
 	}
 
 	private void animationTo(Card card, Point2D from, Point2D to) {
 		CardView animationView = CardView.newHand(card.pathAddress, Position.card.w(), Position.card.h());
-		new MoveAnimation(card, animationView, from, to);
+		new CardMoveAnimation(card, animationView, from, to);
 	}
 
 	private void animationToHBox(Card card, Position.RectPos pos, List<Card> others) {

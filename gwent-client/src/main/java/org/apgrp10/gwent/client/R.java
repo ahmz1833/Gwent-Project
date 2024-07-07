@@ -89,6 +89,15 @@ public class R {
 		public static final Image rain = getImage("icons/overlay_rain.png");
 		public static final Image scorch = getImage("icons/anim_scorch.png");
 		public static final Image gem_on = getImage("icons/icon_gem_on.png");
+
+		public static final Image reactions[] = {
+			getImage("reacts/1.png"),
+			getImage("reacts/2.png"),
+			getImage("reacts/3.png"),
+			getImage("reacts/4.png"),
+			getImage("reacts/5.png"),
+			getImage("reacts/6.png"),
+		};
 	}
 
 	public static class icon {

@@ -23,6 +23,7 @@ public interface GameMenuInterface {
 	void animationToDeck(Card card, int player);
 	void animationToUsed(Card card, int player);
 	void animationSwap(Card c1, Card c2);
+	void reactTo(Card card, int reactId);
 
 	boolean isAnimationPlaying();
 

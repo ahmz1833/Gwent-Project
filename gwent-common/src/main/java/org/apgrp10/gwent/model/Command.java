@@ -70,5 +70,7 @@ public interface Command {
 
 	record Cheat(int player, int cheatId) implements Command, Serializable {}
 
+	record React(int player, int reactId) implements Command, Serializable {}
+
 	record Sync(int player) implements Command, Serializable {}
 }
