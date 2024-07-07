@@ -1,4 +1,4 @@
-package org.apgrp10.gwent.client.view;
+package org.apgrp10.gwent.client.model;
 
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -12,7 +12,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.model.AvatarView;
-import org.apgrp10.gwent.client.model.ChatMenu;
+import org.apgrp10.gwent.client.model.ChatPane;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.utils.ANSI;
@@ -41,7 +41,7 @@ public class MessageView extends HBox {
 		this.replyOn = replyOn;
 		this.message = message;
 		this.user = user;
-		this.setPrefWidth(ChatMenu.width - 30);
+		this.setPrefWidth(ChatPane.width - 30);
 		addImage();
 		addMessage();
 		addUserName();
@@ -90,7 +90,7 @@ public class MessageView extends HBox {
 
 	private void addReply() {
 		if (replyOn != null) {
-			messageBox.getChildren().add(ChatMenu.getMessageReplyView(replyOn, user, true));
+			messageBox.getChildren().add(ChatPane.getMessageReplyView(replyOn, user, true));
 		}
 	}
 

@@ -4,19 +4,18 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import org.apgrp10.gwent.client.R;
-import org.apgrp10.gwent.client.model.ChatMenu;
 
 public class ReactionChat extends Pane {
 	private final long id;
-	private final ChatMenu chatMenu;
+	private final ChatPane chatPane;
 	private final boolean isForOwner;
 	private final int reaction;
 	private final VBox menu = new VBox();
 
-	public ReactionChat(int X, int Y, long id, ChatMenu chatMenu, boolean isForOwner, int reaction) {
+	public ReactionChat(int X, int Y, long id, ChatPane chatPane, boolean isForOwner, int reaction) {
 		this.isForOwner = isForOwner;
 		this.reaction = reaction;
-		this.chatMenu = chatMenu;
+		this.chatPane = chatPane;
 		this.id = id;
 		setSize();
 		setupMenu(X, Y);
@@ -32,7 +31,7 @@ public class ReactionChat extends Pane {
 		ImageView imageView = new ImageView(R.getImage("chat/delete.png"));
 		imageView.setFitWidth(80);
 		imageView.setFitHeight(20);
-		imageView.setOnMouseClicked(k -> chatMenu.deleteMessage(id));
+		imageView.setOnMouseClicked(k -> chatPane.deleteMessage(id));
 		menu.getChildren().add(imageView);
 	}
 
@@ -40,7 +39,7 @@ public class ReactionChat extends Pane {
 		ImageView imageView = new ImageView(R.getImage("chat/edit.png"));
 		imageView.setFitWidth(80);
 		imageView.setFitHeight(20);
-		imageView.setOnMouseClicked(k -> chatMenu.changeEditNumber(id));
+		imageView.setOnMouseClicked(k -> chatPane.changeEditNumber(id));
 		menu.getChildren().add(imageView);
 	}
 
@@ -48,16 +47,16 @@ public class ReactionChat extends Pane {
 		ImageView imageView = new ImageView(R.getImage("chat/reply.png"));
 		imageView.setFitWidth(80);
 		imageView.setFitHeight(20);
-		imageView.setOnMouseClicked(k -> chatMenu.changeReplyNumber(id));
+		imageView.setOnMouseClicked(k -> chatPane.changeReplyNumber(id));
 		menu.getChildren().add(imageView);
 	}
 
 	private void setSize() {
-		this.setMinWidth(ChatMenu.width);
-		this.setMinHeight(ChatMenu.height);
+		this.setMinWidth(ChatPane.width);
+		this.setMinHeight(ChatPane.height);
 		this.setLayoutY(0);
 		this.setLayoutX(0);
-		chatMenu.getChildren().add(this);
+		chatPane.getChildren().add(this);
 		this.setOnMouseClicked(k -> endShow());
 	}
 
@@ -66,8 +65,8 @@ public class ReactionChat extends Pane {
 		menu.setPrefWidth(80);
 		menu.setSpacing(2);
 		menu.setStyle("-fx-background-color: #727c7b");
-		menu.setLayoutX(X + menu.getPrefWidth() > ChatMenu.width ? ChatMenu.width - menu.getPrefWidth() - 5 : X);
-		menu.setLayoutY(Y + menu.getPrefHeight() > ChatMenu.height ? ChatMenu.height - menu.getPrefHeight() - 5 : Y);
+		menu.setLayoutX(X + menu.getPrefWidth() > ChatPane.width ? ChatPane.width - menu.getPrefWidth() - 5 : X);
+		menu.setLayoutY(Y + menu.getPrefHeight() > ChatPane.height ? ChatPane.height - menu.getPrefHeight() - 5 : Y);
 		this.getChildren().add(menu);
 	}
 
@@ -97,16 +96,16 @@ public class ReactionChat extends Pane {
 
 
 	private void endShow() {
-		chatMenu.getChildren().remove(this);
+		chatPane.getChildren().remove(this);
 	}
 
 	private void createReaction(int index) {
-		chatMenu.sendNewReaction(id, index);
+		chatPane.sendNewReaction(id, index);
 	}
 
 	private void removeReaction(int index) {
 		if (index != -1) {
-			chatMenu.sendDeleteReaction(id, index);
+			chatPane.sendDeleteReaction(id, index);
 		}
 	}
 }

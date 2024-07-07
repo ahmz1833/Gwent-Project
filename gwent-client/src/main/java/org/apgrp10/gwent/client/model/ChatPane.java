@@ -18,7 +18,6 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.ChatMenuController;
-import org.apgrp10.gwent.client.view.MessageView;
 import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.User;
@@ -27,7 +26,7 @@ import org.apgrp10.gwent.utils.ANSI;
 import java.util.HashMap;
 import java.util.Objects;
 
-public class ChatMenu extends Pane {
+public class ChatPane extends Pane {
 	public final static int width = 250, height = 700;
 	private final Text replyBox = new Text();
 	private final TextArea textInput = new TextArea();
@@ -43,7 +42,7 @@ public class ChatMenu extends Pane {
 	private long editID = 0;
 	private StackPane massageReplyViw = new StackPane();
 
-	public ChatMenu(ChatMenuController controller) {
+	public ChatPane(ChatMenuController controller) {
 		updateUser();
 		this.screenWidth = 250;
 		this.controller = controller;
@@ -107,7 +106,7 @@ public class ChatMenu extends Pane {
 		this.setLayoutY(0);
 		this.setPrefWidth(width);
 		this.setPrefHeight(height);
-		ImageView img = new ImageView(R.getImage("chat/chatBackground.jpg"));
+		ImageView img = new ImageView(R.getImage("chat_bkg.png"));
 		img.setFitHeight(height); img.setFitWidth(width);
 		img.setX(0);
 		img.setY(0);

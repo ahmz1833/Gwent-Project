@@ -1,26 +1,16 @@
 package org.apgrp10.gwent.client.view;
 
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Scene;
-import javafx.scene.image.Image;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.ChatMenuController;
-import org.apgrp10.gwent.client.model.ChatMenu;
 import org.apgrp10.gwent.utils.WaitExec;
-
-import java.security.PrivateKey;
-import java.util.PropertyPermission;
 
 public class MessageStage extends AbstractStage {
 	private static MessageStage instance;
 	private ChatMenuController controller;
 
 	private MessageStage() {
-		super("chat", R.getImage("chat/icon.jpeg"));
+		super("chat", R.getImage("ic_chat.png"));
 		controller = ChatMenuController.cleanInstance();
 	}
 

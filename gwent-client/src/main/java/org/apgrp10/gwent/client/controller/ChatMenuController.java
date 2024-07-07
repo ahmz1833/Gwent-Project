@@ -2,7 +2,7 @@ package org.apgrp10.gwent.client.controller;
 
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.Server;
-import org.apgrp10.gwent.client.model.ChatMenu;
+import org.apgrp10.gwent.client.model.ChatPane;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
@@ -13,14 +13,14 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class ChatMenuController {
-	private ChatMenu chatMenu;
+	private ChatPane chatMenu;
 	private Scene scene;
 	private static final ChatMenuController instance = new ChatMenuController();
 
 	private ChatMenuController() {}
 
 	private void reset() {
-		this.chatMenu = new ChatMenu(this);
+		this.chatMenu = new ChatPane(this);
 		scene = new Scene(chatMenu);
 		scene.getStylesheets().add(R.get("css/chat.css").toExternalForm());
 

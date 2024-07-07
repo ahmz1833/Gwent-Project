@@ -98,7 +98,7 @@ public class GameStage extends AbstractStage {
 	private void createLocal() {
 		InputController c1 = new MouseInputController();
 		InputController c2 = new MouseInputController();
-		GameMenu gm = new GameMenu(this, false);
+		GameMenu gm = new GameMenu(this, true);
 		// TODO: better way to save recording
 		new GameController(c1, c2, deck1, deck2, seed, gm, gr -> {
 			Utils.choosePlaceAndDownload("Choose place to save recording", "recording.gwent", this,
