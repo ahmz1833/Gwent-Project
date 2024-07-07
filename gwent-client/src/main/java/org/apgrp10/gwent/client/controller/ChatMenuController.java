@@ -2,6 +2,7 @@ package org.apgrp10.gwent.client.controller;
 
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.model.ChatMenu;
 import org.apgrp10.gwent.model.Message;
@@ -9,20 +10,15 @@ import org.apgrp10.gwent.model.User;
 
 public class ChatMenuController {
 	private final ChatMenu chatMenu;
-	private final Pane pane;
 
-	public ChatMenuController(Pane pane, User.PublicInfo user, double screenWidth, Scene scene) {
-		scene.getStylesheets().add(R.get("css/chat.css").toExternalForm());
-		this.chatMenu = new ChatMenu(screenWidth, this, user);
-		this.pane = pane;
+	public ChatMenuController() {
+		this.chatMenu = new ChatMenu(this);
 	}
+	public void show(Stage stage){
+		Scene scene = new Scene(chatMenu);
+		scene.getStylesheets().add(R.get("css/preGame.css").toExternalForm());
+		stage.setScene(scene);
 
-	public void show() {
-		pane.getChildren().add(chatMenu);
-	}
-
-	public void endShow() {
-		pane.getChildren().remove(chatMenu);
 	}
 	private int lastId = 0;
 	public int getId(){

@@ -18,6 +18,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.ChatMenuController;
+import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.utils.ANSI;
@@ -33,22 +34,25 @@ public class ChatMenu extends Pane {
 	private final int screenWidth;
 	private final ChatMenuController controller;
 	private final HashMap<Integer, Integer> reactionList = new HashMap<>();
-	private final User.PublicInfo user;
+	private User.PublicInfo user;
 	private final ImageView deleteReply = new ImageView(R.getImage("chat/clear.png"));
-	private MFXScrollPane messagesScroll;
+	private ScrollPane messagesScroll;
 	//this is a map from each message id to reaction number
 	private int replyId = 0;
 	private int editID = 0;
 	private StackPane massageReplyViw = new StackPane();
 
-	public ChatMenu(double screenWidth, ChatMenuController controller, User.PublicInfo user) {
-		this.user = user;
-		this.screenWidth = (int) screenWidth;
+	public ChatMenu(ChatMenuController controller) {
+		updateUser();
+		this.screenWidth = 250;
 		this.controller = controller;
 		setSize(screenWidth);
 		setupDeleteReply();
 		addTextInput();
 		addMessagesBox();
+	}
+	private void updateUser(){
+		user = new User.PublicInfo(System.currentTimeMillis(), "abc", "abcd", Avatar.random());
 	}
 
 	public static StackPane getMessageReplyView(Message replyOn, User.PublicInfo user, boolean isReply) {

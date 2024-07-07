@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import javafx.event.Event;
 import javafx.scene.effect.DropShadow;
 import org.apgrp10.gwent.client.R;
+import org.apgrp10.gwent.client.controller.ChatMenuController;
 import org.apgrp10.gwent.client.model.AvatarView;
 import org.apgrp10.gwent.client.model.CardView;
 import org.apgrp10.gwent.client.model.TerminalAsyncReader;
@@ -133,7 +134,7 @@ public class GameMenu implements GameMenuInterface {
 				new RectPos(0.8041, 0.7657, 0.8619, 0.9009),
 		};
 		public static final RectPos hp[] = {
-				new RectPos(0.125, 0.240277, 0.2140, 0.28611),
+				new RectPos(0.125, 0.300277, 0.2140, 0.34611),
 				new RectPos(0.127, 0.68472, 0.2156, 0.74445)
 		};
 		public static final RectPos leader[] = {
@@ -501,13 +502,9 @@ public class GameMenu implements GameMenuInterface {
 	public void redraw() {
 		final int player = controller.getActivePlayer();
 		activeCardView = null;
-
 		cardMap.clear();
 		rootPane.getChildren().clear();
 		overlayPane.getChildren().clear();
-		rootPane.setOnMouseClicked(k->{
-			System.out.println(k.getSceneY() / HEIGHT);
-		});
 		addBackground(R.image.board[controller.getActivePlayer()]);
 		if (showCheats)
 			addCheatButtons();
@@ -620,6 +617,14 @@ public class GameMenu implements GameMenuInterface {
 			Position.switchBtn.setBounds(btn);
 			overlayPane.getChildren().add(btn);
 		}
+		Button b = new Button("chat");
+		b.setOnAction(k->{
+			if(!MessageStage.getInstance().isShowing())
+				MessageStage.getInstance().start();
+			else
+				MessageStage.getInstance().close();
+		});
+		rootPane.getChildren().add(b);
 	}
 
 	protected List<Card> pickList;

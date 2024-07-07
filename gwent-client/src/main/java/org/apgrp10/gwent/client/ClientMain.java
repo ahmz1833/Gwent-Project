@@ -5,6 +5,7 @@ import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.client.view.AbstractStage;
 import org.apgrp10.gwent.client.view.LoginStage;
 import org.apgrp10.gwent.client.view.MainStage;
+import org.apgrp10.gwent.client.view.PreGameStage;
 import org.apgrp10.gwent.utils.ANSI;
 
 import java.util.ArrayList;
@@ -26,24 +27,25 @@ public class ClientMain {
 	}
 
 	private static void onConnect() {
-		ANSI.log("Connected to server", ANSI.LGREEN, false);
-		UserController.authenticate(response -> {
-			if (response.isOk()) {
-				ANSI.log("Authenticated; Username: " + UserController.getCurrentUser().publicInfo().username(), ANSI.LGREEN, false);
-				for (Window window : new ArrayList<>(Window.getWindows()))
-					if (window instanceof AbstractStage stage)
-						stage.connectionEstablished();
-				if (MainStage.getInstance().isWaitingForAuth())
-					MainStage.getInstance().start();
-			} else {
-				ANSI.log("Failed to authenticate, Please Login again.", ANSI.LRED, false);
-				for (Window window : new ArrayList<>(Window.getWindows()))
-					if (window instanceof AbstractStage stage)
-						stage.close();
-				if(!LoginStage.getInstance().isShowing())
-					LoginStage.getInstance().start();
-			}
-		});
+//		ANSI.log("Connected to server", ANSI.LGREEN, false);
+//		UserController.authenticate(response -> {
+//			if (response.isOk()) {
+//				ANSI.log("Authenticated; Username: " + UserController.getCurrentUser().publicInfo().username(), ANSI.LGREEN, false);
+//				for (Window window : new ArrayList<>(Window.getWindows()))
+//					if (window instanceof AbstractStage stage)
+//						stage.connectionEstablished();
+//				if (MainStage.getInstance().isWaitingForAuth())
+//					MainStage.getInstance().start();
+//			} else {
+//				ANSI.log("Failed to authenticate, Please Login again.", ANSI.LRED, false);
+//				for (Window window : new ArrayList<>(Window.getWindows()))
+//					if (window instanceof AbstractStage stage)
+//						stage.close();
+//				if(!LoginStage.getInstance().isShowing())
+//					LoginStage.getInstance().start();
+//			}
+//		});
+		PreGameStage.getInstance().start();
 	}
 
 	private static void onDisconnect() {
