@@ -2,6 +2,7 @@ package org.apgrp10.gwent.client.view;
 
 import io.github.palexdev.materialfx.controls.MFXButton;
 import io.github.palexdev.materialfx.dialogs.MFXDialogs;
+import io.github.palexdev.materialfx.dialogs.MFXGenericDialog;
 import io.github.palexdev.materialfx.dialogs.MFXGenericDialogBuilder;
 import io.github.palexdev.materialfx.dialogs.MFXStageDialog;
 import io.github.palexdev.materialfx.enums.ScrimPriority;
@@ -9,6 +10,7 @@ import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -42,19 +44,19 @@ public abstract class AbstractStage extends Stage {
 		this.setOnCloseRequest(AbstractStage.this::onCloseRequest);
 	}
 
-	protected static MouseEvent emptyMouseEvent() {
-		return new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, null, 0, false, false, false, false, false, false, false, false, false, false, null);
-	}
+
 
 	public void start() {
-		if (onCreate()) {
-			setOpacity(1.0);
-			focusedProperty().addListener(l -> {
-				if (((ReadOnlyBooleanProperty) l).get()) onGetFocus();
-				else onLostFocus();
-			});
-			show();
-		}
+		Platform.runLater(() -> {
+			if (onCreate()) {
+				setOpacity(1.0);
+				focusedProperty().addListener(l -> {
+					if (((ReadOnlyBooleanProperty) l).get()) onGetFocus();
+					else onLostFocus();
+				});
+				show();
+			}
+		});
 	}
 
 	@SuppressWarnings("unchecked")
@@ -69,110 +71,14 @@ public abstract class AbstractStage extends Stage {
 		});
 	}
 
-	private MFXStageDialog makeDialog(MFXGenericDialogBuilder base) {
-		var styles = getScene().getStylesheets();
-		styles.add(R.get("css/styles.css").toExternalForm());
-		base.addStylesheets(styles.toArray(new String[0]));
 
-		MFXStageDialog dialog = MFXGenericDialogBuilder.build(base.get())
-				.toStageDialogBuilder()
-				.initOwner(this)
-				.initModality(Modality.WINDOW_MODAL)
-				.setOwnerNode((Pane) getScene().getRoot())
-				.setScrimOwner(true)
-				.setScrimPriority(ScrimPriority.WINDOW)
-				.setDraggable(true)
-				.setCenterInOwnerNode(true)
-				.setOverlayClose(false)
-				.get();
-
-		Pane actionPane = (Pane) base.get().getBottom();
-		actionPane.getChildren().forEach(c -> {
-			if (c.equals(actionPane)) return;
-			c.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> dialog.close());
-		});
-
-		dialog.setIconified(false);
-		return dialog;
-	}
-
-	@SafeVarargs
-	public final void showDialogAndWait(MFXGenericDialogBuilder base, String title, Node content, Map.Entry<String, EventHandler<? super MouseEvent>>... actions) {
-		ArrayList<Node> actionsBtns = new ArrayList<>();
-		Button defaultBtn = null, cancelBtn = null;
-		for (Map.Entry<String, EventHandler<? super MouseEvent>> action : actions) {
-			String caption = action.getKey();
-			MFXButton button = new MFXButton();
-			if (caption.startsWith("#")) {
-				caption = caption.substring(1);
-				button.setDefaultButton(true);
-				defaultBtn = button;
-			}
-			if (caption.startsWith("*")) {
-				caption = caption.substring(1);
-				button.setCancelButton(true);
-				cancelBtn = button;
-			}
-			button.setText(caption);
-			button.setOnMouseClicked(action.getValue());
-			actionsBtns.add(button);
-		}
-
-		final Button finalDefaultBtn = defaultBtn;
-		final Button finalCancelBtn = cancelBtn;
-		for (Node button : actionsBtns) {
-			button.setOnKeyReleased(event -> {
-				if (event.getCode().getName().equals("Enter") && finalDefaultBtn != null)
-					finalDefaultBtn.fireEvent(emptyMouseEvent());
-				else if (event.getCode().getName().equals("Esc") && finalCancelBtn != null)
-					finalCancelBtn.fireEvent(emptyMouseEvent());
-			});
-		}
-		var dialog = makeDialog(base.setHeaderText(title).setContent(content)
-				.addActions(actionsBtns.toArray(new Node[0])));
-		if (cancelBtn != null) {
-			Button finalCancelBtn1 = cancelBtn;
-			dialog.setOnCloseRequest(e -> finalCancelBtn1.fireEvent(emptyMouseEvent()));
-		}
-		dialog.setTitle(title);
-		showingDialogs.add(dialog);
-		dialog.showAndWait();
-		showingDialogs.remove(dialog);
-	}
-
-	@SafeVarargs
-	public final void showDialogAndWait(MFXGenericDialogBuilder base, String title, String content, Map.Entry<String, EventHandler<? super MouseEvent>>... actions) {
-		Label contentLabel = new Label(content);
-		contentLabel.setId("dialog_label");
-		showDialogAndWait(base, title, contentLabel, actions);
-	}
-
-	public boolean showConfirmDialog(MFXGenericDialogBuilder base, String title, Node content, String posBtn, String negBtn) {
-		AtomicBoolean result = new AtomicBoolean(false);
-		showDialogAndWait(base, title, content,
-				Map.entry("#" + posBtn, e -> result.set(true)),
-				Map.entry("*" + negBtn, e1 -> {}));
-		return result.get();
-	}
-
-	public boolean showConfirmDialog(MFXGenericDialogBuilder base, String title, String contentMsg, String posBtn, String negBtn) {
-		AtomicBoolean result = new AtomicBoolean(false);
-		showDialogAndWait(base, title, contentMsg,
-				Map.entry("#" + posBtn, e -> result.set(true)),
-				Map.entry("*" + negBtn, e1 -> {}));
-		return result.get();
-	}
-
-	public void showAlert(MFXGenericDialogBuilder base, String title, String message) {
-		showDialogAndWait(base, title, message, Map.entry("#*OK", e -> {}));
-	}
 
 	public void connectionLost() {
 		Platform.runLater(() -> {
 			if (!showingDialogs.isEmpty() &&
 			    showingDialogs.getLast().getTitle().equals("Connection Lost")) return;
 			disable();
-			showAlert(MFXDialogs.error(),
+			Dialogs.showAlert(this, Dialogs.ERROR,
 					"Connection Lost",
 					"Connection to server lost, Trying to reconnect ...");
 		});
@@ -188,27 +94,34 @@ public abstract class AbstractStage extends Stage {
 		});
 	}
 
-	public void showExitDialog() {
-		if (!(this instanceof MainStage)) {
-			showDialogAndWait(MFXDialogs.warn(), "Confirmation",
+
+	public boolean showExitDialog() {
+		if (this instanceof PreGameStage || this instanceof GameStage) {
+			AtomicBoolean returnValue = new AtomicBoolean(true);
+			Dialogs.showDialogAndWait(this, Dialogs.WARNING, "Confirmation",
 					"Are you sure you want to exit? ",
 					Map.entry("Exit", e -> Platform.exit()),
 					Map.entry("Back to Main", e -> {
 						close();
 						MainStage.getInstance().start();
 					}),
-					Map.entry("*Cancel", e -> {}));
-		} else if (showConfirmDialog(MFXDialogs.warn(), "Exit Confirmation",
-				"Are you sure you want to exit?", "Yes", "No"))
+					Map.entry("*Cancel", e -> returnValue.set(false)));
+			return returnValue.get();
+		} else if ((this instanceof LoginStage || this instanceof MainStage) &&
+		           Dialogs.showConfirmDialog(this, Dialogs.WARNING, "Exit Confirmation",
+				           "Are you sure you want to exit?", "Yes", "No"))
 			Platform.exit();
+		else return false;
+		return true;
 	}
 
 	protected abstract boolean onCreate();
 
-	protected void onCloseRequest(WindowEvent event)
-	{
-		event.consume();
-		showExitDialog();
+	protected void onCloseRequest(WindowEvent event) {
+		if (this instanceof MainStage || this instanceof LoginStage || this instanceof PreGameStage || this instanceof GameStage) {
+			event.consume();
+			showExitDialog();
+		}
 	}
 
 	protected void onGetFocus() {}

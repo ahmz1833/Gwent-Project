@@ -5,7 +5,9 @@ import io.github.palexdev.materialfx.theming.base.Theme;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
+import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.client.model.TerminalAsyncReader;
+import org.apgrp10.gwent.client.view.LoginStage;
 import org.apgrp10.gwent.client.view.MainStage;
 import org.apgrp10.gwent.utils.ANSI;
 
@@ -41,11 +43,14 @@ public class Gwent extends Application {
 			Server.run();
 		TerminalAsyncReader.instanceRun();
 
-		// primaryStage.getIcons().add(R.icon.app_icon); // TODO: add icon
+		primaryStage.getIcons().add(R.icon.app_icon);
 		primaryStage.setIconified(true);
 		primaryStage.close();
 		initMaterialTheme();
-		MainStage.getInstance().start();
+		if (UserController.loadJWTFromFile() == null)
+			LoginStage.getInstance().start();
+		else
+			MainStage.getInstance().start();
 	}
 
 	@Override

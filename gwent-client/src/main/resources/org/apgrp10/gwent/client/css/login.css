@@ -27,3 +27,11 @@
 #secQ .caret .mfx-ripple-generator {
     -mfx-ripple-color: rgba(255, 255, 255, 0.5);
 }
+
+#remember {
+    -mfx-main: #6f4020;
+    -mfx-secondary: #424242;
+    -fx-font-family: 'Comfortaa SemiBold';
+    -fx-font-size: 16px;
+    -mfx-text-he: #000000;
+}

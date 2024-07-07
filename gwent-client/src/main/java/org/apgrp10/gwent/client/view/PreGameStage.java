@@ -63,12 +63,6 @@ public class PreGameStage extends AbstractStage {
 			GameStage.getInstance().start();
 			this.close();
 		}
-//		showDialogAndWait(MFXDialogs.info(), "Start Game", "How ?",
-//				Map.entry("Make an Offline play", e->{
-//
-//				}),
-//				Map.entry("", e->{}),
-//				Map.entry("", e->{}));
 	}
 
 	@Override

@@ -20,19 +20,4 @@ public class ProfileStage extends AbstractStage {
 	protected boolean onCreate() {
 		return false;
 	}
-
-	@Override
-	protected void onCloseRequest(WindowEvent event) {
-
-	}
-
-	@Override
-	protected void onGetFocus() {
-
-	}
-
-	@Override
-	protected void onLostFocus() {
-
-	}
 }

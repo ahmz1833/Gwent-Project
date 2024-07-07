@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class UserController {
 	private static final String JWT_FILE_PATH = Gwent.APP_DATA + "jwt.txt";
@@ -25,7 +26,7 @@ public class UserController {
 	private static long toVerifyUser;
 	private static String jwt;
 
-	private static String loadJWTFromFile() {
+	public static String loadJWTFromFile() {
 		// Reads the JWT stored file
 		try (FileInputStream fis = new FileInputStream(JWT_FILE_PATH)) {
 			byte[] data = new byte[fis.available()];
@@ -34,7 +35,6 @@ public class UserController {
 			if (jwt == null) jwt = readJwt;
 			return readJwt;
 		} catch (Exception e) {
-			ANSI.log("Failed to load JWT from file: " + e.getMessage());
 			return null;
 		}
 	}
@@ -55,14 +55,6 @@ public class UserController {
 
 	}
 
-	public static void login(String username, String password) {
-//		if (!userExists(username))
-//			throw new IllegalArgumentException("The entered username does not exist!");
-//		if (allUsers.stream().noneMatch(user -> user.getUsername().equals(username) && user.checkPassword(password)))
-//			throw new IllegalArgumentException("The entered password is incorrect!");
-//		currentUser = allUsers.stream().filter(user -> user.getUsername().equals(username)).findFirst().get();
-	}
-
 	public static void logout() {
 //		currentUser = null;
 //		LoginMenu.open();
@@ -73,16 +65,7 @@ public class UserController {
 		return currentUser;
 	}
 
-//	public static void removeUser(User user) {
-//		allUsers.remove(user);
-//		if (currentUser.equals(user)) logout();
-//	}
-//
-//	public static List<User> getAllUsers() {
-//		return List.copyOf(allUsers);
-//	}
-
-	public static void sendLoginRequest(String username, String password) {
+	public static void sendLoginRequest(String username, String password, Consumer<Response> callback) {
 		JsonObject jsonn = MGson.makeJsonObject("username", username, "passHash",
 				User.hashPassword(password));
 		Server.send(new Request("login", jsonn), res -> {
@@ -93,36 +76,47 @@ public class UserController {
 				ANSI.log("User ID: " + toVerifyUser);
 			} else {
 				ANSI.log("Failed to login, error code " + res.getStatus());
-				if(res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
 					ANSI.printErrorResponse(null, res);
 			}
+			callback.accept(res);
 		});
 	}
 
-	public static void completeLogin(String code, boolean saveJWT) {
+	public static void completeLogin(String code, boolean saveJWT, Consumer<Response> callback) {
 		JsonObject jsonn = MGson.makeJsonObject("userId", toVerifyUser, "code", code);
 		Server.send(new Request("verifyLogin", jsonn), res -> {
 			if (res.isOk()) {
 				ANSI.log("Verified successfully");
 				// Print the JWT received from the server
 				jwt = res.getBody().get("jwt").getAsString();
-				if(saveJWT) saveJWTToFile();
+				if (saveJWT) saveJWTToFile();
 			} else {
 				ANSI.log("Failed to verify, error code " + res.getStatus());
-				if(res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
 					ANSI.printErrorResponse(null, res);
 			}
+			callback.accept(res);
 		});
 	}
 
-	public static boolean authenticate() {
+	public static void authenticate(Consumer<Response> callback) {
 		// if we have jwt, send it to server. and put the User (in response) in static variable
 		loadJWTFromFile();
-		Response res = Server.sendAndWait(new Request("jwt", MGson.makeJsonObject("jwt", jwt)));
-		if (res == null || !res.isOk()) return false;
-		currentUser = MGson.fromJson(res.getBody(), User.class);
-		return currentUser != null;
+		Server.send(new Request("jwt", MGson.makeJsonObject("jwt", jwt)), res -> {
+			if (!res.isOk()) {
+				ANSI.log("Failed to authenticate, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+			else currentUser = MGson.fromJson(res.getBody(), User.class);
+			callback.accept(res);
+		});
 	}
 
-	public static void updateUser() {authenticate();}
+	public static void onDisconnect() {
+		currentUser = null;
+	}
+
+//	public static void updateUser() {authenticate();}
 }

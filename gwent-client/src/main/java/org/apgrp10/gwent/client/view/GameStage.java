@@ -3,6 +3,7 @@ package org.apgrp10.gwent.client.view;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.Server;
 import org.apgrp10.gwent.client.controller.MouseInputController;
 import org.apgrp10.gwent.client.controller.ReplayInputController;
@@ -23,7 +24,7 @@ public class GameStage extends AbstractStage {
 	private static GameStage INSTANCE;
 
 	private GameStage() {
-		super("Gwent Game", null);  // TODO: icon
+		super("Gwent Game", R.icon.app_icon);
 		if (INSTANCE != null) throw new RuntimeException("Duplicate Instance of GameStage");
 	}
 
@@ -37,7 +38,7 @@ public class GameStage extends AbstractStage {
 	private static Deck deck1, deck2;
 	private static long seed;
 	private static int player;
-	private static List<Command> cmds = new ArrayList<>();
+	private static final List<Command> cmds = new ArrayList<>();
 
 	public static void setLocal(Deck d1, Deck d2) {
 		deck1 = d1;
@@ -100,7 +101,8 @@ public class GameStage extends AbstractStage {
 		GameMenu gm = new GameMenu(this);
 		// TODO: better way to save recording
 		new GameController(c1, c2, deck1, deck2, seed, gm, gr -> {
-			Utils.choosePlaceAndDownload("Choose place to save recording", "recording,gwent", this, MGson.get(true, true).toJson(gr));
+			Utils.choosePlaceAndDownload("Choose place to save recording", "recording.gwent", this,
+					MGson.get(true, true).toJson(gr));
 			this.close();
 		});
 	}
@@ -146,16 +148,7 @@ public class GameStage extends AbstractStage {
 
 	@Override
 	protected void onCloseRequest(WindowEvent event) {
-		stopServer();
-	}
-
-	@Override
-	protected void onGetFocus() {
-
-	}
-
-	@Override
-	protected void onLostFocus() {
-
+		event.consume();
+		if(showExitDialog()) stopServer();
 	}
 }

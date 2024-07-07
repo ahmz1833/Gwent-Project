@@ -30,7 +30,7 @@
             </MFXTextField>
             <Label fx:id="username_v" maxWidth="400" styleClass="validation-label" visible="false" wrapText="true">
                <VBox.margin>
-                  <Insets top="-15.0" />
+                  <Insets top="-10.0" />
                </VBox.margin>
                <padding>
                   <Insets left="10.0" />
@@ -49,7 +49,7 @@
                   <Insets left="10.0" />
                </padding>
                <VBox.margin>
-                  <Insets top="-15.0" />
+                  <Insets top="-10.0" />
                </VBox.margin>
             </Label>
             <MFXTextField fx:id="nickname" floatMode="BORDER" floatingText="Your NickName" prefColumnCount="20" prefHeight="50.0" prefWidth="400.0" textLimit="32">
@@ -62,7 +62,7 @@
                   <Insets left="10.0" />
                </padding>
                <VBox.margin>
-                  <Insets top="-15.0" />
+                  <Insets top="-10.0" />
                </VBox.margin>
             </Label>
             <MFXTextField fx:id="email" floatMode="BORDER" floatingText="Your Email" prefColumnCount="20" prefHeight="50.0" prefWidth="400.0" textLimit="32">
@@ -75,7 +75,7 @@
                   <Insets left="10.0" />
                </padding>
                <VBox.margin>
-                  <Insets top="-15.0" />
+                  <Insets top="-10.0" />
                </VBox.margin>
             </Label>
             <HBox fx:id="secPane" spacing="10.0">
@@ -91,7 +91,7 @@
                   <Insets left="10.0" />
                </padding>
                <VBox.margin>
-                  <Insets top="-15.0" />
+                  <Insets top="-10.0" />
                </VBox.margin>
             </Label>
             <MFXTextField fx:id="code" floatMode="BORDER" floatingText="Verification Code" prefColumnCount="20" prefHeight="50.0" prefWidth="400.0" textLimit="6">
@@ -104,13 +104,13 @@
                   <Insets left="10.0" />
                </padding>
                <VBox.margin>
-                  <Insets top="-15.0" />
+                  <Insets top="-10.0" />
                </VBox.margin>
             </Label>
             <MFXCheckbox fx:id="remember" prefHeight="20.0" prefWidth="100.0" text="Stay Logged In" />
             <HBox alignment="CENTER" prefHeight="34.0" prefWidth="400.0" spacing="10.0">
-               <MFXButton fx:id="btnRight" defaultButton="true" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="40.0" prefWidth="200.0" styleClass="light-button" />
                <MFXButton fx:id="btnLeft" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="40.0" prefWidth="200.0" styleClass="dark-button" />
+               <MFXButton fx:id="btnRight" defaultButton="true" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="40.0" prefWidth="200.0" styleClass="light-button" />
                <VBox.margin>
                   <Insets top="10.0" />
                </VBox.margin>

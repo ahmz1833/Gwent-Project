@@ -299,7 +299,7 @@ public class PreGameMenu {
 	public void accessioningChangeFaction(Faction faction) {
 		if (this.faction != faction) {
 			AbstractStage stage = PreGameStage.getInstance();
-			stage.showDialogAndWait(MFXDialogs.warn(), "Caution!", "Changing factions will clear the current deck.\nContinue?",
+			Dialogs.showDialogAndWait(stage, Dialogs.WARNING, "Caution!", "Changing factions will clear the current deck.\nContinue?",
 					Map.entry("#OK", e -> this.loadFactionDeck(faction)),
 					Map.entry("*Cancel", e -> {}));
 		}
@@ -459,7 +459,7 @@ public class PreGameMenu {
 			updateInfo();
 		} else {
 			AbstractStage stage = PreGameStage.getInstance();
-			stage.showAlert(MFXDialogs.error(), "Error!", "Uploaded deck is not formatted correctly!");
+			Dialogs.showAlert(stage, Dialogs.ERROR, "Error!", "Uploaded deck is not formatted correctly!");
 		}
 	}
 
@@ -484,7 +484,7 @@ public class PreGameMenu {
 		else
 		{
 			AbstractStage stage = PreGameStage.getInstance();
-			stage.showAlert(MFXDialogs.error(), "Error!", "Your Deck is not ready yet!");
+			Dialogs.showAlert(stage, Dialogs.ERROR, "Error!", "Your Deck is not ready yet!");
 		}
 	}
 

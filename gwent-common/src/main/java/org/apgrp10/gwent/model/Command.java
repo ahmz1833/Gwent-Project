@@ -38,7 +38,7 @@ public interface Command {
 		}
 	}
 
-	static class CommandAdapter extends TypeAdapter<Command> {
+	class CommandAdapter extends TypeAdapter<Command> {
 		@Override
 		public void write(JsonWriter out, Command value) throws IOException {
 			out.value(value.toBase64());

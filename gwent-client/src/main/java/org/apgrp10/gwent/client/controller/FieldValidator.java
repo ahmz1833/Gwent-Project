@@ -11,6 +11,7 @@ import javafx.beans.binding.Bindings;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import org.apgrp10.gwent.client.view.AbstractStage;
+import org.apgrp10.gwent.client.view.Dialogs;
 
 import java.util.List;
 
@@ -104,7 +105,7 @@ public class FieldValidator {
 		passwordConfirmationField.setFloatingText(title);
 		passwordConfirmationField.setPrefColumnCount(20);
 
-		boolean result = stage.showConfirmDialog(MFXDialogs.info(), title,
+		boolean result = Dialogs.showConfirmDialog(stage, Dialogs.INFO, title,
 				passwordConfirmationField, "OK", "Cancel");
 		if (!result) return null;
 		return passwordConfirmationField.getText();

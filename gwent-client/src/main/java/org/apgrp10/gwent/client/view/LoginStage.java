@@ -17,13 +17,13 @@ import javafx.scene.layout.HBox;
 import javafx.stage.WindowEvent;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.UserController;
+import org.apgrp10.gwent.model.net.Response;
 
 import static io.github.palexdev.mfxcore.validation.Validated.INVALID_PSEUDO_CLASS;
 import static org.apgrp10.gwent.client.controller.FieldValidator.*;
 
 public class LoginStage extends AbstractStage {
 	private static LoginStage INSTANCE;
-	long toVerifyUser;
 	private Label username_v, password_v, nickname_v, email_v, sec_v, code_v;
 	private MFXButton passRand, btnLeft, btnRight, btnBelow;
 	private MFXComboBox<String> secQ;
@@ -52,9 +52,9 @@ public class LoginStage extends AbstractStage {
 			node.setManaged(enable);
 			node.setVisible(enable);
 			node.setDisable(!enable);
+			if (node.equals(passRand)) password.setPrefWidth(enable ? 300 : 400);
 		}
 	}
-
 
 	private void setNext(MFXTextField field, Node nextField) {
 		field.setOnKeyReleased(e -> {
@@ -84,7 +84,7 @@ public class LoginStage extends AbstractStage {
 		passPane = lookup("#passPane");
 		password = lookup("#password");
 		password_v = lookup("#password_v");
-		passRand = lookup("#passRandom");
+		passRand = lookup("#passRand");
 		setOnPressListener(passRand, event -> {
 			password.setText(makeRandomPassword());
 			((MFXPasswordField) password).setShowPassword(true);
@@ -137,20 +137,29 @@ public class LoginStage extends AbstractStage {
 		btnRight.setText("Register");
 		btnBelow.setText("Forgot Password?");
 
-		setNodesEnabled(true, username, username_v, passPane, password, password_v, stayLogged);
-		setNodesEnabled(false, nickname, nickname_v, email, email_v, secPane, secQ, secAns, sec_v, code, code_v);
+		setNodesEnabled(true, username, username_v, passPane, password, password_v, stayLogged, btnBelow);
+		setNodesEnabled(false, passRand, nickname, nickname_v, email, email_v, secPane, secQ, secAns, sec_v, code, code_v);
 
 		setNext(username, password);
 		setNext(password, btnLeft);
 
 		setOnPressListener(btnLeft, event -> {
 			// Validate and send login request
-			boolean valid = username.getValidator().isValid() && password.getValidator().isValid();
+			boolean valid = !username.getText().isBlank() && !password.getText().isBlank();
 			if (valid) {
 				// Send login request
-				UserController.sendLoginRequest(username.getText(), password.getText());
+				UserController.sendLoginRequest(username.getText(), password.getText(), res -> {
+					if (res.isOk())
+						initVerify();
+					else if (res.getStatus() == Response.NOT_FOUND)
+						Dialogs.showAlert(this, Dialogs.ERROR, "User not found", "The username you entered does not exist!");
+					else if (res.getStatus() == Response.UNAUTHORIZED)
+						Dialogs.showAlert(this, Dialogs.ERROR, "Incorrect Password", "The password you entered is incorrect!");
+					else
+						Dialogs.showAlert(this, Dialogs.ERROR, "Server Exception", "An error occurred while trying to login!\n" + res.getBody().get("message").getAsString());
+				});
 			} else {
-				showAlert(MFXDialogs.error(), "Invalid Inputs", "Your inputs are not valid!");
+				Dialogs.showAlert(this, Dialogs.ERROR, "Invalid Inputs", "Your inputs are not valid!");
 			}
 		});
 
@@ -170,8 +179,48 @@ public class LoginStage extends AbstractStage {
 		btnRight.setText("Resend Code");
 		btnBelow.setText("Cancel");
 
-//		setNodeEnabled(username, false);
+		setNodesEnabled(false, passPane, nickname, nickname_v, email, email_v, secPane, sec_v);
+		setNodesEnabled(true, code, code_v);
 
+		username.setDisable(true);
+		code.requestFocus();
+		setNext(code, btnLeft);
+
+		setOnPressListener(btnLeft, event -> {
+			// Validate and send verification code
+			boolean valid = code.getValidator().isValid();
+			if (valid) {
+				// Send verification code
+				UserController.completeLogin(code.getText(), stayLogged.isSelected(), res -> {
+					if (res.isOk()) {
+						MainStage.getInstance().start();
+						close();
+					} else if (res.getStatus() == Response.UNAUTHORIZED)
+						Dialogs.showAlert(this, Dialogs.ERROR, "Incorrect Code", "The code you entered is incorrect!");
+					else
+						Dialogs.showAlert(this, Dialogs.ERROR, "Server Exception", "An error occurred while trying to verify!\n"
+						                                                 + res.getBody().get("message").getAsString());
+				});
+			} else {
+				Dialogs.showAlert(this, Dialogs.ERROR, "Invalid Code", "The code you entered is not valid!");
+			}
+		});
+
+		btnRight.setOnAction(event -> {
+			// Resend Code
+			UserController.sendLoginRequest(username.getText(), password.getText(), res -> {
+				if (res.isOk())
+					Dialogs.showAlert(this, Dialogs.INFO, "Code Sent", "A new verification code has been sent to your email!");
+				else
+					Dialogs.showAlert(this, Dialogs.ERROR, "Server Exception", "An error occurred while trying to resend code!\n"
+					                                                 + res.getBody().get("message").getAsString());
+			});
+		});
+
+		btnBelow.setOnAction(event -> {
+			// Cancel
+			initLogin();
+		});
 	}
 
 	private void initForgot() {
@@ -235,20 +284,5 @@ public class LoginStage extends AbstractStage {
 //			}
 //		});
 		return true;
-	}
-
-	@Override
-	protected void onCloseRequest(WindowEvent event) {
-
-	}
-
-	@Override
-	protected void onGetFocus() {
-
-	}
-
-	@Override
-	protected void onLostFocus() {
-
 	}
 }
