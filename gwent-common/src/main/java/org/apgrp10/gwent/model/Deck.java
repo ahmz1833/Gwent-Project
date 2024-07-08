@@ -1,25 +1,14 @@
 package org.apgrp10.gwent.model;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-
 import org.apgrp10.gwent.model.card.Card;
 import org.apgrp10.gwent.model.card.CardInfo;
 import org.apgrp10.gwent.model.card.Faction;
 import org.apgrp10.gwent.model.card.Row;
+import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
 import org.apgrp10.gwent.utils.Utils;
-import org.apgrp10.gwent.model.net.Request;
-import org.apgrp10.gwent.utils.ANSI;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import java.util.*;
 
 public class Deck {
 	private final ArrayList<Card> deck = new ArrayList<>();
@@ -210,14 +199,6 @@ public class Deck {
 		public String getJson() {
 			return MGson.get(true, true).toJson(this);
 		}
-	}
-
-	// TODO: move this to a better place
-	public static Request deckRequest(int player, Deck deck) {
-		JsonObject json = new JsonObject();
-		json.add("player", new JsonPrimitive(player));
-		json.add("deck", new JsonPrimitive(deck.toJsonString()));
-		return new Request("deck", json);
 	}
 }
 

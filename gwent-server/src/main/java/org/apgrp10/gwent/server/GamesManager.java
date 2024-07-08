@@ -7,15 +7,45 @@ import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.DatabaseTable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GamesManager {
+
+	private static final HashMap<Long, GameTask> games = new HashMap<>();
+	private static final List<Client> waitingForFriend = new ArrayList<>();
+	private static Client waitingForRandom;
+	private static Deck waitingForRandomDeck;
+
 	private GamesManager() {}
 
-	// salam
+	public static synchronized void cancelRandomGame(Client client) {
+		if (waitingForRandom == client) {
+			waitingForRandom = null;
+			waitingForRandomDeck = null;
+		}
+	}
 
+	public static synchronized void startRandomGame(Client client, Deck deck) throws Exception {
+		// first check if client is not in a game
+		if (games.containsKey(client.loggedInUser().id()))
+			throw new IllegalStateException("You are already in a game");
+
+		// if no waiting user or waiting user disconnected
+		if (waitingForRandom == null || waitingForRandom.isDone()) {
+			waitingForRandom = client;
+			waitingForRandomDeck = deck;
+		} else {
+			Deck deck1 = waitingForRandomDeck;
+			waitingForRandom = null;
+			waitingForRandomDeck = null;
+//			GameTask gt = new GameTask(waitingForRandom, client, deck1, deck);
+		}
+	}
+
+	// salam
 	public static class SavedGames extends DatabaseTable {
 		private static final String tableName = "games";
 		private static SavedGames instance;

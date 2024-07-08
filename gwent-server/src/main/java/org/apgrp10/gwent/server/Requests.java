@@ -2,6 +2,7 @@ package org.apgrp10.gwent.server;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.GameRecord;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.net.Request;
@@ -312,11 +313,11 @@ public class Requests {
 		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(responseResult));
 	}
 
-
-	@Authorizations(LOGGED_IN)
-	public static Response makeRandomPlay(Client client, Request req) {
-		return null;
-	}
+//	@Authorizations(LOGGED_IN)
+//	public static Response makeRandomPlay(Client client, Request req) {
+//		GamesManager.
+//		return null;
+//	}
 
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface Authorizations {

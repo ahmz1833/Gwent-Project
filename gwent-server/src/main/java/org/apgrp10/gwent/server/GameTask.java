@@ -35,26 +35,15 @@ public class GameTask extends Task {
 	private List<Client> liveClients = new ArrayList<>();
 	private long seed;
 
-	public GameTask(Client c1, Client c2) {
+	public GameTask(Client c1, Client c2, Deck d1, Deck d2) {
 		data[0].client = c1;
+		data[0].deck = d1;
 		data[1].client = c2;
-		for (int i = 0; i < 2; i++) {
-			Data d = this.data[i];
-			Data dd = this.data[1 - i];
-			d.user = d.client.loggedInUser();
-			d.client.send(new Request("makeDeck"));
-
-			d.client.setListener("deck", req -> {
-				d.client.setListener("deck", null);
-				addCommand(() -> {
-					d.deck = Deck.fromJsonString(req.getBody().get("deck").getAsString());
-					if (d.deck != null && dd.deck != null) start();
-				});
-				return req.response(Response.OK_NO_CONTENT);
-			});
-
-			d.client.setListener("chatMessage", this::handleMessage);
-		}
+		data[1].deck = d2;
+		data[0].user = c1.loggedInUser();
+		data[1].user = c2.loggedInUser();
+		data[0].client.setListener("chatMessage", this::handleMessage);
+		data[1].client.setListener("chatMessage", this::handleMessage);
 	}
 
 	private Response handleMessage(Request req) {
@@ -164,6 +153,7 @@ public class GameTask extends Task {
 		));
 	}
 
+	// TODO: use this in requests.java for attending a live-watching
 	public void addLiveClient(Client client) {
 		addCommand(() -> {
 			client.send(liveRequest());
@@ -193,7 +183,7 @@ public class GameTask extends Task {
 			}
 		}
 
-		// TODO: I don't know how to use java iterators :P
+		// Remove all disconnected live-watcher clients
 		for (int i = 0; i < liveClients.size(); i++) {
 			if (liveClients.get(i).isDone())
 				liveClients.remove(i--);

@@ -9,24 +9,47 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.Scene?>
 
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
 <Scene stylesheets="@../css/main.css" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1">
-    <StackPane prefHeight="600.0" prefWidth="1024.0">
-        <ImageView fitHeight="600.0" pickOnBounds="true" preserveRatio="true">
-            <Image url="@../image/main_bkg.png" />
+    <AnchorPane>
+        <ImageView fitHeight="600.0" fitWidth="1024.0" pickOnBounds="true" preserveRatio="true"
+                   AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <Image url="@../image/main_bkg.png"/>
         </ImageView>
         <Group>
-            <VBox alignment="CENTER_LEFT" fillWidth="false" spacing="10.0" styleClass="frame" StackPane.alignment="CENTER">
+            <VBox alignment="CENTER_LEFT" fillWidth="false" spacing="10.0" styleClass="frame"
+                  StackPane.alignment="TOP_CENTER">
                 <padding>
-                    <Insets left="10.0"  />
+                    <Insets left="10.0"/>
                 </padding>
-                <MFXButton fx:id="gameBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Start New Game" />
-                <MFXButton fx:id="replayBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Load a Recorded Game" />
-                <MFXButton fx:id="playingBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Current Playing Games" />
-                <MFXButton fx:id="profileBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Profile Menu" />
-                <MFXButton fx:id="friendsBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Friends" />
-                <MFXButton fx:id="rankingsBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false" prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Rankings" />
+                <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="22.0" prefWidth="400.0"
+                       text="Welcome to Gwent!" textAlignment="CENTER"/>
+                <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="22.0" prefWidth="400.0"
+                       text="Please select an option from the menu below." textAlignment="CENTER"/>
             </VBox>
         </Group>
-    </StackPane>
+        <Group>
+            <VBox alignment="CENTER_LEFT" fillWidth="false" spacing="10.0" styleClass="frame"
+                  StackPane.alignment="CENTER">
+                <padding>
+                    <Insets left="10.0"/>
+                </padding>
+                <MFXButton fx:id="gameBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false"
+                           prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Start New Game"/>
+                <MFXButton fx:id="replayBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false"
+                           prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Load a Recorded Game"/>
+                <MFXButton fx:id="playingBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false"
+                           prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Current Playing Games"/>
+                <MFXButton fx:id="profileBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false"
+                           prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Profile Menu"/>
+                <MFXButton fx:id="friendsBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false"
+                           prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Friends"/>
+                <MFXButton fx:id="rankingsBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false"
+                           prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Rankings"/>
+            </VBox>
+        </Group>
+    </AnchorPane>
 
 </Scene>

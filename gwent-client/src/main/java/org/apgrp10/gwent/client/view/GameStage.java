@@ -115,7 +115,7 @@ public class GameStage extends AbstractStage {
 		InputController c1 = player == 0? new MouseInputController(): new ServerInputController();
 		InputController c2 = player == 1? new MouseInputController(): new ServerInputController();
 		GameMenu gm = new GameMenu(this, true);
-		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, false);
+		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> this.close(), player, false);
 		setupServer(gc);
 	}
 
@@ -123,7 +123,7 @@ public class GameStage extends AbstractStage {
 		InputController c1 = player == 0? new MouseInputController(): new ServerInputController();
 		InputController c2 = player == 1? new MouseInputController(): new ServerInputController();
 		GameMenu gm = new GameMenu(this, true);
-		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, false);
+		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> this.close(), player, false);
 		gc.fastForward(cmds);
 		setupServer(gc);
 	}
@@ -132,7 +132,7 @@ public class GameStage extends AbstractStage {
 		InputController c1 = new ServerInputController();
 		InputController c2 = new ServerInputController();
 		GameMenu gm = new GameMenu(this, true);
-		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, true);
+		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> this.close(), player, true);
 		gc.fastForward(cmds);
 		setupServer(gc);
 	}
@@ -141,7 +141,7 @@ public class GameStage extends AbstractStage {
 		InputController c1 = new ReplayInputController(cmds);
 		InputController c2 = new ReplayInputController(cmds);
 		GameMenu gm = new GameMenu(this, false);
-		new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, true);
+		new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> this.close(), player, true);
 	}
 
 	@Override

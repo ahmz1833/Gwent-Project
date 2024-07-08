@@ -52,7 +52,7 @@ public class MessageStage extends AbstractStage {
 	}
 	public static void deleteInstance(){
 		if (instance != null) {
-			instance.controller.stop();
+			ChatMenuController.stop();
 			instance = null;
 		}
 	}

@@ -18,6 +18,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.ChatMenuController;
+import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.User;
@@ -51,10 +52,9 @@ public class ChatPane extends Pane {
 		addTextInput();
 		addMessagesBox();
 	}
+
 	private void updateUser(){
-		//TODO this user should be loggedIn User
-		//user = UserController.getCurrentUser().publicInfo();
-		user = new User.PublicInfo(52, "a", "ab", Avatar.random());
+		user = UserController.getCurrentUser().publicInfo();
 	}
 
 	public static StackPane getMessageReplyView(Message replyOn, User.PublicInfo user, boolean isReply) {
