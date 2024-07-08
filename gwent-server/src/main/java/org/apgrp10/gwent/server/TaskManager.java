@@ -3,6 +3,7 @@ package org.apgrp10.gwent.server;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.Random;
 
 public class TaskManager {
@@ -41,7 +42,12 @@ public class TaskManager {
 					if (task.isDone())
 						toBeRemoved.add(task);
 					else
-						task.run();
+						try {
+							task.run();
+						} catch (Exception e)
+						{
+							ANSI.logError(System.err, "In Thread : " + getName(), e);
+						}
 				}
 				synchronized (tasks) {tasks.removeAll(toBeRemoved);}
 				try {Thread.sleep(1);} catch (Exception e) {}

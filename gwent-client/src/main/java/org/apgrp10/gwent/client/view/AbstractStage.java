@@ -81,9 +81,14 @@ public abstract class AbstractStage extends Stage {
 			    !showingDialogs.getLast().getTitle().equals("Connection Lost")) return;
 			showingDialogs.getLast().close();
 			showingDialogs.remove(showingDialogs.getLast());
+
+			updateInformation();
 		});
 	}
 
+	protected void updateInformation() {
+		// May be overridden by some stages
+	}
 
 	public boolean showExitDialog() {
 		if (this instanceof PreGameStage || this instanceof GameStage) {

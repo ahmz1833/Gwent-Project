@@ -1,31 +1,28 @@
-package org.apgrp10.gwent.server.db;
+package org.apgrp10.gwent.server;
 
 import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.User.RegisterInfo;
-import org.apgrp10.gwent.server.ServerMain;
 import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.DatabaseTable;
 import org.apgrp10.gwent.utils.Random;
+import org.apgrp10.gwent.utils.Utils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class UserDatabase extends DatabaseTable {
+public class UserManager extends DatabaseTable {
 	private static final String tableName = "users";
-	private static UserDatabase instance;
+	private static UserManager instance;
 
-	private UserDatabase() throws Exception {
+	private UserManager() throws Exception {
 		super(ServerMain.SERVER_FOLDER + "gwent.db", tableName, Random::nextId, UserDBColumns.values());
 	}
 
-	public synchronized static UserDatabase getInstance() {
+	public synchronized static UserManager getInstance() {
 		if (instance == null) {
 			try {
-				instance = new UserDatabase();
+				instance = new UserManager();
 			} catch (Exception e) {
 				ANSI.logError(System.err, "Failed to create UserDatabase instance", e);
 				return null;
@@ -85,11 +82,14 @@ public class UserDatabase extends DatabaseTable {
 		return getId("WHERE username = ('" + username + "')");
 	}
 
-	public synchronized void updateUser (User user) throws Exception {
-		updateInfo(user.getId(), UserDBColumns.username, user.publicInfo().username());
-		updateInfo(user.getId(), UserDBColumns.nickname, user.publicInfo().nickname());
-		updateInfo(user.getId(), UserDBColumns.email, user.registerInfo().email());
-		updateInfo(user.getId(), UserDBColumns.avatar, user.publicInfo().avatar().toBase64());
+	public synchronized void updateUserInfo(User.PublicInfo info) throws Exception {
+		updateInfo(info.id(), UserDBColumns.username, info.username());
+		updateInfo(info.id(), UserDBColumns.nickname, info.nickname());
+		updateInfo(info.id(), UserDBColumns.avatar, info.avatar().toBase64());
+	}
+
+	public synchronized void updateEmail(long id, String newEmail) throws Exception {
+		updateInfo(id, UserDBColumns.email, newEmail);
 	}
 
 	public synchronized void updatePassword(long id, String newPassHash) throws Exception {
@@ -139,14 +139,18 @@ public class UserDatabase extends DatabaseTable {
 		updateInfo(id1, UserDBColumns.friends, listToString(list, String::valueOf));
 	}
 
-	public synchronized ArrayList<User> getAllUsers() {
-		return (ArrayList<User>) getAllIds().stream().map(id -> {
+	public synchronized List<User> getAllUsers() {
+		return getAllIds().stream().map(id -> {
 			try {
 				return getUserById(id);
 			} catch (Exception e) {
 				return null;
 			}
 		}).collect(Collectors.toList());
+	}
+
+	public List<User> searchUsername(String query, int limit) {
+		return Utils.search(getAllUsers(), user -> user.publicInfo().username(), query, limit);
 	}
 
 	public enum UserDBColumns implements DBColumn {

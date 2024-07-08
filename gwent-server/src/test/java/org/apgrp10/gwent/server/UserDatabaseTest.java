@@ -1,16 +1,5 @@
 package org.apgrp10.gwent.server;
 
-import org.apgrp10.gwent.model.Avatar;
-import org.apgrp10.gwent.model.User;
-import org.apgrp10.gwent.server.db.UserDatabase;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 public class UserDatabaseTest {
 	/*
 	private UserDatabase userDB;

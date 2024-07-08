@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class Email2FAUtils {
+public class Email2FAManager {
 	private static final Map<String, User.RegisterInfo> registerQueue = new HashMap<>();
 	private static final List<LoginInfo> loginQueue = new ArrayList<>();
 	private static final String HTTP_SERVER_ADDR = "37.152.178.57", EMAIL_SERVER_ADDR = "localhost";
@@ -39,83 +39,25 @@ public class Email2FAUtils {
 			System.exit(1);
 		}
 		server.createContext("/", httpExchange -> {
+			String response = EMAIL_HTML("Invalid URL", "<h1>Invalid URL</h1>");
 			int responseCode = Response.NOT_FOUND;
-			String response = """
-					<html>
-						<head> <title>Invalid URL</title> </head>
-						<body>
-							<h1>Invalid URL</h1>
-							<p>Invalid URL. Please use the correct URL.</p>
-						</body>
-					</html>
-					""";
-			String path = httpExchange.getRequestURI().toString();
+			String path = httpExchange.getRequestURI().getPath();
 			if (path.startsWith("/verify/")) {
 				String uuid = path.substring(8);
 				User.RegisterInfo userInfo = registerQueue.get(uuid);
 				registerQueue.remove(uuid);
 				if (userInfo == null) {
-					response = """
-							<html>
-							<head> <title>Invalid verification link</title> </head>
-								<body>
-									<h1>Invalid verification link</h1>
-								</body>
-							</html>
-							""";
+					response = WEBPAGE_HTML("Invalid Verification Link", """
+							<h1>Invalid Verification Link</h1>
+							<p>The verification link you have used is invalid or has expired.</p>
+							""");
 					responseCode = Response.BAD_REQUEST;  // Bad request
 				} else {
 					registerCallback.accept(userInfo);  // Register the user
-					// a pretty html with beautiful colors
-					response = """
-							<!DOCTYPE html>
-							<html lang="en">
-								<head>
-								    <meta charset="UTF-8">
-								    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-								    <title>Email Verified</title>
-								    <style>
-							            body {
-											font-family: 'Arial', sans-serif;
-											background-color: #FFEDD5;
-											color: #5D3A00;
-											display: flex;
-											justify-content: center;
-											align-items: center;
-											height: 100vh;
-											margin: 0;
-											padding: 10px;
-											box-sizing: border-box;
-										}
-								        .card {
-								            background-color: #FFDAB9;
-								            border: 2px solid #FFA07A;
-								            border-radius: 10px;
-								            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-								            padding: 20px;
-								            text-align: center;
-								            width: 100%%;
-								            max-width: 400px;
-								            margin: 0 auto;
-								            box-sizing: border-box;
-								        }
-								        h1 { color: #D2691E; font-size: 24px; }
-								        p { font-size: 18px; margin-top: 10px; }
-								        @media (max-width: 600px) {
-								            h1 { font-size: 20px; }
-								            p { font-size: 16px; }
-								            .card { padding: 15px; }
-								        }
-								    </style>
-								</head>
-								<body>
-								    <div class="card">
-								        <h1>Registration Completed %s!</h1>
-								        <p>Your registration with user name '%s' is now complete. You can now login to your account.</p>
-								    </div>
-								</body>
-							</html>
-							""".formatted(userInfo.nickname(), userInfo.username());
+					response = WEBPAGE_HTML("Email Verified", """
+							<h1>Verification Completed %s!</h1>
+							<p>Email Verification of account with user name '%s' is now complete. You can now login to your account.</p>
+							""".formatted(userInfo.nickname(), userInfo.username()));
 					responseCode = Response.OK;  // OK
 				}
 			}
@@ -135,44 +77,10 @@ public class Email2FAUtils {
 	public static void sendLoginCodeAndAddToQueue(String email, Client client, long userId) throws Exception {
 		long base = (long) Math.pow(10, LOGIN_CODE_LENGTH - 1);
 		String code = String.valueOf(Random.nextLong(base, base * 10));
-		String emailContent = """
-				<!DOCTYPE html>
-				<html lang="en">
-				<head>
-				    <meta charset="UTF-8">
-				    <title>Login Code</title>
-				    <style>
-				        body {
-				            font-family: 'Arial', sans-serif;
-				            background-color: #FFEDD5;
-				            color: #5D3A00;
-				            padding: 20px;
-				        }
-				        .content {
-				            background-color: #FFDAB9;
-				            border: 2px solid #FFA07A;
-				            border-radius: 10px;
-				            padding: 20px;
-				            text-align: center;
-				        }
-				        h1 {
-				            color: #D2691E;
-				            font-size: 24px;
-				            margin-top: 10px;
-				        }
-				        p {
-				            font-size: 18px;
-				        }
-				    </style>
-				</head>
-				<body>
-				    <div class="content">
-				        <p>Your verification code is:</p>
-				        <h1><u><b>%s</b></u></h1>
-				    </div>
-				</body>
-				</html>
-				""".formatted(code);
+		String emailContent = EMAIL_HTML("Login Code", """
+				<p>Your verification code is:</p>
+				<h1><u><b>%s</b></u></h1>
+				""".formatted(code));
 		sendEmail(email, "Verification code", emailContent);
 		loginQueue.add(new LoginInfo(code, client, userId, System.currentTimeMillis()));
 	}
@@ -192,48 +100,11 @@ public class Email2FAUtils {
 	public static void sendRegMailAndAddToQueue(User.RegisterInfo userInfo) throws Exception {
 		String uuid = java.util.UUID.randomUUID().toString();
 		String verificationLink = "http://" + HTTP_SERVER_ADDR + ":" + HTTP_SERVER_PORT + "/verify/" + uuid;
-		String emailContent = """
-				<!DOCTYPE html>
-				<html lang="en">
-				<head>
-				    <meta charset="UTF-8">
-				    <title>Email Verification</title>
-				    <style>
-				        body {
-				            font-family: 'Arial', sans-serif;
-				            background-color: #FFEDD5;
-				            color: #5D3A00;
-				            padding: 20px;
-				        }
-				        .content {
-				            background-color: #FFDAB9;
-				            border: 2px solid #FFA07A;
-				            border-radius: 10px;
-				            padding: 20px;
-				            text-align: center;
-				        }
-				        a {
-				            color: #D2691E;
-				            text-decoration: none;
-				            font-weight: bold;
-				        }
-				        a:hover {
-				            text-decoration: underline;
-				        }
-				        p {
-				            font-size: 18px;
-				        }
-				    </style>
-				</head>
-				<body>
-				    <div class="content">
-				        <p>Hello %s (%s),</p>
-				        <p>Please click on the following link to verify your email:</p>
-				        <b><a href="%s">%s</a></b>
-				    </div>
-				</body>
-				</html>
-				""".formatted(userInfo.nickname(), userInfo.username(), verificationLink, verificationLink);
+		String emailContent = EMAIL_HTML("Email Verification", """
+				<p>Hello %s (%s),</p>
+				<p>Please click on the following link to verify your email:</p>
+				<b><a href="%s">%s</a></b>
+				""".formatted(userInfo.nickname(), userInfo.username(), verificationLink, verificationLink));
 		sendEmail(userInfo.email(), "Verify your email", emailContent);
 		registerQueue.put(uuid, userInfo);
 	}
@@ -267,6 +138,82 @@ public class Email2FAUtils {
 				.map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8) +
 				              "=" + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8))
 				.collect(Collectors.joining("&"));
+	}
+
+	private static String EMAIL_HTML(String title, String content) {
+		return """
+					<!DOCTYPE html>
+					<html lang="en">
+					<head>
+					<meta charset="UTF-8">
+					<title>%s</title>
+					<style>
+						body {font-family: 'Arial', sans-serif;background-color: #FFEDD5;color: #5D3A00;padding: 20px;}
+						.content {background-color: #FFDAB9;border: 2px solid #FFA07A;border-radius: 10px;padding: 20px;text-align: center;}
+						a {color: #D2691E;text-decoration: none;font-weight: bold;}
+						a:hover {text-decoration: underline;}
+						h1 {color: #D2691E;font-size: 24px;margin-top: 10px;}
+						p {font-size: 18px;}
+					</style>
+					</head>
+					<body>
+						<div class="content">
+							%s
+						</div>
+					</body>
+					</html>
+				""".formatted(title, content);
+	}
+
+	private static String WEBPAGE_HTML(String title, String body) {
+		return """
+				<!DOCTYPE html>
+				<html lang="en">
+					<head>
+					    <meta charset="UTF-8">
+					    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+					    <title>%s</title>
+					    <style>
+				            body {
+								font-family: 'Arial', sans-serif;
+								background-color: #FFEDD5;
+								color: #5D3A00;
+								display: flex;
+								justify-content: center;
+								align-items: center;
+								height: 100vh;
+								margin: 0;
+								padding: 10px;
+								box-sizing: border-box;
+							}
+					        .card {
+					            background-color: #FFDAB9;
+					            border: 2px solid #FFA07A;
+					            border-radius: 10px;
+					            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+					            padding: 20px;
+					            text-align: center;
+					            width: 100%%;
+					            max-width: 400px;
+					            margin: 0 auto;
+					            box-sizing: border-box;
+					        }
+					        h1 { color: #D2691E; font-size: 24px; }
+					        p { font-size: 18px; margin-top: 10px; }
+					        @media (max-width: 600px) {
+					            h1 { font-size: 20px; }
+					            p { font-size: 16px; }
+					            .card { padding: 15px; }
+					        }
+					    </style>
+					</head>
+					<body>
+					    <div class="card">
+					        %s
+					    </div>
+					</body>
+				</html>
+				""".formatted(title, body);
 	}
 
 	private record LoginInfo(String sentCode, Client client, long userId, long sendTime) {}

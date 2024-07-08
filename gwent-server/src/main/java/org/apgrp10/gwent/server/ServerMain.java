@@ -2,9 +2,7 @@ package org.apgrp10.gwent.server;
 
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
-import org.apgrp10.gwent.server.db.UserDatabase;
 import org.apgrp10.gwent.utils.ANSI;
-import org.apgrp10.gwent.utils.MGson;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -15,9 +13,7 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 public class ServerMain {
 	public static final String SERVER_FOLDER = System.getProperty("user.home") + "/gwent-data/";
@@ -53,11 +49,17 @@ public class ServerMain {
 		// Initialize the thread pool
 		TaskManager.init(10);
 
-		Email2FAUtils.setRegisterCallback(userInfo -> {
-			ANSI.log("Registeration email verified: " + userInfo, ANSI.LGREEN, false);
-			// Add user to database
-			try {
-				UserDatabase.getInstance().addUser(userInfo);
+		Email2FAManager.setRegisterCallback(userInfo -> {
+			ANSI.log("Email verified: " + userInfo, ANSI.LGREEN, false);
+			if (UserManager.getInstance().isUsernameTaken(userInfo.username())) try {
+				// Update Email Address
+				UserManager.getInstance().updateEmail(userInfo.publicInfo().id(), userInfo.email());
+			} catch (Exception e) {
+				ANSI.logError(System.err, "Failed to update email address in database", e);
+			}
+			else try {
+				// Add User to Database
+				UserManager.getInstance().addUser(userInfo);
 			} catch (Exception e) {
 				ANSI.logError(System.err, "Failed to add user to database", e);
 			}
@@ -97,8 +99,11 @@ public class ServerMain {
 											return req.response(Response.UNAUTHORIZED);
 										break;
 									case NOT_LOGGED_IN:
-										if (client.loggedInUser() != null)
+										if (client.loggedInUser() != null) {
+											ANSI.log("In Handling Request Method : " + method.getName(), ANSI.LRED, false);
+											ANSI.log("User already logged in : " + client.loggedInUser().publicInfo().username(), ANSI.LRED, false);
 											return req.response(Response.BAD_REQUEST);
+										}
 										break;
 								}
 							}
@@ -112,27 +117,12 @@ public class ServerMain {
 					});
 				}
 
-//				client.setListener("fastPlay", req -> {
-//					synchronized (lock) {
-//						if (fastPlayed == null) {
-//							fastPlayed = client;
-//							return req.response(Response.OK, MGson.makeJsonObject("player", 0));
-//						} else {
-//							TaskManager.submit(new GameTask(fastPlayed, client));
-//							fastPlayed = null;
-//							client.setListener("fastPlay", null);
-//							return req.response(Response.OK, MGson.makeJsonObject("player", 1));
-//						}
-//					}
-//				});
-
 				client.getNetNode().addOnClose(() -> {
 					synchronized (lock) {
 						if (fastPlayed == client)
 							fastPlayed = null;
 					}
 				});
-
 
 				TaskManager.submit(client);
 			} catch (IOException e) {

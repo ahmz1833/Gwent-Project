@@ -51,7 +51,6 @@ public class PreGameStage extends AbstractStage {
 
 	// This method will be called when we click on Start game button (And the deck is correct)
 	public void startClicked(Deck deck) {
-		System.out.println(deck);
 		if (deck1 == null) {
 			deck1 = deck;
 			Dialogs.showDialogAndWait(this, MFXDialogs.warn(), "choose", "How you want to play?\n", Orientation.VERTICAL,
@@ -66,6 +65,7 @@ public class PreGameStage extends AbstractStage {
 			if(gameMode.equals(GameMode.LOCAL)) {
 				GameStage.setLocal(deck1, deck2);
 				GameStage.getInstance().start();
+//				GameStage.setOnline();
 			}
 			this.close();
 		}
@@ -76,6 +76,7 @@ public class PreGameStage extends AbstractStage {
 		new PreGameMenu(pane, false, new User.PublicInfo(System.currentTimeMillis(),
 				"anonymous", "anonymous", Avatar.random()));
 	}
+
 	private void playOnlineFriend(){
 
 	}

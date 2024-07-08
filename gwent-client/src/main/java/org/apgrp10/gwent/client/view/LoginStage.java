@@ -194,7 +194,7 @@ public class LoginStage extends AbstractStage {
 			boolean valid = code.getValidator().isValid();
 			if (valid) {
 				// Send verification code
-				UserController.completeLogin(code.getText(), stayLogged.isSelected(), res -> {
+				UserController.verifyLogin(code.getText(), stayLogged.isSelected(), res -> {
 					if (res.isOk()) {
 						MainStage.getInstance().start();
 						close();
@@ -280,7 +280,7 @@ public class LoginStage extends AbstractStage {
 			boolean valid1 = code.getValidator().isValid();
 			if (valid1) {
 				// Send verification code
-				UserController.forgetPasswordVerify(code.getText(), res1 -> {
+				UserController.verifyForgetPassword(code.getText(), res1 -> {
 					if (res1.isOk()) {
 						initReset();
 					} else if (res1.getStatus() == Response.UNAUTHORIZED)
