@@ -78,7 +78,7 @@ public class UserController {
 		if (Server.isConnected()) {
 			authenticate(response -> {
 				if (response.isOk()) {
-					ANSI.log("Authenticated; Username: " + UserController.getCurrentUser().publicInfo().username(), ANSI.LGREEN, false);
+					ANSI.log("Authenticated; Username: " + UserController.getCurrentUser().username(), ANSI.LGREEN, false);
 					for (Window window : new ArrayList<>(Window.getWindows()))
 						if (window instanceof AbstractStage stage)
 							stage.connectionEstablished();
@@ -213,7 +213,7 @@ public class UserController {
 	}
 
 	public static void updateUser(User.PublicInfo newInfo, Consumer<Response> callback) {
-		if(newInfo.id() != currentUser.publicInfo().id()) ANSI.log("User ID mismatch, cannot update user information");
+		if(newInfo.id() != currentUser.id()) ANSI.log("User ID mismatch, cannot update user information");
 		JsonObject json = (JsonObject) MGson.toJsonElement(newInfo);
 		Server.send(new Request("updateUser", json), res -> {
 			if (res.isOk()) {
@@ -229,7 +229,7 @@ public class UserController {
 	}
 
 	public static void changeEmailRequest(String newEmail, Consumer<Response> callback) {
-		JsonObject json = MGson.makeJsonObject("userId", currentUser.publicInfo().id(), "newEmail", newEmail);
+		JsonObject json = MGson.makeJsonObject("userId", currentUser.id(), "newEmail", newEmail);
 		Server.send(new Request("changeEmailRequest", json), res -> {
 			if (res.isOk()) {
 				ANSI.log("Email change request sent successfully");
@@ -243,8 +243,8 @@ public class UserController {
 	}
 
 	public static void changePassword(User user, String newPassword, Consumer<Response> callback) {
-		JsonObject json = MGson.makeJsonObject("userId", user.getId(),
-				"oldHash", user.registerInfo().passwordHash(),
+		JsonObject json = MGson.makeJsonObject("userId", user.id(),
+				"oldHash", user.passwordHash(),
 				"newHash", User.hashPassword(newPassword));
 		Server.send(new Request("changePassword", json), res -> {
 			if (res.isOk()) {

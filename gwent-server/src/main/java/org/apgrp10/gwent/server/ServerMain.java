@@ -20,7 +20,6 @@ public class ServerMain {
 	public static final int PORT = 12345;
 	protected static final String SECRET_KEY = "AP_server@apgrp10/2024";
 	private static final Object lock = new Object();
-	private static Client fastPlayed;
 
 	public static void main(String[] args) {
 		Locale.setDefault(Locale.ENGLISH);
@@ -51,15 +50,15 @@ public class ServerMain {
 
 		Email2FAManager.setRegisterCallback(userInfo -> {
 			ANSI.log("Email verified: " + userInfo, ANSI.LGREEN, false);
-			if (UserManager.getInstance().isUsernameTaken(userInfo.username())) try {
+			if (UserManager.isUsernameTaken(userInfo.username())) try {
 				// Update Email Address
-				UserManager.getInstance().updateEmail(userInfo.publicInfo().id(), userInfo.email());
+				UserManager.updateEmail(userInfo.id(), userInfo.email());
 			} catch (Exception e) {
 				ANSI.logError(System.err, "Failed to update email address in database", e);
 			}
 			else try {
 				// Add User to Database
-				UserManager.getInstance().addUser(userInfo);
+				UserManager.addUser(userInfo);
 			} catch (Exception e) {
 				ANSI.logError(System.err, "Failed to add user to database", e);
 			}
@@ -101,7 +100,7 @@ public class ServerMain {
 									case NOT_LOGGED_IN:
 										if (client.loggedInUser() != null) {
 											ANSI.log("In Handling Request Method : " + method.getName(), ANSI.LRED, false);
-											ANSI.log("User already logged in : " + client.loggedInUser().publicInfo().username(), ANSI.LRED, false);
+											ANSI.log("User already logged in : " + client.loggedInUser().username(), ANSI.LRED, false);
 											return req.response(Response.BAD_REQUEST);
 										}
 										break;
@@ -116,13 +115,6 @@ public class ServerMain {
 						}
 					});
 				}
-
-				client.getNetNode().addOnClose(() -> {
-					synchronized (lock) {
-						if (fastPlayed == client)
-							fastPlayed = null;
-					}
-				});
 
 				TaskManager.submit(client);
 			} catch (IOException e) {

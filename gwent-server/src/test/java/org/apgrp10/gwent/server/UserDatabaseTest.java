@@ -23,8 +23,8 @@ public class UserDatabaseTest {
 		User user = userDB.addUser(userInfo);
 
 		assertNotNull(user);
-		assertEquals(userInfo.username(), user.publicInfo().username());
-		assertEquals(userInfo.nickname(), user.publicInfo().nickname());
+		assertEquals(userInfo.username(), user.username());
+		assertEquals(userInfo.nickname(), user.nickname());
 	}
 
 	@Test

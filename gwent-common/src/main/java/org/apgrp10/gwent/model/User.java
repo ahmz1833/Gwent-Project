@@ -2,13 +2,14 @@ package org.apgrp10.gwent.model;
 
 import org.apgrp10.gwent.utils.SecurityUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class User {
-	private final long id;
-	private RegisterInfo registerInfo;
-	private long[] friends;
+	private final RegisterInfo registerInfo;
+	private final List<Long> friends = new ArrayList<>();
 
 	public User(RegisterInfo registerInfo) {
-		this.id = registerInfo.publicInfo().id();
 		this.registerInfo = registerInfo;
 	}
 
@@ -21,64 +22,53 @@ public class User {
 		return SecurityUtils.sha256(password);
 	}
 
-	public void update(RegisterInfo registerInfo) {
-		this.registerInfo = registerInfo;
+	public void updateFriends(List<Long> newFriends) {
+		friends.clear();
+		friends.addAll(newFriends);
 	}
 
-	public long[] getFriends() {
-		return friends;
-	}
-
-	public void setFriends(long[] friends) {
-		this.friends = friends;
-	}
-
-	public long getId() {
-		return id;
-	}
-
-	public boolean isPasswordCorrect(String password) {
-		return isPassHashCorrect(hashPassword(password));
+	public void getFriends(List<Long> friends) {
+		friends.addAll(this.friends);
 	}
 
 	public boolean isPassHashCorrect(String passHash) {
 		return passHash.equals(registerInfo.passwordHash);
 	}
 
-	public boolean isSecurityQCorrect(String secQuestion, String secAnswer) {
-		return isSecurityQCorrect(hashSecurityQ(secQuestion, secAnswer));
+	public boolean isSecQHashCorrect(String secQ) {
+		return secQ.equals(registerInfo.securityQ);
 	}
 
-	public boolean isSecurityQCorrect(String hashed) {
-		return registerInfo.securityQ.equals(hashed);
-	}
+	public long id() {return publicInfo().id();}
 
-	public PublicInfo publicInfo() {
-		return registerInfo.publicInfo();
-	}
+	public String username() {return publicInfo().username();}
 
-	public RegisterInfo registerInfo() {
-		return registerInfo;
-	}
+	public String passwordHash() {return registerInfo.passwordHash();}
+
+	public String nickname() {return publicInfo().nickname();}
+
+	public String email() {return registerInfo.email();}
+
+	public Avatar avatar() {return publicInfo().avatar();}
+
+	public PublicInfo publicInfo() {return registerInfo.publicInfo();}
+
+	public RegisterInfo registerInfo() {return registerInfo;}
 
 	public record PublicInfo(long id, String username, String nickname, Avatar avatar) {}
 
 	public record RegisterInfo(PublicInfo publicInfo, String passwordHash, String email, String securityQ) {
-		public String username() {
-			return publicInfo.username();
-		}
-
-		public String nickname() {
-			return publicInfo.nickname();
-		}
-
-		public Avatar avatar() {
-			return publicInfo.avatar();
-		}
-
 		public static RegisterInfo copyWithId(RegisterInfo src, long newId) {
 			return new RegisterInfo(new PublicInfo(newId, src.username(), src.nickname(), src.avatar()),
 					src.passwordHash(), src.email(), src.securityQ());
 		}
+
+		public long id() {return publicInfo.id();}
+
+		public String username() {return publicInfo.username();}
+
+		public String nickname() {return publicInfo.nickname();}
+
+		public Avatar avatar() {return publicInfo.avatar();}
 	}
 }

@@ -11,7 +11,6 @@ import org.apgrp10.gwent.utils.SecurityUtils;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,7 +38,7 @@ public class Requests {
 		JsonObject payload = SecurityUtils.verifyJWT(jwt, SECRET_KEY);
 		if (payload != null && payload.get("exp").getAsLong() > System.currentTimeMillis()) try {
 			// Return user object
-			User user = UserManager.getInstance().getUserById(payload.get("sub").getAsLong());
+			User user = UserManager.getUserById(payload.get("sub").getAsLong());
 			client.setLoggedInUser(user);
 			return req.response(Response.ACCEPTED, (JsonObject) MGson.toJsonElement(user));
 		} catch (Exception e) {
@@ -62,7 +61,7 @@ public class Requests {
 	public static Response register(Client client, Request req) throws Exception {
 		synchronized (UserManager.class) {
 			User.RegisterInfo registerInfo = MGson.fromJson(req.getBody(), User.RegisterInfo.class);
-			if (UserManager.getInstance().isUsernameTaken(registerInfo.username()))
+			if (UserManager.isUsernameTaken(registerInfo.username()))
 				return req.response(Response.CONFLICT); // Username taken
 			Email2FAManager.sendRegMailAndAddToQueue(registerInfo);
 			return req.response(Response.OK_NO_CONTENT);
@@ -84,12 +83,12 @@ public class Requests {
 	public static Response login(Client client, Request req) throws Exception {
 		String username = req.getBody().get("username").getAsString();
 		String passHash = req.getBody().get("passHash").getAsString();
-		if (!UserManager.getInstance().isUsernameTaken(username))
+		if (!UserManager.isUsernameTaken(username))
 			return req.response(Response.NOT_FOUND); // Username not found
-		User user = UserManager.getInstance().getUserByUsername(username);
+		User user = UserManager.getUserByUsername(username);
 		if (user.isPassHashCorrect(passHash)) {
-			Email2FAManager.sendLoginCodeAndAddToQueue(user.registerInfo().email(), client, user.getId());
-			return req.response(Response.OK, MGson.makeJsonObject("userId", user.getId()));
+			Email2FAManager.sendLoginCodeAndAddToQueue(user.email(), client, user.id());
+			return req.response(Response.OK, MGson.makeJsonObject("userId", user.id()));
 		} else
 			return req.response(Response.UNAUTHORIZED); // Incorrect password
 	}
@@ -135,13 +134,13 @@ public class Requests {
 				email = req.getBody().get("email").getAsString(),
 				secQ = req.getBody().get("secQ").getAsString();
 
-		if (!UserManager.getInstance().isUsernameTaken(username))
+		if (!UserManager.isUsernameTaken(username))
 			return req.response(Response.NOT_FOUND); // Username not found
 
-		User user = UserManager.getInstance().getUserByUsername(username);
-		if (user.registerInfo().email().equals(email) && user.registerInfo().securityQ().equals(secQ)) {
-			Email2FAManager.sendLoginCodeAndAddToQueue(user.registerInfo().email(), client, user.getId());
-			return req.response(Response.OK, MGson.makeJsonObject("userId", user.getId()));
+		User user = UserManager.getUserByUsername(username);
+		if (user.email().equals(email) && user.isSecQHashCorrect(secQ)) {
+			Email2FAManager.sendLoginCodeAndAddToQueue(user.email(), client, user.id());
+			return req.response(Response.OK, MGson.makeJsonObject("userId", user.id()));
 		} else
 			return req.response(Response.UNAUTHORIZED); // Incorrect email or security question
 	}
@@ -183,7 +182,7 @@ public class Requests {
 		if (!resetPassQueue.containsKey(client) || resetPassQueue.get(client) != userId)
 			return req.response(Response.UNAUTHORIZED); // Unauthorized
 		String newPassHash = req.getBody().get("newPassHash").getAsString();
-		UserManager.getInstance().updatePassword(userId, newPassHash);
+		UserManager.updatePassword(userId, newPassHash);
 		return req.response(Response.OK_NO_CONTENT);
 	}
 
@@ -211,11 +210,11 @@ public class Requests {
 	@Authorizations(LOGGED_IN)
 	public static Response updateUser(Client client, Request req) throws Exception {
 		User.PublicInfo updateInfo = MGson.fromJson(req.getBody(), User.PublicInfo.class);
-		if (client.loggedInUser().getId() != updateInfo.id())
+		if (client.loggedInUser().id() != updateInfo.id())
 			return req.response(Response.UNAUTHORIZED);
-		if (UserManager.getInstance().isUsernameTaken(updateInfo.username()))
+		if (UserManager.isUsernameTaken(updateInfo.username()))
 			return req.response(Response.CONFLICT); // Username taken
-		UserManager.getInstance().updateUserInfo(updateInfo);
+		UserManager.updateUserInfo(updateInfo);
 		return req.response(Response.OK_NO_CONTENT);
 	}
 
@@ -232,7 +231,7 @@ public class Requests {
 	public static Response changeEmailRequest(Client client, Request req) throws Exception {
 		long userId = req.getBody().get("userId").getAsLong();
 		User user = client.loggedInUser();
-		if (userId != user.getId()) return req.response(Response.UNAUTHORIZED);
+		if (userId != user.id()) return req.response(Response.UNAUTHORIZED);
 		String newMail = req.getBody().get("newEmail").getAsString();
 		Email2FAManager.sendRegMailAndAddToQueue(new User.RegisterInfo(user.publicInfo(), null, newMail, null));
 		return req.response(Response.OK_NO_CONTENT);
@@ -252,7 +251,7 @@ public class Requests {
 		String oldPassHash = req.getBody().get("oldPassHash").getAsString();
 		String newPassHash = req.getBody().get("newPassHash").getAsString();
 		if (client.loggedInUser().isPassHashCorrect(oldPassHash)) {
-			UserManager.getInstance().updatePassword(client.loggedInUser().getId(), newPassHash);
+			UserManager.updatePassword(client.loggedInUser().id(), newPassHash);
 			return req.response(Response.OK_NO_CONTENT);
 		} else
 			return req.response(Response.UNAUTHORIZED);
@@ -271,31 +270,25 @@ public class Requests {
 		JsonElement userIdElement = req.getBody().get("userId");
 		JsonElement usernameElement = req.getBody().get("username");
 		User user;
-		if (userIdElement != null) {  // if userId has been provided, it has priority
-			long userId = userIdElement.getAsLong();
-			user = UserManager.getInstance().getUserById(userId);
-		} else if (usernameElement != null) { // if userId is not provided, check for username
-			String username = usernameElement.getAsString();
-			user = UserManager.getInstance().getUserByUsername(username);
-		} else
-			return req.response(Response.BAD_REQUEST);
-
-		if (user == null)
+		try {
+			if (userIdElement != null) {  // if userId has been provided, it has priority
+				long userId = userIdElement.getAsLong();
+				user = UserManager.getUserById(userId);
+			} else if (usernameElement != null) { // if userId is not provided, check for username
+				String username = usernameElement.getAsString();
+				user = UserManager.getUserByUsername(username);
+			} else
+				return req.response(Response.BAD_REQUEST);
+		} catch (Exception e) {
 			return req.response(Response.NOT_FOUND);
+		}
 
 		JsonObject body = MGson.makeJsonObject(
 				"info", user.publicInfo(),
-				"online", isUserOnline(user.getId()),
-				"best", getBestGameRecord(user.getId()));
+				"online", UserManager.isUserOnline(user.id()),
+				"best", getBestGameRecord(user.id()));
 		return req.response(Response.OK, body);
 	}
-
-
-	// TODO: implement and move to a better place (UserManager)
-	private static boolean isUserOnline(long id) {
-		return false;
-	}
-
 
 	// TODO: implement and move to a better place (GamesManager)
 	private static GameRecord getBestGameRecord(long id) {
@@ -314,7 +307,7 @@ public class Requests {
 	public static Response searchUsername(Client client, Request req) {
 		String query = req.getBody().get("query").getAsString();
 		int limit = req.getBody().get("limit").getAsInt();
-		List<User> result = UserManager.getInstance().searchUsername(query, limit);
+		List<User> result = UserManager.searchUsername(query, limit);
 		List<User.PublicInfo> responseResult = result.stream().map(User::publicInfo).collect(Collectors.toList());
 		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(responseResult));
 	}
