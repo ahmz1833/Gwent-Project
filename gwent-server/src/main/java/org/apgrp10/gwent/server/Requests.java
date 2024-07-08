@@ -312,6 +312,12 @@ public class Requests {
 		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(responseResult));
 	}
 
+
+	@Authorizations(LOGGED_IN)
+	public static Response makeRandomPlay(Client client, Request req) {
+		return null;
+	}
+
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface Authorizations {
 		Client.AuthLevel value();
