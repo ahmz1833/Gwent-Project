@@ -6,12 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import io.github.palexdev.materialfx.controls.MFXButton;
 import javafx.event.Event;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.effect.DropShadow;
-import javafx.stage.Screen;
+import javafx.scene.text.HitInfo;
 import org.apgrp10.gwent.client.R;
-import org.apgrp10.gwent.client.controller.ChatMenuController;
 import org.apgrp10.gwent.client.model.AvatarView;
 import org.apgrp10.gwent.client.model.CardView;
 import org.apgrp10.gwent.client.model.TerminalAsyncReader;
@@ -19,10 +18,10 @@ import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.controller.GameController.PlayerData;
 import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.card.Card;
+import org.apgrp10.gwent.utils.WaitExec;
 import org.apgrp10.gwent.view.GameMenuInterface;
 
 import javafx.animation.Transition;
-import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -56,6 +55,7 @@ public class GameMenu implements GameMenuInterface {
 
 	public static GameMenu currentMenu;
 	private static final int WIDTH = 1280, HEIGHT = 720;
+	private WaitExec waitExec = new WaitExec(false);
 
 	protected static class Position {
 		public record RectPos(double posX, double posY, double posX2, double posY2) {
@@ -71,6 +71,12 @@ public class GameMenu implements GameMenuInterface {
 				region.setLayoutY(y());
 				region.setMinSize(w(), h());
 				region.setMaxSize(w(), h());
+			}
+			public void setBounds(ImageView region) {
+				region.setLayoutX(x());
+				region.setLayoutY(y());
+				region.setFitWidth(w());
+				region.setFitHeight(h());
 			}
 
 			public static RectPos bySize(double x, double y, double w, double h) {
@@ -149,6 +155,21 @@ public class GameMenu implements GameMenuInterface {
 				RectPos.bySize(0.0117, 0.0930, 0.0480, 0.0882),
 				RectPos.bySize(0.0117, 0.7916, 0.0480, 0.0882),
 		};
+		public static final RectPos deckCards[] = {
+				RectPos.bySize(0.9062, 0.0833, 0.0578, 0.1291),
+				RectPos.bySize(0.9062, 0.7819, 0.0578, 0.1291),
+		};
+		public static final RectPos deckCardsText =
+				RectPos.bySize(0.0078, 0.0736, 0.0234, 0.0277)
+		;
+		public static final RectPos deaths[] = {
+				RectPos.bySize(0.8125, 0.0833, 0.0578, 0.1291),
+				RectPos.bySize(0.8125, 0.7819, 0.0578, 0.1291),
+		};
+		public static final RectPos winnerSymbol[] = {
+				RectPos.bySize(0.2125, 0.27916, 0.04687, 0.06944),
+				RectPos.bySize(0.2125, 0.6527, 0.04687, 0.06944),
+		};
 	}
 
 	public GameMenu(Stage stage, boolean hasChat) {
@@ -213,10 +234,11 @@ public class GameMenu implements GameMenuInterface {
 	}
 
 	private void addButton(Pane parent, String str, String cmd, Position.RectPos pos) {
-		Button btn = new Button(str);
+		MFXButton btn = new MFXButton(str);
 		btn.setOnMouseClicked(e -> notifyListeners(buttonListeners, cmd));
 		if (pos != null)
 			pos.setBounds(btn);
+		btn.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-background-color: rgba(245,222,196,0.54)");
 		parent.getChildren().add(btn);
 	}
 
@@ -317,10 +339,7 @@ public class GameMenu implements GameMenuInterface {
 
 	private void addDeaths(int side) {
 		StackPane deaths = new StackPane();
-		deaths.setPrefWidth(74);
-		deaths.setPrefHeight(93);
-		deaths.setLayoutX(1040);
-		deaths.setLayoutY(60 + 503 * side);
+		Position.deaths[side].setBounds(deaths);
 		deaths.setAlignment(Pos.CENTER);
 		for (Card card : controller.getPlayer(side == controller.getActivePlayer()? 1: 0).usedCards) {
 			CardView view = CardView.newHand(card.pathAddress, Position.card.w(), Position.card.h());
@@ -333,20 +352,13 @@ public class GameMenu implements GameMenuInterface {
 	private void addWinnerSign() {
 		if (controller.calcPlayerScore(0) == controller.calcPlayerScore(1)) return;
 		ImageView image = new ImageView(R.getImage("icons/icon_high_score.png"));
-		image.setY(201 + ((controller.calcPlayerScore(controller.getActivePlayer()) > controller.calcPlayerScore(1 - controller.getActivePlayer())) ?
-				269 : 0));
-		image.setX(272);
-		image.setFitWidth(60);
-		image.setFitHeight(50);
+		Position.winnerSymbol[controller.calcPlayerScore(controller.getActivePlayer()) > controller.calcPlayerScore(1 - controller.getActivePlayer())? 1 : 0].setBounds(image);
 		rootPane.getChildren().add(image);
 	}
 
 	private void addDeckCards(boolean up) {
 		Pane deckCards = new Pane();
-		deckCards.setPrefWidth(74);
-		deckCards.setPrefHeight(93);
-		deckCards.setLayoutX(1160);
-		deckCards.setLayoutY(563 - 503 * (up ? 1 : 0));
+		Position.deckCards[up? 0 : 1].setBounds(deckCards);
 		PlayerData playerData = controller.getPlayer(up ? 1 - controller.getActivePlayer() : controller.getActivePlayer());
 		ImageView image = new ImageView(R.getImage("icons/" + switch (playerData
 				.deck.getFaction()) {
@@ -362,16 +374,13 @@ public class GameMenu implements GameMenuInterface {
 		deckCards.getChildren().add(image);
 		StackPane textContainer = new StackPane();
 		textContainer.setAlignment(Pos.CENTER);
-		textContainer.setPrefWidth(30);
-		textContainer.setPrefHeight(20);
 		Text text = new Text(String.valueOf(playerData.deck.getDeck().size()));
 		text.setStyle("-fx-font-family: 'Comfortaa SemiBold'");
 		text.setStyle("-fx-font-size: 12px");
 		text.setFill(Color.GOLD);
 		textContainer.getChildren().add(text);
 		textContainer.setBackground(Background.fill(Color.GRAY));
-		textContainer.setLayoutX(10);
-		textContainer.setLayoutY(53);
+		Position.deckCardsText.setBounds(textContainer);
 		deckCards.getChildren().add(textContainer);
 		rootPane.getChildren().add(deckCards);
 		if (up) {
@@ -384,12 +393,6 @@ public class GameMenu implements GameMenuInterface {
 	private boolean messageAnimation = false;
 
 	private void showAllMessages() {
-		if (isMessageShowing == false)
-			return;
-		if (!animationNodes.isEmpty() || !scorchCards.isEmpty()) {
-			Platform.runLater(this::showAllMessages);
-			return;
-		}
 		int delay = 510;
 		messageAnimation = true;
 		for (MessageGame message : messages) {
@@ -405,38 +408,41 @@ public class GameMenu implements GameMenuInterface {
 		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_round_start.png"), "NEW Round Started"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
-			showAllMessages();
+			waitExec.run(700, this::showAllMessages);
 		}
 	}
 
 	public void userPassed(int player) {
-		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_round_passed.png"), controller.getPlayer(player).user.nickname() + " passed"));
+		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_round_passed.png"),
+				controller.getPlayer(player).user.nickname() + " passed"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
-			showAllMessages();
+			waitExec.run(700, this::showAllMessages);
 		}
 	}
 
 	public void showWinner(int player) {
-		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_win_round.png"), controller.getPlayer(player).user.nickname() + " won"));
+		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_win_round.png"),
+				controller.getPlayer(player).user.nickname() + " won"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
-			showAllMessages();
+			waitExec.run(700, this::showAllMessages);
 		}
 	}
 	public void showDraw() {
 		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_draw_round.png"), "	 Draw!"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
-			showAllMessages();
+			waitExec.run(700, this::showAllMessages);
 		}
 	}
 
 	public void userTurn(int player) {
-		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_me_turn.png"), controller.getPlayer(1 - player).user.nickname() + "'s turn"));
+		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_me_turn.png"),
+				controller.getPlayer(1 - player).user.nickname() + "'s turn"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
-			showAllMessages();
+			waitExec.run(700, this::showAllMessages);
 		}
 	}
 
@@ -503,12 +509,11 @@ public class GameMenu implements GameMenuInterface {
 		cardMap.clear();
 		rootPane.getChildren().clear();
 		overlayPane.getChildren().clear();
-
 		addBackground(R.image.board[controller.getActivePlayer()]);
 		if (showCheats)
 			addCheatButtons();
 		addButton(rootPane, "Pass", "pass", Position.pass);
-		addButton(rootPane, "React", "react_0", new Position.RectPos(0.1, 0.1, 0.2, 0.2));
+		addButton(rootPane, "React", "react_0", new Position.RectPos(0.1625, 0.0958, 0.2244, 0.1900));
 
 		addDeckCards(true);
 		addProfile(true);
@@ -603,11 +608,9 @@ public class GameMenu implements GameMenuInterface {
 			rootPane.getChildren().add(info);
 		}
 		addWinnerSign();
-		if (pickList != null)
-			addPicker();
-
 		if (controller.hasSwitchableSides()) {
-			Button btn = new Button("S\ni\nd\ne");
+			MFXButton btn = new MFXButton("S\ni\nd\ne");
+			btn.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-background-color: rgba(245,222,196,0.54)");
 			btn.setOnMouseClicked(e -> {
 				controller.setActivePlayer(1 - player);
 				redraw();
@@ -617,9 +620,10 @@ public class GameMenu implements GameMenuInterface {
 		}
 
 		if (hasChat) {
-			Button b = new Button("Chat");
-			b.setOnAction(k->{
-				if(!MessageStage.getInstance().isShowing())
+			MFXButton b = new MFXButton("C\nh\na\nt");
+			b.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-background-color: rgba(245,222,196,0.54)");
+			b.setOnAction(k -> {
+				if (!MessageStage.getInstance().isShowing())
 					MessageStage.getInstance().start();
 				else {
 					MessageStage.getInstance().close();
@@ -629,6 +633,9 @@ public class GameMenu implements GameMenuInterface {
 			});
 			overlayPane.getChildren().add(b);
 		}
+		if (pickList != null)
+			addPicker();
+
 	}
 
 	protected List<Card> pickList;
@@ -833,8 +840,8 @@ public class GameMenu implements GameMenuInterface {
 			} else {
 				setOnMouseClicked(Event::consume);
 			}
-			setPrefWidth(PreGameMenu.screenWidth);
-			setPrefHeight(PreGameMenu.screenHeight);
+			setPrefWidth(WIDTH);
+			setPrefHeight(HEIGHT);
 			addPlaces();
 			gamePane.getChildren().add(this);
 		}
@@ -852,8 +859,8 @@ public class GameMenu implements GameMenuInterface {
 		private void addPlaces() {
 			for (int i = 0; i < 5; i++) {
 				StackPane stackPane = new StackPane();
-				final double height = PreGameMenu.screenHeight / 2.5 - 60 * (Math.abs(i - 2)) + 4;
-				final double width = PreGameMenu.screenWidth / 6.0 - 20 * (Math.abs(i - 2)) + 4;
+				final double height = WIDTH / 2.5 - (60 / 1280.0 * WIDTH) * (Math.abs(i - 2)) + 4;
+				final double width = HEIGHT / 6.0 - (20 / 720.0 * HEIGHT) * (Math.abs(i - 2)) + 4;
 				switch (i) {
 					case 0 -> stackPane = getStackPane(width, height, Pos.TOP_RIGHT);
 					case 1, 3 -> stackPane = getStackPane(width, height, Pos.CENTER);
@@ -862,8 +869,8 @@ public class GameMenu implements GameMenuInterface {
 				}
 				images[i] = stackPane;
 				addImage(pickIdx + i - 2, i);
-				stackPane.setLayoutX(50 + 240 * i);
-				stackPane.setLayoutY(100 - 20 * Math.abs(2 - i));
+				stackPane.setLayoutX((50 + 240 * i) / 1280.0 * WIDTH);
+				stackPane.setLayoutY((100 - 20 * Math.abs(2 - i)) / 720.0 * HEIGHT);
 				this.getChildren().add(stackPane);
 			}
 		}
@@ -873,8 +880,9 @@ public class GameMenu implements GameMenuInterface {
 				images[placeIndex].getChildren().clear();
 				Card card = pickList.get(cardIndex);
 				CardView view = CardView.newInfo(card.pathAddress, Position.info.w(), Position.info.h());
-				view.setPrefWidth(PreGameMenu.screenWidth / 6.0 - 20 * (Math.abs(placeIndex - 2)));
-				view.setPrefHeight(PreGameMenu.screenHeight / 2.5 - 60 * (Math.abs(placeIndex - 2)));
+				view.setPrefWidth(WIDTH / 6.0 - 20 * (Math.abs(placeIndex - 2)));
+				view.setPrefHeight(HEIGHT / 2.5 - 60 * (Math.abs(placeIndex - 2)));
+				view.setStyle("-fx-background-radius: 50px");
 				view.setStyle("-fx-background-radius: 50px");
 				images[placeIndex].setStyle("-fx-background-radius: 50px");
 				DropShadow dropShadow = new DropShadow();
@@ -915,6 +923,47 @@ public class GameMenu implements GameMenuInterface {
 			for (int i = -2; i <= 2; i++) {
 				addImage(index + i, 2 + i);
 			}
+		}
+	}
+
+	public static class MessageGame extends Pane {
+		private final Pane gamePane;
+		private final Pane self = this;
+		private WaitExec waitExec = new WaitExec(false);
+
+		MessageGame(Pane gamePane, Image image, String txt) {
+			this.gamePane = gamePane;
+			setPrefWidth(PreGameMenu.screenWidth);
+			setPrefHeight(PreGameMenu.screenHeight);
+			this.setLayoutX(0);
+			this.setLayoutY(0);
+			setOnMouseClicked(Event::consume);
+			addImageView(R.getImage("icons/black.png"), 1280, 100, 0, 300);
+			addImageView(image, 200, 200, 300, 230);
+			addText(txt);
+		}
+
+		public void show(int firstTime) {
+			waitExec.run(firstTime, () -> gamePane.getChildren().add(self));
+			waitExec.run(firstTime + 1000, () -> gamePane.getChildren().remove(self));
+		}
+
+		private void addImageView(Image image, int width, int height, int x, int y) {
+			ImageView imageView = new ImageView(image);
+			imageView.setFitWidth(width / 1280.0 * WIDTH);
+			imageView.setFitHeight(height / 720.0 * HEIGHT);
+			imageView.setX(x/1280.0 * WIDTH);
+			imageView.setY(y/720.0 * HEIGHT);
+			getChildren().add(imageView);
+		}
+
+		private void addText(String comment) {
+			Text text = new Text(comment);
+			text.setStyle("-fx-font-family: 'Yrsa SemiBold'; -fx-font-size: 50px");
+			text.setFill(Color.GOLD);
+			text.setY(365 / 720.0 * HEIGHT);
+			text.setX(500 / 1280.0 * WIDTH);
+			getChildren().add(text);
 		}
 	}
 }

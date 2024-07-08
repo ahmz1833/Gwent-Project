@@ -1,5 +1,6 @@
 package org.apgrp10.gwent.client.view;
 
+import io.github.palexdev.materialfx.controls.MFXButton;
 import io.github.palexdev.materialfx.dialogs.MFXDialogs;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -361,17 +362,10 @@ public class PreGameMenu {
 		textForInfo(infoVBox, "Hero cards:");
 		totalHeroText = textWithImageInfo(infoVBox, "deck_stats_hero");
 		StackPane buttonBorder = getStackPane(150, 35, Pos.CENTER);
-		Rectangle button = new Rectangle(120, 35, Color.GRAY);
-		button.setStyle("-fx-border-width: 2px; -fx-border-color: white");
-		button.setArcWidth(20);
-		button.setArcHeight(20);
-		button.setOnMouseClicked(k -> startGame());
-		Text text = new Text("Start game");
-		text.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-font-size: 18px");
-		text.setOnMouseClicked(k -> startGame());
-		text.setFill(Color.WHITE);
-		buttonBorder.getChildren().add(button);
-		buttonBorder.getChildren().add(text);
+		MFXButton btn = new MFXButton("startGame");
+		btn.setOnMouseClicked(k -> startGame());
+		btn.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-font-size: 18px; -fx-background-color: gray;");
+		buttonBorder.getChildren().add(btn);
 		infoVBox.getChildren().add(buttonBorder);
 		pane.getChildren().add(infoVBox);
 	}
