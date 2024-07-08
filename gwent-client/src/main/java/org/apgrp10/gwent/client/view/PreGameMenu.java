@@ -483,7 +483,7 @@ public class PreGameMenu {
 	}
 
 	private Deck createDeckFromPane(GridPane gridPane) {
-		Deck deck = new Deck(currentFactionIndex, leaderName, userInfo);
+		Deck deck = new Deck(currentFactionIndex, leaderName);
 		for (int i = 0; i < gridPane.getChildren().size(); i++) {
 			try {
 				CardView cardView = (CardView) gridPane.getChildren().get(i);

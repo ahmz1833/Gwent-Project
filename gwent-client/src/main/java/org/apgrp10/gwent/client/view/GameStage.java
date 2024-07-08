@@ -12,6 +12,7 @@ import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.controller.InputController;
 import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.Deck;
+import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
 import org.apgrp10.gwent.utils.ANSI;
@@ -35,48 +36,42 @@ public class GameStage extends AbstractStage {
 
 	private enum GameMode { NONE, LOCAL, ONLINE, CONTINUE, LIVE, REPLAY }
 	private static GameMode mode = GameMode.NONE;
+	private static User.PublicInfo user1, user2;
 	private static Deck deck1, deck2;
 	private static long seed;
 	private static int player;
 	private static final List<Command> cmds = new ArrayList<>();
 
-	public static void setLocal(Deck d1, Deck d2) {
-		deck1 = d1;
-		deck2 = d2;
-		seed = System.currentTimeMillis();
-		mode = GameMode.LOCAL;
-	}
-
-	public static void setOnline(Deck d1, Deck d2, long seed, int localPlayer) {
+	public static void setCommonData(User.PublicInfo u1, User.PublicInfo u2, Deck d1, Deck d2, long seed) {
+		user1 = u1;
+		user2 = u2;
 		deck1 = d1;
 		deck2 = d2;
 		GameStage.seed = seed;
+	}
+
+	public static void setLocal() {
+		mode = GameMode.LOCAL;
+	}
+
+	public static void setOnline(int localPlayer) {
 		player = localPlayer;
 		mode = GameMode.ONLINE;
 	}
 
-	public static void setContinue(Deck d1, Deck d2, long seed, int localPlayer, List<Command> pastCommands) {
-		deck1 = d1;
-		deck2 = d2;
-		GameStage.seed = seed;
+	public static void setContinue(int localPlayer, List<Command> pastCommands) {
 		player = localPlayer;
 		cmds.addAll(pastCommands);
 		mode = GameMode.CONTINUE;
 	}
 
-	public static void setLive(Deck d1, Deck d2, long seed, int pov, List<Command> pastCommands) {
-		deck1 = d1;
-		deck2 = d2;
-		GameStage.seed = seed;
+	public static void setLive(int pov, List<Command> pastCommands) {
 		player = pov;
 		cmds.addAll(pastCommands);
 		mode = GameMode.LIVE;
 	}
 
-	public static void setReplay(Deck d1, Deck d2, long seed, int pov, List<Command> commands) {
-		deck1 = d1;
-		deck2 = d2;
-		GameStage.seed = seed;
+	public static void setReplay(int pov, List<Command> commands) {
 		player = pov;
 		cmds.addAll(commands);
 		mode = GameMode.REPLAY;
@@ -109,7 +104,7 @@ public class GameStage extends AbstractStage {
 		InputController c2 = new MouseInputController();
 		GameMenu gm = new GameMenu(this, true);
 		// TODO: better way to save recording
-		new GameController(c1, c2, deck1, deck2, seed, gm, gr -> {
+		new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> {
 			Utils.choosePlaceAndDownload("Choose place to save recording", "recording.gwent", this,
 					MGson.get(true, true).toJson(gr));
 			this.close();
@@ -120,7 +115,7 @@ public class GameStage extends AbstractStage {
 		InputController c1 = player == 0? new MouseInputController(): new ServerInputController();
 		InputController c2 = player == 1? new MouseInputController(): new ServerInputController();
 		GameMenu gm = new GameMenu(this, true);
-		GameController gc = new GameController(c1, c2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, false);
+		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, false);
 		setupServer(gc);
 	}
 
@@ -128,7 +123,7 @@ public class GameStage extends AbstractStage {
 		InputController c1 = player == 0? new MouseInputController(): new ServerInputController();
 		InputController c2 = player == 1? new MouseInputController(): new ServerInputController();
 		GameMenu gm = new GameMenu(this, true);
-		GameController gc = new GameController(c1, c2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, false);
+		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, false);
 		gc.fastForward(cmds);
 		setupServer(gc);
 	}
@@ -137,7 +132,7 @@ public class GameStage extends AbstractStage {
 		InputController c1 = new ServerInputController();
 		InputController c2 = new ServerInputController();
 		GameMenu gm = new GameMenu(this, true);
-		GameController gc = new GameController(c1, c2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, true);
+		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, true);
 		gc.fastForward(cmds);
 		setupServer(gc);
 	}
@@ -146,7 +141,7 @@ public class GameStage extends AbstractStage {
 		InputController c1 = new ReplayInputController(cmds);
 		InputController c2 = new ReplayInputController(cmds);
 		GameMenu gm = new GameMenu(this, false);
-		new GameController(c1, c2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, true);
+		new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, true);
 	}
 
 	@Override

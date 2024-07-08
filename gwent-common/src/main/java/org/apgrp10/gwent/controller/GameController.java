@@ -27,9 +27,9 @@ public class GameController {
 		public boolean cheatHorn;
 		public final String originalDeckJson;
 
-		public PlayerData(Deck deck, InputController controller) {
+		public PlayerData(User.PublicInfo user, Deck deck, InputController controller) {
 			originalDeckJson = deck.toJsonString();
-			this.user = deck.getUser();
+			this.user = user;
 			this.deck = deck;
 			this.controller = controller;
 		}
@@ -71,10 +71,9 @@ public class GameController {
 	private long seed;
 
 	public GameController(
-			InputController c0,
-			InputController c1,
-			Deck d0,
-			Deck d1,
+			InputController c0, InputController c1,
+			User.PublicInfo u0, User.PublicInfo u1,
+			Deck d0, Deck d1,
 			long seed,
 			GameMenuInterface gameMenu,
 			Consumer<GameRecord> onEnd,
@@ -83,8 +82,8 @@ public class GameController {
 	) {
 		this.onEnd = onEnd;
 		this.seed = seed;
-		playerData[0] = new PlayerData(d0, c0);
-		playerData[1] = new PlayerData(d1, c1);
+		playerData[0] = new PlayerData(u0, d0, c0);
+		playerData[1] = new PlayerData(u1, d1, c1);
 		turn = 0;
 
 		activePlayer = firstSide;

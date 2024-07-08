@@ -33,6 +33,7 @@ public class GameTask extends Task {
 	private List<Message> publicMsgs = new ArrayList<>();
 	private List<Command> cmds = new ArrayList<>();
 	private List<Client> liveClients = new ArrayList<>();
+	private long seed;
 
 	public GameTask(Client c1, Client c2) {
 		data[0].client = c1;
@@ -81,12 +82,14 @@ public class GameTask extends Task {
 
 	private void start() {
 		addCommand(() -> {
-			long seed = Random.nextPosLong();
-			JsonObject startBody = MGson.makeJsonObject("seed", seed,
-					"user1", MGson.toJsonElement(data[0].user),
-					"user2", MGson.toJsonElement(data[1].user),
+			seed = Random.nextPosLong();
+			JsonObject startBody = MGson.makeJsonObject(
+					"seed", seed,
+					"user1", MGson.toJsonElement(data[0].user.publicInfo()),
+					"user2", MGson.toJsonElement(data[1].user.publicInfo()),
 					"deck1", data[0].deck.toJsonString(),
-					"deck2", data[1].deck.toJsonString());
+					"deck2", data[1].deck.toJsonString()
+			);
 
 			data[0].client.send(new Request("start", startBody));
 			data[1].client.send(new Request("start", startBody));
@@ -94,6 +97,8 @@ public class GameTask extends Task {
 			gameController = new GameController(
 				new DummyInputController(),
 				new DummyInputController(),
+				data[0].user.publicInfo(),
+				data[1].user.publicInfo(),
 				data[0].deck,
 				data[1].deck,
 				seed,
@@ -137,8 +142,9 @@ public class GameTask extends Task {
 
 	private Request continueRequest() {
 		return new Request("continueGame", MGson.makeJsonObject(
-				"user1", MGson.toJsonElement(data[0].user),
-				"user2", MGson.toJsonElement(data[1].user),
+				"seed", seed,
+				"user1", MGson.toJsonElement(data[0].user.publicInfo()),
+				"user2", MGson.toJsonElement(data[1].user.publicInfo()),
 				"deck1", data[0].deck.toJsonString(),
 				"deck2", data[1].deck.toJsonString(),
 				"cmds", cmds.stream().map(c -> c.toBase64()).collect(Collectors.toList()),
@@ -148,8 +154,9 @@ public class GameTask extends Task {
 
 	private Request liveRequest() {
 		return new Request("liveGame", MGson.makeJsonObject(
-				"user1", MGson.toJsonElement(data[0].user),
-				"user2", MGson.toJsonElement(data[1].user),
+				"seed", seed,
+				"user1", MGson.toJsonElement(data[0].user.publicInfo()),
+				"user2", MGson.toJsonElement(data[1].user.publicInfo()),
 				"deck1", data[0].deck.toJsonString(),
 				"deck2", data[1].deck.toJsonString(),
 				"cmds", cmds.stream().map(c -> c.toBase64()).collect(Collectors.toList()),

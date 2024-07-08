@@ -63,9 +63,16 @@ public class PreGameStage extends AbstractStage {
 		} else {
 			deck2 = deck;
 			if(gameMode.equals(GameMode.LOCAL)) {
-				GameStage.setLocal(deck1, deck2);
+				// TODO: use logged in user
+				GameStage.setCommonData(
+						new User.PublicInfo(0, "p1", "Player 1", Avatar.random()),
+						new User.PublicInfo(1, "p2", "Player 2", Avatar.random()),
+						deck1,
+						deck2,
+						System.currentTimeMillis()
+				);
+				GameStage.setLocal();
 				GameStage.getInstance().start();
-//				GameStage.setOnline();
 			}
 			this.close();
 		}
@@ -73,7 +80,7 @@ public class PreGameStage extends AbstractStage {
 
 	private void playLocal(){
 		gameMode = GameMode.LOCAL;
-		new PreGameMenu(pane, false, new User.PublicInfo(System.currentTimeMillis(),
+		new PreGameMenu(pane, false, new User.PublicInfo(0,
 				"anonymous", "anonymous", Avatar.random()));
 	}
 

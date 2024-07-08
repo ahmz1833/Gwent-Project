@@ -22,13 +22,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 public class Deck {
-	private User.PublicInfo user;
 	private final ArrayList<Card> deck = new ArrayList<>();
 	private final Faction faction;
 	private final Card leader;
 
-	public Deck(int factionId, String leaderName, User.PublicInfo user) {
-		this.user = user;
+	public Deck(int factionId, String leaderName) {
 		switch (factionId) {
 			case 0 -> faction = Faction.REALMS;
 			case 1 -> faction = Faction.NILFGAARD;
@@ -45,10 +43,6 @@ public class Deck {
 			}
 		}
 		leader = leaderCopy;
-	}
-
-	public void setUser(User.PublicInfo user) {
-		this.user = user;
 	}
 
 	public static boolean isCorrectDeck(Deck deck) {
@@ -126,10 +120,6 @@ public class Deck {
 		addCard(convertCortInfoToCard(cardInfo));
 	}
 
-	public User.PublicInfo getUser() {
-		return user;
-	}
-
 	public Card getLeader() {
 		return leader;
 	}
@@ -192,7 +182,7 @@ public class Deck {
 					case "SCOIATAEL" -> factionIndex = 3;
 					case "SKELLIGE" -> factionIndex = 4;
 				}
-				Deck outputDeck = new Deck(factionIndex, deckToSave.leader, null);
+				Deck outputDeck = new Deck(factionIndex, deckToSave.leader);
 				for (String path : deckToSave.deck) {
 					CardInfo cardInfo = convertPathToCardInfo(path);
 					if (cardInfo == null) return null;
