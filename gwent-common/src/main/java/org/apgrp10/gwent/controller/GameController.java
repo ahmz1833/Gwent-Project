@@ -77,18 +77,6 @@ public class GameController {
 			Deck d1,
 			long seed,
 			GameMenuInterface gameMenu,
-			Consumer<GameRecord> onEnd
-	) {
-		this(c0, c1, d0, d1, seed, gameMenu, onEnd, 0, false);
-	}
-
-	public GameController(
-			InputController c0,
-			InputController c1,
-			Deck d0,
-			Deck d1,
-			long seed,
-			GameMenuInterface gameMenu,
 			Consumer<GameRecord> onEnd,
 			int firstSide,
 			boolean switchableSides
@@ -474,6 +462,19 @@ public class GameController {
 	private List<Integer> p1Sc = new ArrayList<>();
 	private List<Integer> p2Sc = new ArrayList<>();
 
+	private GameRecord makeRecord(int winner) {
+		return new GameRecord(playerData[0].user.id(),
+		                      playerData[1].user.id(),
+		                      seed,
+		                      playerData[0].originalDeckJson,
+		                      playerData[1].originalDeckJson,
+		                      new ArrayList<>(cmdHistory),
+		                      winner,
+		                      new ArrayList<>(roundWinner),
+		                      new ArrayList<>(p1Sc),
+		                      new ArrayList<>(p2Sc));
+	}
+
 	private void nextRound() {
 		playerData[turn].controller.endTurn();
 		p1Sc.add(calcPlayerScore(0));
@@ -499,18 +500,8 @@ public class GameController {
 			int gameWinner = -1;
 			if (playerData[0].hp > 0) gameWinner = 0;
 			if (playerData[1].hp > 0) gameWinner = 1;
-			GameRecord gr = new GameRecord(playerData[0].user.id(),
-			                               playerData[1].user.id(),
-			                               seed,
-			                               playerData[0].originalDeckJson,
-			                               playerData[1].originalDeckJson,
-			                               new ArrayList<>(cmdHistory),
-			                               gameWinner,
-			                               new ArrayList<>(roundWinner),
-			                               new ArrayList<>(p1Sc),
-			                               new ArrayList<>(p2Sc));
 			gameMenu.endGame();
-			onEnd.accept(gr);
+			onEnd.accept(makeRecord(gameWinner));
 			return;
 		}
 
@@ -699,6 +690,16 @@ public class GameController {
 		gameMenu.reactTo(lastPlayed, cmd.reactId());
 	}
 
+	private void resign(Command.Resign cmd) {
+		playerData[turn].controller.endTurn();
+		p1Sc.add(calcPlayerScore(0));
+		p2Sc.add(calcPlayerScore(1));
+		roundWinner.add(1 - cmd.player());
+		gameMenu.endGame();
+		onEnd.accept(makeRecord(1 - cmd.player()));
+		return;
+	}
+
 	private final List<Consumer<Command>> commandListeners = new ArrayList<>();
 
 	public void addCommandListener(Consumer<Command> cb) { commandListeners.add(cb); }
@@ -721,6 +722,7 @@ public class GameController {
 			if (cmd instanceof Command.Pass) pass((Command.Pass)cmd);
 			if (cmd instanceof Command.SetActiveCard) setActiveCard((Command.SetActiveCard)cmd);
 			if (cmd instanceof Command.PickResponse) pickResponse((Command.PickResponse)cmd);
+			if (cmd instanceof Command.Resign) resign((Command.Resign)cmd);
 			if (cmd instanceof Command.Cheat) cheat((Command.Cheat)cmd);
 			if (cmd instanceof Command.React) react((Command.React)cmd);
 		}

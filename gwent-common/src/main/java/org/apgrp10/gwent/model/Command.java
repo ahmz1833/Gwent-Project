@@ -68,6 +68,8 @@ public interface Command {
 
 	record PickResponse(int player, int cardId, String what) implements Command, Serializable {}
 
+	record Resign(int player, String reason) implements Command, Serializable {}
+
 	record Cheat(int player, int cheatId) implements Command, Serializable {}
 
 	record React(int player, int reactId) implements Command, Serializable {}

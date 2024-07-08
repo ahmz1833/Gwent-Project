@@ -33,7 +33,7 @@ public class GameStage extends AbstractStage {
 		return INSTANCE;
 	}
 
-	private enum GameMode { NONE, LOCAL, ONLINE, LIVE, REPLAY }
+	private enum GameMode { NONE, LOCAL, ONLINE, CONTINUE, LIVE, REPLAY }
 	private static GameMode mode = GameMode.NONE;
 	private static Deck deck1, deck2;
 	private static long seed;
@@ -53,6 +53,15 @@ public class GameStage extends AbstractStage {
 		GameStage.seed = seed;
 		player = localPlayer;
 		mode = GameMode.ONLINE;
+	}
+
+	public static void setContinue(Deck d1, Deck d2, long seed, int localPlayer, List<Command> pastCommands) {
+		deck1 = d1;
+		deck2 = d2;
+		GameStage.seed = seed;
+		player = localPlayer;
+		cmds.addAll(pastCommands);
+		mode = GameMode.CONTINUE;
 	}
 
 	public static void setLive(Deck d1, Deck d2, long seed, int pov, List<Command> pastCommands) {
@@ -104,14 +113,23 @@ public class GameStage extends AbstractStage {
 			Utils.choosePlaceAndDownload("Choose place to save recording", "recording.gwent", this,
 					MGson.get(true, true).toJson(gr));
 			this.close();
-		});
+		}, 0, false);
 	}
 
 	private void createOnline() {
 		InputController c1 = player == 0? new MouseInputController(): new ServerInputController();
 		InputController c2 = player == 1? new MouseInputController(): new ServerInputController();
 		GameMenu gm = new GameMenu(this, true);
-		GameController gc = new GameController(c1, c2, deck1, deck2, seed, gm, gr -> { this.close(); });
+		GameController gc = new GameController(c1, c2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, false);
+		setupServer(gc);
+	}
+
+	private void createContinue() {
+		InputController c1 = player == 0? new MouseInputController(): new ServerInputController();
+		InputController c2 = player == 1? new MouseInputController(): new ServerInputController();
+		GameMenu gm = new GameMenu(this, true);
+		GameController gc = new GameController(c1, c2, deck1, deck2, seed, gm, gr -> { this.close(); }, player, false);
+		gc.fastForward(cmds);
 		setupServer(gc);
 	}
 
@@ -140,6 +158,7 @@ public class GameStage extends AbstractStage {
 			}
 			case LOCAL -> createLocal();
 			case ONLINE -> createOnline();
+			case CONTINUE -> createContinue();
 			case LIVE -> createLive();
 			case REPLAY -> createReplay();
 		}

@@ -27,21 +27,6 @@ public class TaskManager {
 		threads[index].addTask(task);
 	}
 
-	public static synchronized List<Client> onlineClients() {
-		List<Client> clients = new ArrayList<>();
-		for (HandlingThread thread : threads)
-			for (Task task : thread.tasks)
-				if (task instanceof Client)
-					clients.add((Client) task);
-		return clients;
-	}
-
-	public static synchronized List<Client> getClientOfUser(long userId) {
-		return onlineClients().stream().filter(client ->
-						(client.loggedInUser() != null && client.loggedInUser().id() == userId))
-				.collect(Collectors.toList());
-	}
-
 	private static class HandlingThread extends Thread {
 		private final List<Task> tasks = new ArrayList<>();
 

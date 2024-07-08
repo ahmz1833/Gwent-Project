@@ -9,10 +9,13 @@ import org.apgrp10.gwent.utils.ANSI;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Client extends Task {
+	private static final Map<Long, Client> userToClient = new ConcurrentHashMap<>();
 	private final PacketHandler packetHandler;
 	private User loggedInUser; // may be null if not logged in
 	private boolean destructed;
@@ -76,8 +79,15 @@ public class Client extends Task {
 	}
 
 	public void setLoggedInUser(User user) {
-		loggedInUser = user;
+		addCommand(() -> {
+			if (loggedInUser != null) userToClient.remove(loggedInUser.id());
+			loggedInUser = user;
+			if (user != null) userToClient.put(user.id(), this);
+		});
 	}
+
+	public static Client clientOfUser(long id) { return userToClient.get(id); }
+	public static Client clientOfUser(User user) { return clientOfUser(user.id()); }
 
 	public AuthLevel getAuthLevel() {
 		return loggedInUser == null ? AuthLevel.NOT_LOGGED_IN : AuthLevel.LOGGED_IN;

@@ -34,11 +34,7 @@ public class UserManager {
 		return database.getUserId(username) != -1;
 	}
 
-	public static synchronized boolean isUserOnline(long id) {
-		List<Client> allClients = TaskManager.onlineClients();
-		return allClients.stream().anyMatch(client ->
-				(client.loggedInUser() != null && client.loggedInUser().id() == id));
-	}
+	public static boolean isUserOnline(long id) { return Client.clientOfUser(id) != null; }
 
 	public static User getUserById(long id) throws Exception {
 		return database.getUserById(id);
