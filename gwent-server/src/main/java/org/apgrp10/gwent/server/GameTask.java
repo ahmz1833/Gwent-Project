@@ -83,8 +83,8 @@ public class GameTask extends Task {
 		addCommand(() -> {
 			long seed = Random.nextPosLong();
 			JsonObject startBody = MGson.makeJsonObject("seed", seed,
-					"user1", data[0].user.id(),
-					"user2", data[1].user.id(),
+					"user1", MGson.toJsonElement(data[0].user),
+					"user2", MGson.toJsonElement(data[1].user),
 					"deck1", data[0].deck.toJsonString(),
 					"deck2", data[1].deck.toJsonString());
 
@@ -137,8 +137,8 @@ public class GameTask extends Task {
 
 	private Request continueRequest() {
 		return new Request("continueGame", MGson.makeJsonObject(
-				"user1", data[0].user.id(),
-				"user2", data[1].user.id(),
+				"user1", MGson.toJsonElement(data[0].user),
+				"user2", MGson.toJsonElement(data[1].user),
 				"deck1", data[0].deck.toJsonString(),
 				"deck2", data[1].deck.toJsonString(),
 				"cmds", cmds.stream().map(c -> c.toBase64()).collect(Collectors.toList()),
@@ -148,8 +148,8 @@ public class GameTask extends Task {
 
 	private Request liveRequest() {
 		return new Request("liveGame", MGson.makeJsonObject(
-				"user1", data[0].user.id(),
-				"user2", data[1].user.id(),
+				"user1", MGson.toJsonElement(data[0].user),
+				"user2", MGson.toJsonElement(data[1].user),
 				"deck1", data[0].deck.toJsonString(),
 				"deck2", data[1].deck.toJsonString(),
 				"cmds", cmds.stream().map(c -> c.toBase64()).collect(Collectors.toList()),
