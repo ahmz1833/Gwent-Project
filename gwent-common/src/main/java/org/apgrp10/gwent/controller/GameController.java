@@ -49,6 +49,7 @@ public class GameController {
 	private boolean switchableSides = false;
 	private Card lastPlayed;
 	public final WaitExec waitExec;
+	private int cardCount;
 
 	public boolean leaderAbilityInUse(int player, Ability ability) {
 		boolean ans = false;
@@ -106,14 +107,13 @@ public class GameController {
 			special.add(new ArrayList<>());
 		}
 
-		int id = 0;
 		rand = new Random(seed);
 		for (PlayerData p : playerData) {
 			Deck d = p.deck;
 
 			p.ownedCards.addAll(d.getDeck());
 
-			id = d.assignGameIds(id);
+			cardCount = d.assignGameIds(cardCount);
 			d.shuffle(rand);
 
 			for (Card card : d.getDeck())
@@ -213,10 +213,7 @@ public class GameController {
 			for (int p = 0; p < 2; p++) {
 				if (to == playerData[p].deck.getDeck()) gameMenu.animationToDeck(card, p);
 				if (to == playerData[p].handCards && activePlayer == p) gameMenu.animationToHand(card);
-				if (to == playerData[p].usedCards) {
-					gameMenu.animationToUsed(card, p);
-					gameMenu.setHaveNewDeath(true);
-				}
+				if (to == playerData[p].usedCards) gameMenu.animationToUsed(card, p);
 			}
 			for (int i = 0; i < 6; i++) {
 				if (to == row.get(i)) gameMenu.animationToRow(card, i);
@@ -680,6 +677,17 @@ public class GameController {
 			}
 			case 6 -> {
 				playerData[p].cheatHorn = !playerData[p].cheatHorn;
+			}
+			case 7 -> {
+				CardInfo info = chooseRandom(CardInfo.allCards.stream().filter(i -> i.row != Row.LEADER).collect(Collectors.toList()));
+				Card newCard = new Card(info.name, info.pathAddress, info.strength, info.row, info.faction, info.ability, info.isHero);
+				newCard.setGameId(cardCount);
+				cardIdMap.put(cardCount, newCard);
+				cardCount++;
+				if (gameMenu != null)
+					gameMenu.animationToHand(newCard);
+				playerData[p].ownedCards.add(newCard);
+				playerData[p].handCards.add(newCard);
 			}
 			default -> { assert false; }
 		}

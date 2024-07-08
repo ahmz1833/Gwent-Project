@@ -23,6 +23,7 @@ import org.apgrp10.gwent.view.GameMenuInterface;
 
 import javafx.animation.Transition;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -308,40 +309,24 @@ public class GameMenu implements GameMenuInterface {
 		addButton(cheats, "Cheat: restore graveyard", "cheat_4", null);
 		addButton(cheats, "Cheat: show opponent's hand", "cheat_5", null);
 		addButton(cheats, "Cheat: horn", "cheat_6", null);
+		addButton(cheats, "Cheat: new card", "cheat_7", null);
 		for (Node node : cheats.getChildren())
 			node.setStyle("-fx-font-size:8");
 		rootPane.getChildren().add(cheats);
 	}
 
-	private boolean hasNewDeath = false;
-	private final Card[] lastDeath = new Card[2];
-
-	public void setHaveNewDeath(boolean value) {
-		hasNewDeath = value;
-	}
-
-	private void addDeathsNew(int user, boolean up) {
-		List<Card> cards = controller.getPlayer(user).usedCards;
-		if (cards.size() > 0) {
-			lastDeath[up ? 0 : 1] = cards.get(cards.size() - 1);
-			addDeaths(lastDeath[up ? 0 : 1], up);
-		}
-		if (!up) {
-			addDeathsNew(1 - user, true);
-		}
-		hasNewDeath = false;
-	}
-
-	private void addDeaths(Card card, boolean up) {
-		if (card == null)
-			return;
+	private void addDeaths(int side) {
 		StackPane deaths = new StackPane();
 		deaths.setPrefWidth(74);
 		deaths.setPrefHeight(93);
 		deaths.setLayoutX(1040);
-		deaths.setLayoutY(563 - 503 * (up ? 1 : 0));
+		deaths.setLayoutY(60 + 503 * side);
 		deaths.setAlignment(Pos.CENTER);
-		deaths.getChildren().add(CardView.newHand(card.pathAddress, Position.card.w(), Position.card.h()));
+		for (Card card : controller.getPlayer(side == controller.getActivePlayer()? 1: 0).usedCards) {
+			CardView view = CardView.newHand(card.pathAddress, Position.card.w(), Position.card.h());
+			deaths.getChildren().add(view);
+			cardMap.put(card, view);
+		}
 		rootPane.getChildren().add(deaths);
 	}
 
@@ -399,7 +384,13 @@ public class GameMenu implements GameMenuInterface {
 	private boolean messageAnimation = false;
 
 	private void showAllMessages() {
-		int delay = 10;
+		if (isMessageShowing == false)
+			return;
+		if (!animationNodes.isEmpty() || !scorchCards.isEmpty()) {
+			Platform.runLater(this::showAllMessages);
+			return;
+		}
+		int delay = 510;
 		messageAnimation = true;
 		for (MessageGame message : messages) {
 			message.show(delay);
@@ -414,7 +405,7 @@ public class GameMenu implements GameMenuInterface {
 		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_round_start.png"), "NEW Round Started"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
-			controller.waitExec.run(1100, this::showAllMessages);
+			showAllMessages();
 		}
 	}
 
@@ -422,7 +413,7 @@ public class GameMenu implements GameMenuInterface {
 		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_round_passed.png"), controller.getPlayer(player).user.nickname() + " passed"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
-			controller.waitExec.run(1100, this::showAllMessages);
+			showAllMessages();
 		}
 	}
 
@@ -430,14 +421,14 @@ public class GameMenu implements GameMenuInterface {
 		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_win_round.png"), controller.getPlayer(player).user.nickname() + " won"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
-			controller.waitExec.run(1100, this::showAllMessages);
+			showAllMessages();
 		}
 	}
 	public void showDraw() {
 		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_draw_round.png"), "	 Draw!"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
-			controller.waitExec.run(1100, this::showAllMessages);
+			showAllMessages();
 		}
 	}
 
@@ -445,7 +436,7 @@ public class GameMenu implements GameMenuInterface {
 		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_me_turn.png"), controller.getPlayer(1 - player).user.nickname() + "'s turn"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
-			controller.waitExec.run(1100, this::showAllMessages);
+			showAllMessages();
 		}
 	}
 
@@ -512,19 +503,19 @@ public class GameMenu implements GameMenuInterface {
 		cardMap.clear();
 		rootPane.getChildren().clear();
 		overlayPane.getChildren().clear();
+
 		addBackground(R.image.board[controller.getActivePlayer()]);
 		if (showCheats)
 			addCheatButtons();
 		addButton(rootPane, "Pass", "pass", Position.pass);
 		addButton(rootPane, "React", "react_0", new Position.RectPos(0.1, 0.1, 0.2, 0.2));
+
 		addDeckCards(true);
 		addProfile(true);
-		if (hasNewDeath) {
-			addDeaths(lastDeath[0], true);
-			addDeaths(lastDeath[1], false);
-			controller.waitExec.run(600, () -> addDeathsNew(controller.getActivePlayer(), false));
-		} else
-			addDeathsNew(controller.getActivePlayer(), false);
+
+		addDeaths(0);
+		addDeaths(1);
+
 		addCardHBox(Position.hand, controller.getPlayer(player).handCards, false, true);
 
 		for (int i = 0; i < 6; i++) {
@@ -599,7 +590,6 @@ public class GameMenu implements GameMenuInterface {
 			rootPane.getChildren().add(healthBar);
 		}
 
-		// TODO: use some highlight or something
 		if (activeCardView != null) {
 			ImageView imageView = new ImageView(R.getImage("icons/select.png"));//"SELECTION"
 			imageView.setFitWidth(Position.card.w() + 5);
@@ -755,10 +745,9 @@ public class GameMenu implements GameMenuInterface {
 	}
 
 	private void animationToHBox(Card card, Position.RectPos pos, List<Card> others) {
-		Point2D to = new Point2D(
-				pos.centerX() + (Position.card.w() * (others.size() - 1)) / 2,
-				pos.y()
-		);
+		double x1 = pos.centerX() + (Position.card.w() * (others.size() - 1)) / 2;
+		double x2 = pos.x() + pos.w();
+		Point2D to = new Point2D(x1 < x2? x1: x2, pos.y());
 		CardView cardView = cardMap.get(card);
 		Point2D from = cardView == null ? new Point2D(0, 0) : cardView.localToScene(0, 0);
 		animationTo(card, from, to);

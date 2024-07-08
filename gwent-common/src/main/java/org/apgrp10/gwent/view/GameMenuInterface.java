@@ -33,7 +33,6 @@ public interface GameMenuInterface {
 	void start();
 
 	void beginRound();
-	void setHaveNewDeath(boolean b);
 	void userPassed(int player);
 	void showWinner(int player);
 	void showDraw();
