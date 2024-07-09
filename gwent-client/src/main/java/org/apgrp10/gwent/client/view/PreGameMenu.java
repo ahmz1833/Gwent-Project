@@ -51,7 +51,7 @@ public class PreGameMenu {
 		load();
 		addInfoBox();
 		addUserInfo();
-		addGridePane();
+		addGridPane();
 		setSpoiler();
 		uploadDeck(R.getAbsPath("primaryDeck.gwent"));
 		addLinkTexts();
@@ -188,7 +188,7 @@ public class PreGameMenu {
 //		setCursor();
 	}
 
-	private void addGridePane() {
+	private void addGridPane() {
 		for (int i = 0; i < 2; i++) {
 			GridPane gridPane = new GridPane();
 			gridPane.setVgap(3);
