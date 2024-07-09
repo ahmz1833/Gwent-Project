@@ -49,8 +49,10 @@ public class GameMenu implements GameMenuInterface {
 	private GameController controller;
 	private Pane realRoot = new Pane();
 	private Pane rootPane = new Pane();
+	private Pane buttonPane = new Pane();
 	private Pane messagePane = new Pane();
-	private Pane overlayPane = new Pane();
+	private Pane overlayRedrawingPane = new Pane();
+	private Pane overlayNonredrawingPane = new Pane();
 	private Stage stage;
 	private boolean hasChat;
 
@@ -190,8 +192,14 @@ public class GameMenu implements GameMenuInterface {
 		MessageStage.deleteInstance();
 		this.stage = stage;
 		realRoot.getChildren().add(rootPane);
+		realRoot.getChildren().add(buttonPane);
 		realRoot.getChildren().add(messagePane);
-		realRoot.getChildren().add(overlayPane);
+		realRoot.getChildren().add(overlayRedrawingPane);
+		realRoot.getChildren().add(overlayNonredrawingPane);
+		buttonPane.setPickOnBounds(false);
+		messagePane.setPickOnBounds(false);
+		overlayRedrawingPane.setPickOnBounds(false);
+		overlayNonredrawingPane.setPickOnBounds(false);
 		Scene scene = new Scene(realRoot);
 		stage.setScene(scene);
 		stage.setResizable(false);
@@ -199,17 +207,11 @@ public class GameMenu implements GameMenuInterface {
 		stage.setHeight(HEIGHT);
 		stage.centerOnScreen();
 		addTerminalListener();
+		addNonredrawingButtons();
 		redraw();
 	}
 
 	public void endGame() {
-		removeTerminalListener();
-	}
-	public void endGame(GameRecord record) {
-		//TODO condition of winner
-		//	showMainWinner(record.gameWinner());
-		//TODO else
-		//  showMainDraw();
 		removeTerminalListener();
 	}
 
@@ -239,6 +241,14 @@ public class GameMenu implements GameMenuInterface {
 		text.setLayoutX(pos.x() + pos.w() * (0.5 - 0.2 * str.length()));
 		text.setLayoutY(pos.y() + pos.h() * 0.75);
 		rootPane.getChildren().add(text);
+	}
+
+	private void addTraditionalButton(Pane parent, String str, String cmd, Position.RectPos pos) {
+		Button btn = new Button(str);
+		btn.setOnMouseClicked(e -> notifyListeners(buttonListeners, cmd));
+		if (pos != null)
+			pos.setBounds(btn);
+		parent.getChildren().add(btn);
 	}
 
 	private void addButton(Pane parent, String str, String cmd, Position.RectPos pos) {
@@ -320,7 +330,7 @@ public class GameMenu implements GameMenuInterface {
 	}
 
 	private void addPicker() {
-		new FivePlaceGame(this, pickNullPossible, pickList, rootPane, pickIdx);
+		new FivePlaceGame(this, pickNullPossible, pickList, overlayRedrawingPane, pickIdx);
 	}
 
 	public void addWeatherOverlay(Position.RectPos pos, Image image) {
@@ -332,14 +342,14 @@ public class GameMenu implements GameMenuInterface {
 
 	private void addCheatButtons() {
 		HBox cheats = new HBox();
-		addButton(cheats, "Cheat: take from deck", "cheat_0", null);
-		addButton(cheats, "Cheat: add hp", "cheat_1", null);
-		addButton(cheats, "Cheat: restore leader", "cheat_2", null);
-		addButton(cheats, "Cheat: clear weather", "cheat_3", null);
-		addButton(cheats, "Cheat: restore graveyard", "cheat_4", null);
-		addButton(cheats, "Cheat: show opponent's hand", "cheat_5", null);
-		addButton(cheats, "Cheat: horn", "cheat_6", null);
-		addButton(cheats, "Cheat: new card", "cheat_7", null);
+		addTraditionalButton(cheats, "Cheat: take from deck", "cheat_0", null);
+		addTraditionalButton(cheats, "Cheat: add hp", "cheat_1", null);
+		addTraditionalButton(cheats, "Cheat: restore leader", "cheat_2", null);
+		addTraditionalButton(cheats, "Cheat: clear weather", "cheat_3", null);
+		addTraditionalButton(cheats, "Cheat: restore graveyard", "cheat_4", null);
+		addTraditionalButton(cheats, "Cheat: show opponent's hand", "cheat_5", null);
+		addTraditionalButton(cheats, "Cheat: horn", "cheat_6", null);
+		addTraditionalButton(cheats, "Cheat: new card", "cheat_7", null);
 		for (Node node : cheats.getChildren())
 			node.setStyle("-fx-font-size:8");
 		rootPane.getChildren().add(cheats);
@@ -401,6 +411,13 @@ public class GameMenu implements GameMenuInterface {
 	private boolean messageAnimation = false;
 
 	private void showAllMessages() {
+		if (isMessageShowing == false)
+			return;
+		if (!animationNodes.isEmpty() || !scorchCards.isEmpty()) {
+			Platform.runLater(this::showAllMessages);
+			return;
+		}
+
 		int delay = 510;
 		messageAnimation = true;
 		for (MessageGame message : messages) {
@@ -412,60 +429,46 @@ public class GameMenu implements GameMenuInterface {
 		isMessageShowing = false;
 	}
 
-	public void beginRound() {
-		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_round_start.png"), "NEW Round Started"));
+	private void tryShowAllMessages() {
 		if (!isMessageShowing) {
 			isMessageShowing = true;
-			waitExec.run(700, this::showAllMessages);
+			Platform.runLater(() -> showAllMessages());
 		}
+	}
+
+	public void beginRound() {
+		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_round_start.png"), "NEW Round Started"));
+		tryShowAllMessages();
 	}
 
 	public void userPassed(int player) {
 		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_round_passed.png"),
 				controller.getPlayer(player).user.nickname() + " passed"));
-		if (!isMessageShowing) {
-			isMessageShowing = true;
-			waitExec.run(700, this::showAllMessages);
-		}
+		tryShowAllMessages();
 	}
 
 	public void showWinner(int player) {
 		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_win_round.png"),
 				controller.getPlayer(player).user.nickname() + " won"));
-		if (!isMessageShowing) {
-			isMessageShowing = true;
-			waitExec.run(700, this::showAllMessages);
-		}
+		tryShowAllMessages();
 	}
 	public void showDraw() {
 		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_draw_round.png"), "	 Draw!"));
-		if (!isMessageShowing) {
-			isMessageShowing = true;
-			waitExec.run(700, this::showAllMessages);
-		}
+		tryShowAllMessages();
 	}
 	public void showMainWinner(int player) {
 		messages.add(new MessageGame(messagePane, R.getImage("icons/end_win.png"), "	 " + controller.getPlayer(player).user.nickname() + " won the Game"));
-		if (!isMessageShowing) {
-			isMessageShowing = true;
-			waitExec.run(700, this::showAllMessages);
-		}
+		tryShowAllMessages();
 	}
 	public void showMainDraw() {
 		messages.add(new MessageGame(messagePane, R.getImage("icons/end_draw.png"), "Draw!"));
-		if (!isMessageShowing) {
-			isMessageShowing = true;
-			waitExec.run(700, this::showAllMessages);
-		}
+		tryShowAllMessages();
 	}
 
 	public void userTurn(int player) {
 		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_me_turn.png"),
 				controller.getPlayer(1 - player).user.nickname() + "'s turn"));
-		if (!isMessageShowing) {
-			isMessageShowing = true;
-			waitExec.run(700, this::showAllMessages);
-		}
+		tryShowAllMessages();
 	}
 
 	private void addNameProfile(boolean up) {
@@ -525,17 +528,44 @@ public class GameMenu implements GameMenuInterface {
 
 	private boolean showCheats;
 
+	private void addNonredrawingButtons() {
+		addButton(buttonPane, "Pass", "pass", Position.pass);
+		addButton(buttonPane, "React", "react_0", new Position.RectPos(0.1625, 0.0958, 0.2244, 0.1900));
+		if (controller.hasSwitchableSides()) {
+			MFXButton btn = new MFXButton("S\ni\nd\ne");
+			btn.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-background-color: rgba(245,222,196,0.54)");
+			btn.setOnMouseClicked(e -> {
+				controller.setActivePlayer(1 - controller.getActivePlayer());
+				redraw();
+			});
+			Position.switchBtn.setBounds(btn);
+			overlayNonredrawingPane.getChildren().add(btn);
+		}
+		if (hasChat) {
+			MFXButton b = new MFXButton("C\nh\na\nt");
+			b.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-background-color: rgba(245,222,196,0.54)");
+			b.setOnAction(k -> {
+				if (!MessageStage.getInstance().isShowing())
+					MessageStage.getInstance().start();
+				else {
+					MessageStage.getInstance().close();
+					Stage primaryStage = GameStage.getInstance();
+					primaryStage.setX(primaryStage.getX() + 125);
+				}
+			});
+			overlayNonredrawingPane.getChildren().add(b);
+		}
+	}
+
 	public void redraw() {
 		final int player = controller.getActivePlayer();
 		activeCardView = null;
 		cardMap.clear();
 		rootPane.getChildren().clear();
-		overlayPane.getChildren().clear();
+		overlayRedrawingPane.getChildren().clear();
 		addBackground(R.image.board[controller.getActivePlayer()]);
 		if (showCheats)
 			addCheatButtons();
-		addButton(rootPane, "Pass", "pass", Position.pass);
-		addButton(rootPane, "React", "react_0", new Position.RectPos(0.1625, 0.0958, 0.2244, 0.1900));
 
 		addDeckCards(true);
 		addProfile(true);
@@ -630,31 +660,7 @@ public class GameMenu implements GameMenuInterface {
 			rootPane.getChildren().add(info);
 		}
 		addWinnerSign();
-		if (controller.hasSwitchableSides()) {
-			MFXButton btn = new MFXButton("S\ni\nd\ne");
-			btn.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-background-color: rgba(245,222,196,0.54)");
-			btn.setOnMouseClicked(e -> {
-				controller.setActivePlayer(1 - player);
-				redraw();
-			});
-			Position.switchBtn.setBounds(btn);
-			overlayPane.getChildren().add(btn);
-		}
 
-		if (hasChat) {
-			MFXButton b = new MFXButton("C\nh\na\nt");
-			b.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-background-color: rgba(245,222,196,0.54)");
-			b.setOnAction(k -> {
-				if (!MessageStage.getInstance().isShowing())
-					MessageStage.getInstance().start();
-				else {
-					MessageStage.getInstance().close();
-					Stage primaryStage = GameStage.getInstance();
-					primaryStage.setX(primaryStage.getX() + 125);
-				}
-			});
-			overlayPane.getChildren().add(b);
-		}
 		if (pickList != null)
 			addPicker();
 

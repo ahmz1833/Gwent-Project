@@ -474,6 +474,18 @@ public class GameController {
 		                      new ArrayList<>(p2Sc));
 	}
 
+	private void endGame(int gameWinner) {
+		if (gameMenu != null) {
+			if (gameWinner == -1)
+				gameMenu.showMainDraw();
+			else
+				gameMenu.showMainWinner(gameWinner);
+			gameMenu.endGame();
+			gameMenu.redraw();
+		}
+		onEnd.accept(makeRecord(gameWinner));
+	}
+
 	private void nextRound() {
 		playerData[turn].controller.endTurn();
 		p1Sc.add(calcPlayerScore(0));
@@ -499,9 +511,7 @@ public class GameController {
 			int gameWinner = -1;
 			if (playerData[0].hp > 0) gameWinner = 0;
 			if (playerData[1].hp > 0) gameWinner = 1;
-			if (gameMenu != null)
-				gameMenu.endGame();
-			onEnd.accept(makeRecord(gameWinner));
+			endGame(gameWinner);
 			return;
 		}
 
@@ -695,9 +705,7 @@ public class GameController {
 		p1Sc.add(calcPlayerScore(0));
 		p2Sc.add(calcPlayerScore(1));
 		roundWinner.add(1 - cmd.player());
-		if (gameMenu != null)
-			gameMenu.endGame();
-		onEnd.accept(makeRecord(1 - cmd.player()));
+		endGame(1 - cmd.player());
 		return;
 	}
 

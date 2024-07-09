@@ -36,6 +36,8 @@ public interface GameMenuInterface {
 	void userPassed(int player);
 	void showWinner(int player);
 	void showDraw();
+	void showMainWinner(int player);
+	void showMainDraw();
 	void userTurn(int player);
 
 	void endGame();
