@@ -36,6 +36,8 @@ public class Client extends Task {
 		if (destructed)
 			return;
 		destructed = true;
+		if (loggedInUser != null)
+			userToClient.remove(loggedInUser.id());
 		getNetNode().close();
 		ANSI.log("Client disconnected : " + getNetNode().socket().getInetAddress(), ANSI.CYAN, false);
 	}

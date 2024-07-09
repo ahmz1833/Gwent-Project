@@ -41,32 +41,30 @@ public class GameTask extends Task {
 		data[1].deck = d2;
 		data[0].user = c1.loggedInUser();
 		data[1].user = c2.loggedInUser();
-		data[0].client.setListener("chatMessage", this::handleMessage);
-		data[1].client.setListener("chatMessage", this::handleMessage);
+		data[0].client.setListener("chatMessage", req -> handleMessage(false, req));
+		data[1].client.setListener("chatMessage", req -> handleMessage(false, req));
 		this.onEnd = onEnd;
 		start();
 	}
 
-	private Response handleMessage(Request req) {
+	private Response handleMessage(boolean publicMsg, Request req) {
 		Message msg = Message.fromString(req.getBody().get("msg").getAsString());
-		msg.setId(Random.nextId());
-		addCommand(() -> {
-			for (int i = 0; i < 2; i++)
-				if (data[i].client != null)
-					data[i].client.send(new Request("chatMessage", MGson.makeJsonObject("msg", msg.toString())));
-			msgs.add(msg);
-		});
-		return req.response(Response.OK_NO_CONTENT);
-	}
-
-	private Response handlePublicMessage(Request req) {
-		Message msg = Message.fromString(req.getBody().get("msg").getAsString());
-		msg.setId(Random.nextId());
-		addCommand(() -> {
-			for (Client client : liveClients)
-				client.send(new Request("chatMessage", MGson.makeJsonObject("msg", msg.toString())));
-			publicMsgs.add(msg);
-		});
+		if (msg.getType() == 0)
+			msg.setId(Random.nextId());
+		if (publicMsg) {
+			addCommand(() -> {
+				for (Client client : liveClients)
+					client.send(new Request("chatMessage", MGson.makeJsonObject("msg", msg.toString())));
+				publicMsgs.add(msg);
+			});
+		} else {
+			addCommand(() -> {
+				for (int i = 0; i < 2; i++)
+					if (data[i].client != null)
+						data[i].client.send(new Request("chatMessage", MGson.makeJsonObject("msg", msg.toString())));
+				msgs.add(msg);
+			});
+		}
 		return req.response(Response.OK_NO_CONTENT);
 	}
 
@@ -166,6 +164,7 @@ public class GameTask extends Task {
 		addCommand(() -> {
 			client.send(liveRequest());
 			liveClients.add(client);
+			client.setListener("chatMessage", req -> handleMessage(true, req));
 		});
 	}
 
@@ -186,6 +185,7 @@ public class GameTask extends Task {
 					c.send(continueRequest());
 				} else if (System.currentTimeMillis() - d.disTime >= 60_000) {
 					sendCommandAsync(new Command.Resign(i, "disconnected"));
+					sendCommandAsync(new Command.Sync(i));
 					return;
 				}
 			}

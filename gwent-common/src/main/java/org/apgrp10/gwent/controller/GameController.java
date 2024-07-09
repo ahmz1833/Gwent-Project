@@ -499,7 +499,8 @@ public class GameController {
 			int gameWinner = -1;
 			if (playerData[0].hp > 0) gameWinner = 0;
 			if (playerData[1].hp > 0) gameWinner = 1;
-			gameMenu.endGame();
+			if (gameMenu != null)
+				gameMenu.endGame();
 			onEnd.accept(makeRecord(gameWinner));
 			return;
 		}
@@ -674,7 +675,7 @@ public class GameController {
 				newCard.setGameId(cardCount);
 				cardIdMap.put(cardCount, newCard);
 				cardCount++;
-				if (gameMenu != null)
+				if (gameMenu != null && activePlayer == cmd.player())
 					gameMenu.animationToHand(newCard);
 				playerData[p].ownedCards.add(newCard);
 				playerData[p].handCards.add(newCard);
@@ -694,7 +695,8 @@ public class GameController {
 		p1Sc.add(calcPlayerScore(0));
 		p2Sc.add(calcPlayerScore(1));
 		roundWinner.add(1 - cmd.player());
-		gameMenu.endGame();
+		if (gameMenu != null)
+			gameMenu.endGame();
 		onEnd.accept(makeRecord(1 - cmd.player()));
 		return;
 	}
