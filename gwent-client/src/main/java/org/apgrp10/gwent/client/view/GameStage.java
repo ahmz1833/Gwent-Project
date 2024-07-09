@@ -1,20 +1,21 @@
 package org.apgrp10.gwent.client.view;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
+import io.github.palexdev.materialfx.dialogs.MFXDialogs;
 import javafx.application.Platform;
+import javafx.geometry.Orientation;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.Server;
 import org.apgrp10.gwent.client.controller.MouseInputController;
 import org.apgrp10.gwent.client.controller.ReplayInputController;
 import org.apgrp10.gwent.client.controller.ServerInputController;
+import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.controller.InputController;
 import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.Deck;
+import org.apgrp10.gwent.model.GameRecord;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
@@ -105,10 +106,11 @@ public class GameStage extends AbstractStage {
 		InputController c1 = new MouseInputController();
 		InputController c2 = new MouseInputController();
 		GameMenu gm = new GameMenu(this, true);
+
 		// TODO: better way to save recording
 		new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> {
-			Utils.choosePlaceAndDownload("Choose place to save recording", "recording.gwent", this,
-					MGson.get(true, true).toJson(gr));
+			showWinnerDialog(gr, true);
+
 			this.close();
 		}, 0, false);
 	}
@@ -119,8 +121,7 @@ public class GameStage extends AbstractStage {
 		GameMenu gm = new GameMenu(this, true);
 		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr ->
 				new WaitExec(false).run(3000, () -> {
-					// TODO: show results dialog
-
+					showWinnerDialog(gr, false);
 					close();
 				}), player, false);
 		if (fastForward) gc.fastForward(cmds);
@@ -165,6 +166,28 @@ public class GameStage extends AbstractStage {
 	protected void onCloseRequest(WindowEvent event) {
 		event.consume();
 		if (showExitDialog()) stopServer();
+	}
+	private void showWinnerDialog(GameRecord gr, boolean hasSave){
+		String title;
+		if(gr.gameWinner() == -1)
+			title = "Draw!";
+		else if((gr.gameWinner() == 0 && UserController.getCurrentUser().id() == gr.player1ID()) ||
+		        (gr.gameWinner() == 1 && UserController.getCurrentUser().id() == gr.player2ID()))
+			title = "you win!";
+		else
+			title = "you lose!";
+		StringBuilder content = new StringBuilder();
+		for(int i = 0; i < gr.p1Sc().size(); i++){
+			content.append("Round ").append(i).append(" : ").append(gr.p1Sc().get(i)).append("_").append(gr.p2Sc().get(i)).append(" / ");
+		}
+		if(content.length() > 3)
+			content = new StringBuilder(content.substring(0, content.length() - 3));
+		if(!hasSave)
+			Dialogs.showDialogAndWait(this, MFXDialogs.info(), title, content.toString(), Map.entry("#OK", k -> {}));
+		else
+			Dialogs.showDialogAndWait(this, MFXDialogs.info(), title, content.toString(), Map.entry("#OK", k -> {}), Map.entry("save game", k ->
+					Utils.choosePlaceAndDownload("Choose place to save recording", "recording.gwent", this,
+					MGson.get(true, true).toJson(gr))));
 	}
 
 	private enum GameMode {NONE, LOCAL, ONLINE, CONTINUE, LIVE, REPLAY}
