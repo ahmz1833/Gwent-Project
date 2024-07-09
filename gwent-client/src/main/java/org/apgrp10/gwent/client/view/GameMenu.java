@@ -17,6 +17,7 @@ import org.apgrp10.gwent.client.model.TerminalAsyncReader;
 import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.controller.GameController.PlayerData;
 import org.apgrp10.gwent.model.Avatar;
+import org.apgrp10.gwent.model.GameRecord;
 import org.apgrp10.gwent.model.card.Card;
 import org.apgrp10.gwent.utils.WaitExec;
 import org.apgrp10.gwent.view.GameMenuInterface;
@@ -202,6 +203,13 @@ public class GameMenu implements GameMenuInterface {
 	}
 
 	public void endGame() {
+		removeTerminalListener();
+	}
+	public void endGame(GameRecord record) {
+		//TODO condition of winner
+		//	showMainWinner(record.gameWinner());
+		//TODO else
+		//  showMainDraw();
 		removeTerminalListener();
 	}
 
@@ -431,6 +439,20 @@ public class GameMenu implements GameMenuInterface {
 	}
 	public void showDraw() {
 		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_draw_round.png"), "	 Draw!"));
+		if (!isMessageShowing) {
+			isMessageShowing = true;
+			waitExec.run(700, this::showAllMessages);
+		}
+	}
+	public void showMainWinner(int player) {
+		messages.add(new MessageGame(messagePane, R.getImage("icons/end_win.png"), "	 " + controller.getPlayer(player).user.nickname() + " won the Game"));
+		if (!isMessageShowing) {
+			isMessageShowing = true;
+			waitExec.run(700, this::showAllMessages);
+		}
+	}
+	public void showMainDraw() {
+		messages.add(new MessageGame(messagePane, R.getImage("icons/end_draw.png"), "Draw!"));
 		if (!isMessageShowing) {
 			isMessageShowing = true;
 			waitExec.run(700, this::showAllMessages);
