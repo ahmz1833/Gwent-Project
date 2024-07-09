@@ -52,7 +52,7 @@ public interface Command {
 
 	int player();
 
-	public interface Informational {}
+	interface Informational {}
 
 	record VetoCard(int player, int cardId) implements Command, Serializable {}
 

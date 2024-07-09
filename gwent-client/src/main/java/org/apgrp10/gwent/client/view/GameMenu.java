@@ -237,7 +237,7 @@ public class GameMenu implements GameMenuInterface {
 	private void addText(String str, Position.RectPos pos) {
 		// TODO: better way to adjust text position and size
 		Text text = new Text(str);
-		text.setFont(Font.font(24));
+		text.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-font-size: 25;");
 		text.setLayoutX(pos.x() + pos.w() * (0.5 - 0.2 * str.length()));
 		text.setLayoutY(pos.y() + pos.h() * 0.75);
 		rootPane.getChildren().add(text);
@@ -256,7 +256,9 @@ public class GameMenu implements GameMenuInterface {
 		btn.setOnMouseClicked(e -> notifyListeners(buttonListeners, cmd));
 		if (pos != null)
 			pos.setBounds(btn);
-		btn.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-background-color: rgba(245,222,196,0.54)");
+		btn.setStyle("-fx-font-family: 'Comfortaa SemiBold';" +
+		             "-fx-background-color: rgba(245,222,196,0.54);" +
+		             "-fx-text-fill: #000000;");
 		parent.getChildren().add(btn);
 	}
 

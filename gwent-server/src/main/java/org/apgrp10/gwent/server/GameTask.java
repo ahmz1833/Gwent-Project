@@ -1,10 +1,12 @@
 package org.apgrp10.gwent.server;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.google.gson.JsonElement;
 import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.model.*;
 import org.apgrp10.gwent.model.net.Request;
@@ -18,21 +20,14 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 public class GameTask extends Task {
+	private final Data[] data = {new Data(), new Data()};
+	private final List<Message> msgs = new ArrayList<>(), publicMsgs = new ArrayList<>();
+	private final List<Command> cmds = new ArrayList<>();
+	private final List<Client> liveClients = new ArrayList<>();
+	private final Consumer<GameRecord> onEnd;
 	private GameController gameController;
-	private static class Data {
-		public Client client;
-		public Deck deck;
-		public long disTime;
-		public User user;
-	};
-	private Data data[] = {new Data(), new Data()};
 	private boolean done;
-	private List<Message> msgs = new ArrayList<>();
-	private List<Message> publicMsgs = new ArrayList<>();
-	private List<Command> cmds = new ArrayList<>();
-	private List<Client> liveClients = new ArrayList<>();
 	private long seed;
-	private Consumer<GameRecord> onEnd;
 
 	public GameTask(Client c1, Client c2, Deck d1, Deck d2, Consumer<GameRecord> onEnd) {
 		data[0].client = c1;
@@ -41,65 +36,62 @@ public class GameTask extends Task {
 		data[1].deck = d2;
 		data[0].user = c1.loggedInUser();
 		data[1].user = c2.loggedInUser();
-		data[0].client.setListener("chatMessage", req -> handleMessage(false, req));
-		data[1].client.setListener("chatMessage", req -> handleMessage(false, req));
+		data[0].client.setListener("chatMessage", req -> handleMessage(req, false));
+		data[1].client.setListener("chatMessage", req -> handleMessage(req, false));
 		this.onEnd = onEnd;
 		start();
 	}
 
-	private Response handleMessage(boolean publicMsg, Request req) {
+	private Response handleCommand(Request req) {
+		Command cmd = Command.fromBase64(req.getBody().get("cmd").getAsString());
+		sendCommand(cmd);
+		return req.response(Response.OK_NO_CONTENT);
+	}
+
+	private Response handleMessage(Request req, boolean isPublic) {
 		Message msg = Message.fromString(req.getBody().get("msg").getAsString());
 		if (msg.getType() == 0)
 			msg.setId(Random.nextId());
-		if (publicMsg) {
-			addCommand(() -> {
-				for (Client client : liveClients)
-					client.send(new Request("chatMessage", MGson.makeJsonObject("msg", msg.toString())));
-				publicMsgs.add(msg);
-			});
-		} else {
-			addCommand(() -> {
+		addCommand(() -> {
+			if (!isPublic) {
 				for (int i = 0; i < 2; i++)
 					if (data[i].client != null)
 						data[i].client.send(new Request("chatMessage", MGson.makeJsonObject("msg", msg.toString())));
 				msgs.add(msg);
-			});
-		}
+			}
+			for (Client client : liveClients)
+				client.send(new Request("chatMessage", MGson.makeJsonObject("msg", msg.toString())));
+			publicMsgs.add(msg);
+		});
 		return req.response(Response.OK_NO_CONTENT);
 	}
 
 	private void start() {
 		addCommand(() -> {
 			seed = Random.nextPosLong();
-			JsonObject startBody = MGson.makeJsonObject(
-					"seed", seed,
-					"user1", MGson.toJsonElement(data[0].user.publicInfo()),
-					"user2", MGson.toJsonElement(data[1].user.publicInfo()),
-					"deck1", data[0].deck.toJsonString(),
-					"deck2", data[1].deck.toJsonString()
-			);
 
-			data[0].client.send(new Request("start", startBody));
-			data[1].client.send(new Request("start", startBody));
+			Request startingRequest = startingRequest("start", false, false);
+			data[0].client.send(startingRequest);
+			data[1].client.send(startingRequest);
 
 			gameController = new GameController(
-				new DummyInputController(),
-				new DummyInputController(),
-				data[0].user.publicInfo(),
-				data[1].user.publicInfo(),
-				data[0].deck,
-				data[1].deck,
-				seed,
-				null,
-				gr -> {
-					done = true;
-					removeAllListeners();
-					ANSI.log("game record: " + gr);
-					onEnd.accept(gr);
-				},
-				// these two are not important
-				0,
-				false
+					new DummyInputController(),
+					new DummyInputController(),
+					data[0].user.publicInfo(),
+					data[1].user.publicInfo(),
+					data[0].deck,
+					data[1].deck,
+					seed,
+					null,
+					gr -> {
+						done = true;
+						removeAllListeners();
+						ANSI.log("game record: " + gr);
+						onEnd.accept(gr);
+					},
+					// these two are not important
+					0,
+					false
 			);
 
 			data[0].client.setListener("command", this::handleCommand);
@@ -108,15 +100,13 @@ public class GameTask extends Task {
 	}
 
 	private void removeAllListeners() {
-		if (data[0].client != null) data[0].client.setListener("command", null);
-		if (data[1].client != null) data[1].client.setListener("command", null);
-		// TODO: remove listeners for chat , and listeners of live clients
-	}
-
-	private Response handleCommand(Request req) {
-		Command cmd = Command.fromBase64(req.getBody().get("cmd").getAsString());
-		sendCommand(cmd);
-		return req.response(Response.OK_NO_CONTENT);
+		for (int i = 0; i < 2; i++)
+			if (data[i].client != null) {
+				data[i].client.setListener("command", null);
+				data[i].client.setListener("chatMessage", null);
+			}
+		for (Client client : liveClients)
+			client.setListener("chatMessage", null);
 	}
 
 	public boolean isDone() {
@@ -126,45 +116,41 @@ public class GameTask extends Task {
 	public void sendCommandAsync(Command cmd) {
 		cmds.add(cmd);
 		JsonObject commandBody = MGson.makeJsonObject("cmd", cmd.toBase64(), "player", cmd.player());
-		if (data[0].client != null) data[0].client.send(new Request("command", commandBody));
-		if (data[1].client != null) data[1].client.send(new Request("command", commandBody));
+		for (int i = 0; i < 2; i++)
+			if (data[i].client != null)
+				data[i].client.send(new Request("command", commandBody));
+		for (Client client : liveClients)
+			client.send(new Request("command", commandBody));
 		gameController.sendCommand(cmd);
 	}
+
 	public void sendCommand(Command cmd) {
 		addCommand(() -> sendCommandAsync(cmd));
 	}
 
-	private Request continueRequest() {
-		return new Request("continueGame", MGson.makeJsonObject(
+	private Request startingRequest(String action, boolean fastForward, boolean isPublic) {
+		JsonObject startBody = MGson.makeJsonObject(
 				"seed", seed,
 				"user1", MGson.toJsonElement(data[0].user.publicInfo()),
 				"user2", MGson.toJsonElement(data[1].user.publicInfo()),
 				"deck1", data[0].deck.toJsonString(),
-				"deck2", data[1].deck.toJsonString(),
-				"cmds", cmds.stream().map(c -> c.toBase64()).collect(Collectors.toList()),
-				"msgs", msgs.stream().map(m -> m.toString()).collect(Collectors.toList())
-		));
-	}
-
-	private Request liveRequest() {
-		return new Request("liveGame", MGson.makeJsonObject(
-				"seed", seed,
-				"user1", MGson.toJsonElement(data[0].user.publicInfo()),
-				"user2", MGson.toJsonElement(data[1].user.publicInfo()),
-				"deck1", data[0].deck.toJsonString(),
-				"deck2", data[1].deck.toJsonString(),
-				"cmds", cmds.stream().map(c -> c.toBase64()).collect(Collectors.toList()),
-				"msgs", publicMsgs.stream().map(m -> m.toString()).collect(Collectors.toList())
-		));
+				"deck2", data[1].deck.toJsonString()
+		);
+		if (fastForward) {
+			startBody.add("cmds", MGson.toJsonElement(cmds.stream()
+					.map(Command::toBase64).collect(Collectors.toList())));
+			startBody.add("msgs", MGson.toJsonElement((isPublic ? publicMsgs : msgs).stream()
+					.map(Message::toString).collect(Collectors.toList())));
+		}
+		return new Request(action, startBody);
 	}
 
 	// TODO: use this in requests.java for attending a live-watching
-	// TODO: redirecting commands for live-watching clients
 	public void addLiveClient(Client client) {
 		addCommand(() -> {
-			client.send(liveRequest());
+			client.send(startingRequest("liveRequest", true, true));
 			liveClients.add(client);
-			client.setListener("chatMessage", req -> handleMessage(true, req));
+			client.setListener("chatMessage", req -> handleMessage(req, true));
 		});
 	}
 
@@ -184,7 +170,7 @@ public class GameTask extends Task {
 				if (c != null) {
 					d.client = c;
 					sendCommandAsync(new Command.Connection(i, true));
-					c.send(continueRequest());
+					c.send(startingRequest("continueGame", true, false));
 				} else if (System.currentTimeMillis() - d.disTime >= 60_000) {
 					sendCommandAsync(new Command.Resign(i, "disconnected"));
 					sendCommandAsync(new Command.Sync(i));
@@ -194,9 +180,13 @@ public class GameTask extends Task {
 		}
 
 		// Remove all disconnected live-watcher clients
-		for (int i = 0; i < liveClients.size(); i++) {
-			if (liveClients.get(i).isDone())
-				liveClients.remove(i--);
-		}
+		liveClients.removeIf(Client::isDone);
+	}
+
+	private static class Data {
+		public Client client;
+		public Deck deck;
+		public long disTime;
+		public User user;
 	}
 }

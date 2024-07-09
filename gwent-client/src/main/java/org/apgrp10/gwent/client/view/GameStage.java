@@ -2,7 +2,10 @@ package org.apgrp10.gwent.client.view;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import javafx.application.Platform;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.Server;
 import org.apgrp10.gwent.client.controller.MouseInputController;
@@ -20,10 +23,16 @@ import org.apgrp10.gwent.utils.MGson;
 import org.apgrp10.gwent.utils.Utils;
 
 import javafx.stage.WindowEvent;
+import org.apgrp10.gwent.utils.WaitExec;
 
 public class GameStage extends AbstractStage {
+	private static final List<Command> cmds = new ArrayList<>();
 	private static GameStage INSTANCE;
-
+	private static GameMode mode = GameMode.NONE;
+	private static User.PublicInfo user1, user2;
+	private static Deck deck1, deck2;
+	private static long seed;
+	private static int player;
 	private GameStage() {
 		super("Gwent Game", R.icon.app_icon);
 		if (INSTANCE != null) throw new RuntimeException("Duplicate Instance of GameStage");
@@ -33,14 +42,6 @@ public class GameStage extends AbstractStage {
 		if (INSTANCE == null) INSTANCE = new GameStage();
 		return INSTANCE;
 	}
-
-	private enum GameMode { NONE, LOCAL, ONLINE, CONTINUE, LIVE, REPLAY }
-	private static GameMode mode = GameMode.NONE;
-	private static User.PublicInfo user1, user2;
-	private static Deck deck1, deck2;
-	private static long seed;
-	private static int player;
-	private static final List<Command> cmds = new ArrayList<>();
 
 	public static void setCommonData(User.PublicInfo u1, User.PublicInfo u2, Deck d1, Deck d2, long seed) {
 		user1 = u1;
@@ -111,20 +112,16 @@ public class GameStage extends AbstractStage {
 		}, 0, false);
 	}
 
-	private void createOnline() {
-		InputController c1 = player == 0? new MouseInputController(): new ServerInputController();
-		InputController c2 = player == 1? new MouseInputController(): new ServerInputController();
+	private void createOnline(boolean fastForward) {
+		InputController c1 = player == 0 ? new MouseInputController() : new ServerInputController();
+		InputController c2 = player == 1 ? new MouseInputController() : new ServerInputController();
 		GameMenu gm = new GameMenu(this, true);
-		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> this.close(), player, false);
-		setupServer(gc);
-	}
+		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> {
+			new WaitExec(false).run(3000, ()->{
 
-	private void createContinue() {
-		InputController c1 = player == 0? new MouseInputController(): new ServerInputController();
-		InputController c2 = player == 1? new MouseInputController(): new ServerInputController();
-		GameMenu gm = new GameMenu(this, true);
-		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> this.close(), player, false);
-		gc.fastForward(cmds);
+			});
+		}, player, false);
+		if (fastForward) gc.fastForward(cmds);
 		setupServer(gc);
 	}
 
@@ -132,7 +129,8 @@ public class GameStage extends AbstractStage {
 		InputController c1 = new ServerInputController();
 		InputController c2 = new ServerInputController();
 		GameMenu gm = new GameMenu(this, true);
-		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> this.close(), player, true);
+		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr ->
+				new WaitExec(false).run(3000, this::close), player, true);
 		gc.fastForward(cmds);
 		setupServer(gc);
 	}
@@ -141,7 +139,8 @@ public class GameStage extends AbstractStage {
 		InputController c1 = new ReplayInputController(cmds);
 		InputController c2 = new ReplayInputController(cmds);
 		GameMenu gm = new GameMenu(this, false);
-		new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> this.close(), player, true);
+		new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr ->
+				new WaitExec(false).run(3000, this::close), player, true);
 	}
 
 	@Override
@@ -152,8 +151,8 @@ public class GameStage extends AbstractStage {
 				return false;
 			}
 			case LOCAL -> createLocal();
-			case ONLINE -> createOnline();
-			case CONTINUE -> createContinue();
+			case ONLINE -> createOnline(false);
+			case CONTINUE -> createOnline(true);
 			case LIVE -> createLive();
 			case REPLAY -> createReplay();
 		}
@@ -163,6 +162,8 @@ public class GameStage extends AbstractStage {
 	@Override
 	protected void onCloseRequest(WindowEvent event) {
 		event.consume();
-		if(showExitDialog()) stopServer();
+		if (showExitDialog()) stopServer();
 	}
+
+	private enum GameMode {NONE, LOCAL, ONLINE, CONTINUE, LIVE, REPLAY}
 }

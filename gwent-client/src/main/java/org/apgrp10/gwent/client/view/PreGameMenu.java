@@ -1,7 +1,6 @@
 package org.apgrp10.gwent.client.view;
 
 import io.github.palexdev.materialfx.controls.MFXButton;
-import io.github.palexdev.materialfx.dialogs.MFXDialogs;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.ImageCursor;
@@ -52,7 +51,7 @@ public class PreGameMenu {
 		load();
 		addInfoBox();
 		addUserInfo();
-		addGradePane();
+		addGridePane();
 		setSpoiler();
 		uploadDeck(R.getAbsPath("primaryDeck.gwent"));
 		addLinkTexts();
@@ -186,10 +185,10 @@ public class PreGameMenu {
 		rec.setFill(Color.BLACK);
 		pane.getChildren().add(rec);
 		rec.setOpacity(0.7);
-		setCursor();
+//		setCursor();
 	}
 
-	private void addGradePane() {
+	private void addGridePane() {
 		for (int i = 0; i < 2; i++) {
 			GridPane gridPane = new GridPane();
 			gridPane.setVgap(3);
@@ -361,10 +360,10 @@ public class PreGameMenu {
 		totalStrengthText = textWithImageInfo(infoVBox, "deck_stats_strength");
 		textForInfo(infoVBox, "Hero cards:");
 		totalHeroText = textWithImageInfo(infoVBox, "deck_stats_hero");
-		StackPane buttonBorder = getStackPane(150, 35, Pos.CENTER);
-		MFXButton btn = new MFXButton("startGame");
+		StackPane buttonBorder = getStackPane(160, 35, Pos.CENTER);
+		MFXButton btn = new MFXButton("Start Game");
 		btn.setOnMouseClicked(k -> startGame());
-		btn.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-font-size: 18px; -fx-background-color: gray;");
+		btn.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-font-size: 17px; -fx-background-color: gray;");
 		buttonBorder.getChildren().add(btn);
 		infoVBox.getChildren().add(buttonBorder);
 		pane.getChildren().add(infoVBox);
