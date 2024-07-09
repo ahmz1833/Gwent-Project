@@ -177,11 +177,13 @@ public class GameTask extends Task {
 			if (d.client != null && d.client.isDone()) {
 				d.client = null;
 				d.disTime = System.currentTimeMillis();
+				sendCommandAsync(new Command.Connection(i, false));
 			}
 			if (d.client == null) {
 				Client c = Client.clientOfUser(d.user);
 				if (c != null) {
 					d.client = c;
+					sendCommandAsync(new Command.Connection(i, true));
 					c.send(continueRequest());
 				} else if (System.currentTimeMillis() - d.disTime >= 60_000) {
 					sendCommandAsync(new Command.Resign(i, "disconnected"));

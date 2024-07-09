@@ -39,6 +39,7 @@ public interface GameMenuInterface {
 	void showMainWinner(int player);
 	void showMainDraw();
 	void userTurn(int player);
+	void showConnection(int player, boolean connection);
 
 	void endGame();
 }

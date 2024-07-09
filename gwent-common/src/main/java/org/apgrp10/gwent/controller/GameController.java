@@ -709,6 +709,11 @@ public class GameController {
 		return;
 	}
 
+	private void connection(Command.Connection cmd) {
+		if (gameMenu != null)
+			gameMenu.showConnection(cmd.player(), cmd.connection());
+	}
+
 	private final List<Consumer<Command>> commandListeners = new ArrayList<>();
 
 	public void addCommandListener(Consumer<Command> cb) { commandListeners.add(cb); }
@@ -745,6 +750,12 @@ public class GameController {
 
 	public void sendCommand(Command cmd) {
 		System.out.println(cmd);
+
+		if (cmd instanceof Command.Informational) {
+			if (cmd instanceof Command.Connection) connection((Command.Connection)cmd);
+			return;
+		}
+
 		cmdHistory.add(cmd);
 
 		if (cmd instanceof Command.Sync) {

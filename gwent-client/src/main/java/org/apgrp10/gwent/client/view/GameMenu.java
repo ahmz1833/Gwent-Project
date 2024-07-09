@@ -471,6 +471,13 @@ public class GameMenu implements GameMenuInterface {
 		tryShowAllMessages();
 	}
 
+	public void showConnection(int player, boolean connection) {
+		// TODO: add proper icon
+		messages.add(new MessageGame(messagePane, R.getImage("icons/notif_round_passed.png"),
+				controller.getPlayer(player).user.nickname() + (connection? " reconnected": " disconnected")));
+		tryShowAllMessages();
+	}
+
 	private void addNameProfile(boolean up) {
 		int playerIdx = up ? 1 - controller.getActivePlayer() : controller.getActivePlayer();
 		PlayerData player = controller.getPlayer(playerIdx);
