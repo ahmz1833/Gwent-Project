@@ -79,7 +79,7 @@ public class GameStage extends AbstractStage {
 
 	private void setupServer(GameController gc) {
 		InputController c1 = gc.getPlayer(0).controller;
-		InputController c2 = gc.getPlayer(0).controller;
+		InputController c2 = gc.getPlayer(1).controller;
 		boolean isOnline1 = c1 instanceof ServerInputController;
 		boolean isOnline2 = c2 instanceof ServerInputController;
 		Server.setListener("command", req -> {
