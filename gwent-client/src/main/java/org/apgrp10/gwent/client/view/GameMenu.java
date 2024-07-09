@@ -135,7 +135,8 @@ public class GameMenu implements GameMenuInterface {
 				RectPos.bySize(0.2218, 0.2824, 0.0270, 0.0500),
 				RectPos.bySize(0.2218, 0.6546, 0.0270, 0.0500),
 		};
-		public static final RectPos pass = new RectPos(0.1625, 0.8203, 0.2244, 0.8490);
+		public static final RectPos pass = new RectPos(0.1625, 0.8153, 0.2244, 0.8540);
+		public static final RectPos resign = new RectPos(0.1625, 0.8550, 0.2244, 0.8987);
 		public static final RectPos screen = new RectPos(0, 0, 1, 1);
 		public static final RectPos deck[] = {
 				new RectPos(0.8984, 0.0648, 0.9552, 0.1990),
@@ -352,6 +353,7 @@ public class GameMenu implements GameMenuInterface {
 		addTraditionalButton(cheats, "Cheat: show opponent's hand", "cheat_5", null);
 		addTraditionalButton(cheats, "Cheat: horn", "cheat_6", null);
 		addTraditionalButton(cheats, "Cheat: new card", "cheat_7", null);
+		addTraditionalButton(cheats, "Cheat: change leader", "cheat_8", null);
 		for (Node node : cheats.getChildren())
 			node.setStyle("-fx-font-size:8");
 		rootPane.getChildren().add(cheats);
@@ -370,10 +372,13 @@ public class GameMenu implements GameMenuInterface {
 	}
 
 	private void addWinnerSign() {
-		if (controller.calcPlayerScore(0) == controller.calcPlayerScore(1)) return;
-		ImageView image = new ImageView(R.getImage("icons/icon_high_score.png"));
-		Position.winnerSymbol[controller.calcPlayerScore(controller.getActivePlayer()) > controller.calcPlayerScore(1 - controller.getActivePlayer())? 1 : 0].setBounds(image);
-		rootPane.getChildren().add(image);
+		for (int i = 0; i < 2; i++) {
+			if (!controller.gonnaWin(controller.getActivePlayer() == i? 1: 0))
+				continue;
+			ImageView image = new ImageView(R.getImage("icons/icon_high_score.png"));
+			Position.winnerSymbol[i].setBounds(image);
+			rootPane.getChildren().add(image);
+		}
 	}
 
 	private void addDeckCards(boolean up) {
@@ -540,6 +545,7 @@ public class GameMenu implements GameMenuInterface {
 	private void addNonredrawingButtons() {
 		addButton(buttonPane, "Pass", "pass", Position.pass);
 		addButton(buttonPane, "React", "react_0", new Position.RectPos(0.1625, 0.0958, 0.2244, 0.1900));
+		addButton(buttonPane, "Resign", "resign", Position.resign);
 		if (controller.hasSwitchableSides()) {
 			MFXButton btn = new MFXButton("S\ni\nd\ne");
 			btn.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-background-color: rgba(245,222,196,0.54)");

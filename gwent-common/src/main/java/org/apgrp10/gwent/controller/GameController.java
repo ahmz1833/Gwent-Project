@@ -690,6 +690,17 @@ public class GameController {
 				playerData[p].ownedCards.add(newCard);
 				playerData[p].handCards.add(newCard);
 			}
+			case 8 -> {
+				List<CardInfo> leaders = CardInfo.allCards.stream().filter(i -> i.row == Row.LEADER).collect(Collectors.toList());
+				Deck deck = playerData[p].deck;
+				int idx = 0;
+				while (!leaders.get(idx).pathAddress.equals(deck.getLeader().pathAddress))
+					idx++;
+				idx = (idx + 1) % leaders.size();
+				CardInfo info = leaders.get(idx);
+				Card newCard = new Card(info.name, info.pathAddress, info.strength, info.row, info.faction, info.ability, info.isHero);
+				deck.setLeaderAndFaction(newCard);
+			}
 			default -> { assert false; }
 		}
 	}

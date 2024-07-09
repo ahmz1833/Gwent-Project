@@ -12,8 +12,8 @@ import java.util.*;
 
 public class Deck {
 	private final ArrayList<Card> deck = new ArrayList<>();
-	private final Faction faction;
-	private final Card leader;
+	private Faction faction;
+	private Card leader;
 
 	public Deck(int factionId, String leaderName) {
 		switch (factionId) {
@@ -32,6 +32,11 @@ public class Deck {
 			}
 		}
 		leader = leaderCopy;
+	}
+
+	public void setLeaderAndFaction(Card card) {
+		faction = card.faction;
+		leader = card;
 	}
 
 	public static boolean isCorrectDeck(Deck deck) {

@@ -158,6 +158,10 @@ public class MouseInputController implements InputController {
 			controller.sendCommand(new Command.Pass(player));
 			controller.sendCommand(new Command.Sync(player));
 		}
+		if (str.equals("resign")) {
+			controller.sendCommand(new Command.Resign(player, "explicit"));
+			controller.sendCommand(new Command.Sync(player));
+		}
 		if (str.startsWith("cheat_")) {
 			controller.sendCommand(new Command.Cheat(player, Integer.parseInt(str.substring(6))));
 			controller.sendCommand(new Command.Sync(player));
