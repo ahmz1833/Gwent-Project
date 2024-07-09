@@ -9,6 +9,7 @@ import org.apgrp10.gwent.model.card.Card;
 public interface GameMenuInterface {
 	void redraw();
 	void pickCard(List<Card> list, Consumer<Card> cb, boolean nullPossible);
+	void cancelPossiblePick();
 
 	Object addCardListener(Consumer<Object> cb);
 	Object addButtonListener(Consumer<Object> cb);

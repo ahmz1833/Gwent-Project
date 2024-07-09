@@ -34,7 +34,7 @@ public class GameController {
 			this.controller = controller;
 		}
 	}
-	private GameMenuInterface gameMenu;
+	private GameMenuInterface gameMenu, fastForwardGameMenu;
 	private final PlayerData playerData[] = new PlayerData[2];
 	private final List<List<Card>> row = new ArrayList<>();
 	private final List<List<Card>> special = new ArrayList<>();
@@ -187,6 +187,7 @@ public class GameController {
 	}
 
 	public GameMenuInterface getGameMenu() { return gameMenu; }
+	public GameMenuInterface getGameMenuNonnull() { return gameMenu != null? gameMenu: fastForwardGameMenu; }
 
 	public PlayerData getPlayer(int player) { return playerData[player]; }
 
@@ -782,15 +783,15 @@ public class GameController {
 	}
 
 	public void fastForward(List<Command> cmds) {
-		GameMenuInterface gm = gameMenu;
+		fastForwardGameMenu = gameMenu;
 		waitExec.setDummy(true);
 		gameMenu = null;
 
 		for (Command cmd : cmds)
 			sendCommand(cmd);
 
-		gameMenu = gm;
-		waitExec.setDummy(gm == null);
+		gameMenu = fastForwardGameMenu;
+		waitExec.setDummy(gameMenu == null);
 	}
 
 	public void setActivePlayer(int player) {

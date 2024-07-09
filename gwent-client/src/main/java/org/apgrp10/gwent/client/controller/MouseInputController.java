@@ -21,15 +21,16 @@ public class MouseInputController implements InputController {
 	}
 
 	private void addListeners() {
-		listeners.add(controller.getGameMenu().addButtonListener(this::buttonAction));
-		listeners.add(controller.getGameMenu().addCardListener(this::cardAction));
-		listeners.add(controller.getGameMenu().addRowListener(this::rowAction));
-		listeners.add(controller.getGameMenu().addBgListener(this::bgAction));
+		listeners.add(controller.getGameMenuNonnull().addButtonListener(this::buttonAction));
+		listeners.add(controller.getGameMenuNonnull().addCardListener(this::cardAction));
+		listeners.add(controller.getGameMenuNonnull().addRowListener(this::rowAction));
+		listeners.add(controller.getGameMenuNonnull().addBgListener(this::bgAction));
 	}
 
 	private void removeListeners() {
+		controller.getGameMenuNonnull().cancelPossiblePick();
 		for (Object listener : listeners)
-			controller.getGameMenu().removeListener(listener);
+			controller.getGameMenuNonnull().removeListener(listener);
 		listeners.clear();
 	}
 
@@ -67,7 +68,7 @@ public class MouseInputController implements InputController {
 			controller.sendCommand(new Command.VetoCard(player, card1.getGameId()));
 			controller.sendCommand(new Command.Sync(player));
 
-			controller.getGameMenu().pickCard(controller.getPlayer(player).handCards, card2 -> {
+			controller.getGameMenuNonnull().pickCard(controller.getPlayer(player).handCards, card2 -> {
 				if (card2 != null) {
 					controller.sendCommand(new Command.VetoCard(player, card2.getGameId()));
 					controller.sendCommand(new Command.Sync(player));
@@ -88,20 +89,20 @@ public class MouseInputController implements InputController {
 						return;
 					controller.removeCommandListener(this);
 					controller.setActivePlayer(player);
-					controller.getGameMenu().pickCard(controller.getPlayer(player).handCards, pickCb, true);
+					controller.getGameMenuNonnull().pickCard(controller.getPlayer(player).handCards, pickCb, true);
 				}
 			});
 			return;
 		}
 
 		controller.setActivePlayer(player);
-		controller.getGameMenu().pickCard(controller.getPlayer(player).handCards, pickCb, true);
+		controller.getGameMenuNonnull().pickCard(controller.getPlayer(player).handCards, pickCb, true);
 	}
 
 	@Override
 	public void pick(List<Card> list, String what) {
 		boolean nullPossible = what.equals("view_enemy_hand") || what.equals("cheat_enemy_hand");
-		controller.getGameMenu().pickCard(list, card -> {
+		controller.getGameMenuNonnull().pickCard(list, card -> {
 			controller.sendCommand(new Command.PickResponse(player, card != null ? card.getGameId() : -1, what));
 			controller.sendCommand(new Command.Sync(player));
 		}, nullPossible);

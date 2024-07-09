@@ -36,10 +36,38 @@ public class GameTask extends Task {
 		data[1].deck = d2;
 		data[0].user = c1.loggedInUser();
 		data[1].user = c2.loggedInUser();
+		this.onEnd = onEnd;
+
+		seed = Random.nextPosLong();
+
+		Request startingRequest = startingRequest("start", false, false);
+		data[0].client.send(startingRequest);
+		data[1].client.send(startingRequest);
+
+		gameController = new GameController(
+				new DummyInputController(),
+				new DummyInputController(),
+				data[0].user.publicInfo(),
+				data[1].user.publicInfo(),
+				data[0].deck.deepCopy(),
+				data[1].deck.deepCopy(),
+				seed,
+				null,
+				gr -> {
+					done = true;
+					removeAllListeners();
+					ANSI.log("game record: " + gr);
+					onEnd.accept(gr);
+				},
+				// these two are not important
+				0,
+				false
+		);
+
+		data[0].client.setListener("command", this::handleCommand);
+		data[1].client.setListener("command", this::handleCommand);
 		data[0].client.setListener("chatMessage", req -> handleMessage(req, false));
 		data[1].client.setListener("chatMessage", req -> handleMessage(req, false));
-		this.onEnd = onEnd;
-		start();
 	}
 
 	private Response handleCommand(Request req) {
@@ -64,39 +92,6 @@ public class GameTask extends Task {
 			publicMsgs.add(msg);
 		});
 		return req.response(Response.OK_NO_CONTENT);
-	}
-
-	private void start() {
-		addCommand(() -> {
-			seed = Random.nextPosLong();
-
-			Request startingRequest = startingRequest("start", false, false);
-			data[0].client.send(startingRequest);
-			data[1].client.send(startingRequest);
-
-			gameController = new GameController(
-					new DummyInputController(),
-					new DummyInputController(),
-					data[0].user.publicInfo(),
-					data[1].user.publicInfo(),
-					data[0].deck.deepCopy(),
-					data[1].deck.deepCopy(),
-					seed,
-					null,
-					gr -> {
-						done = true;
-						removeAllListeners();
-						ANSI.log("game record: " + gr);
-						onEnd.accept(gr);
-					},
-					// these two are not important
-					0,
-					false
-			);
-
-			data[0].client.setListener("command", this::handleCommand);
-			data[1].client.setListener("command", this::handleCommand);
-		});
 	}
 
 	private void removeAllListeners() {
@@ -175,8 +170,12 @@ public class GameTask extends Task {
 						continueWaitingResponse = c;
 						c.send(startingRequest("continueGame", true, false), res -> {
 							if (res.isOk()) {
-								sendCommand(new Command.Connection(i, true));
-								addCommand(() -> d.client = c);
+								addCommand(() -> {
+									d.client = c;
+									sendCommandAsync(new Command.Connection(i, true));
+								});
+								c.setListener("command", this::handleCommand);
+								c.setListener("chatMessage", req -> handleMessage(req, false));
 							}
 						});
 					}

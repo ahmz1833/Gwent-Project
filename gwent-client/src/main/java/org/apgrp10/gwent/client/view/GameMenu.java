@@ -703,16 +703,30 @@ public class GameMenu implements GameMenuInterface {
 	public void pickCard(List<Card> list, Consumer<Card> cb, boolean nullPossible) {
 		assert pickList == null;
 
+		List<Card> copy = new ArrayList<>(list);
+		pickList = copy;
+
 		if (list.isEmpty()) {
-			cb.accept(null);
+			Platform.runLater(() -> {
+				if (pickList == copy) {
+					pickList = null;
+					cb.accept(null);
+				}
+			});
 			return;
 		}
 
-		pickList = list;
 		pickIdx = 0;
 		pickFn = cb;
 		pickNullPossible = nullPossible;
 		redraw();
+	}
+
+	public void cancelPossiblePick() {
+		if (pickList != null) {
+			pickList = null;
+			redraw();
+		}
 	}
 
 	private final List<Consumer<Object>> cardListeners = new ArrayList<>();
