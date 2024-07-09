@@ -1,7 +1,6 @@
 package org.apgrp10.gwent.utils;
 
-import javafx.animation.Transition;
-import javafx.util.Duration;
+import javafx.application.Platform;
 
 public class WaitExec {
 	private boolean dummy;
@@ -12,15 +11,27 @@ public class WaitExec {
 			return;
 		}
 
-		new Transition() {
-			{
-				setCycleDuration(Duration.millis(duration));
-				setCycleCount(1);
-				setOnFinished(e -> fn.run());
-				play();
+		new Waiter(duration, fn);
+	}
+
+	private static class Waiter {
+		private Runnable fn;
+		private long start, wait;
+
+		public Waiter(long wait, Runnable fn) {
+			this.wait = wait;
+			this.fn = fn;
+			this.start = System.currentTimeMillis();
+			tryRun();
+		}
+
+		private void tryRun() {
+			if (System.currentTimeMillis() - start < wait) {
+				Platform.runLater(this::tryRun);
+				return;
 			}
-			protected void interpolate(double frac) {}
-		};
+			fn.run();
+		}
 	}
 
 	public WaitExec(boolean dummy) {
