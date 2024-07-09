@@ -1,5 +1,8 @@
 package org.apgrp10.gwent.client.controller;
 
+import com.google.gson.reflect.TypeToken;
+import javafx.stage.Stage;
+import org.apgrp10.gwent.client.Gwent;
 import org.apgrp10.gwent.client.Server;
 import org.apgrp10.gwent.client.view.*;
 import org.apgrp10.gwent.controller.GameController;
@@ -17,11 +20,46 @@ import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
 import org.apgrp10.gwent.utils.Utils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class PreGameController {
 
-	private PreGameController(){}
+	private PreGameController() {}
+
+	public static Response startGame(Request request) {
+		Server.setListener(request.getAction(), null);
+		long seed = request.getBody().get("seed").getAsLong();
+		User.PublicInfo user1 = MGson.fromJson(request.getBody().get("user1"), User.PublicInfo.class);
+		User.PublicInfo user2 = MGson.fromJson(request.getBody().get("user2"), User.PublicInfo.class);
+		Deck deck1 = Deck.fromJsonString(request.getBody().get("deck1").getAsString());
+		Deck deck2 = Deck.fromJsonString(request.getBody().get("deck2").getAsString());
+		int localPlayer = (user1.id() == UserController.getCurrentUser().id()) ? 0 : 1;
+		GameStage.setCommonData(user1, user2, deck1, deck2, seed);
+		switch (request.getAction()) {
+			case "start" -> GameStage.setOnline(localPlayer);
+			case "continueGame" -> {
+				GameStage.setContinue(localPlayer, MGson.fromJson(request.getBody().get("cmds"),
+						TypeToken.getParameterized(ArrayList.class, Command.class).getType()));
+				// TODO: Handle Messages
+			}
+			case "live" -> {
+				GameStage.setLive(0, MGson.fromJson(request.getBody().get("cmds"),
+						TypeToken.getParameterized(ArrayList.class, Command.class).getType()));
+				// TODO: Handle Massages
+			}
+			case "replay" -> GameStage.setReplay(0, MGson.fromJson(request.getBody().get("cmds"),
+					TypeToken.getParameterized(ArrayList.class, Command.class).getType()));
+			default -> {
+				ANSI.log("Unknown Game Start Request : " + request.getAction());
+				return request.response(Response.BAD_REQUEST);
+			}
+		}
+		Gwent.forEachStage(Stage::close);
+		GameStage.getInstance().start();
+		return request.response(Response.OK_NO_CONTENT);
+	}
 
 	public static void randomPlayRequest(Deck deck, Consumer<Response> callback) {
 		Server.send(new Request("randomPlayRequest", MGson.makeJsonObject("deck", deck.toJsonString())), res -> {
@@ -35,20 +73,6 @@ public class PreGameController {
 			}
 			callback.accept(res);
 		});
-	}
-
-	private static Response startGame(Request request) {
-		Server.setListener("start", null);
-		long seed = request.getBody().get("seed").getAsLong();
-		User.PublicInfo user1 = MGson.fromJson(request.getBody().get("user1"), User.PublicInfo.class);
-		User.PublicInfo user2 = MGson.fromJson(request.getBody().get("user2"), User.PublicInfo.class);
-		Deck deck1 = Deck.fromJsonString(request.getBody().get("deck1").getAsString());
-		Deck deck2 = Deck.fromJsonString(request.getBody().get("deck2").getAsString());
-		int localPlayer = (user1.id() == UserController.getCurrentUser().id()) ? 0 : 1;
-		GameStage.setCommonData(user1, user2, deck1, deck2, seed);
-		GameStage.setOnline(localPlayer);
-		GameStage.getInstance().start();
-		return request.response(Response.OK_NO_CONTENT);
 	}
 
 	public static void cancelRandomPlayRequest() {
@@ -67,7 +91,6 @@ public class PreGameController {
 	public static boolean isWaitingForOpponent() {
 		return Server.hasListener("start");
 	}
-
 //	public static void startGame(User opponent, Deck deck) {
 //		PreGameMenu.getInstance().close();
 //		GameController.startGame(opponent, deck);

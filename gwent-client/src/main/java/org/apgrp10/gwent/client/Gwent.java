@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.client.model.TerminalAsyncReader;
+import org.apgrp10.gwent.client.view.AbstractStage;
 import org.apgrp10.gwent.client.view.LoginStage;
 import org.apgrp10.gwent.client.view.MainStage;
 import org.apgrp10.gwent.utils.ANSI;
@@ -19,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class Gwent extends Application {
 
@@ -41,12 +43,22 @@ public class Gwent extends Application {
 
 	public static void exit() {
 		Platform.runLater(() -> {
-			for (Window window : new ArrayList<>(Window.getWindows()))
-				if (window instanceof Stage stage && stage.isShowing())
-					stage.close();
+			forEachStage(Stage::close);
 			Server.disconnect();
 			Platform.exit();
 		});
+	}
+
+	public static void forEachStage(Consumer<Stage> action) {
+		for (Window window : new ArrayList<>(Window.getWindows()))
+			if (window instanceof Stage stage)
+				action.accept(stage);
+	}
+
+	public static void forEachAbstractStage(Consumer<AbstractStage> action) {
+		for (Window window : new ArrayList<>(Window.getWindows()))
+			if (window instanceof AbstractStage stage)
+				action.accept(stage);
 	}
 
 	@Override

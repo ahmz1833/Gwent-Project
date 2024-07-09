@@ -60,7 +60,7 @@ public class PacketHandler implements Runnable {
 			send(new Response(req.getId(), Response.OK_NO_CONTENT));
 			return;
 		}
-		Function<Request, Response> cb = reqCallbacks.get(req.getAction());
+		Function<Request, Response> cb = reqCallbacks.getOrDefault(req.getAction(), null);
 		if (cb == null) {
 			send(new Response(req.getId(), Response.BAD_REQUEST));
 			return;

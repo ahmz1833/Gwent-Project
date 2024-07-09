@@ -19,6 +19,7 @@ import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
 import org.apgrp10.gwent.utils.Utils;
+import org.apgrp10.gwent.utils.WaitExec;
 
 import java.util.Map;
 
@@ -103,15 +104,17 @@ public class PreGameStage extends AbstractStage {
 	private void randomPlayingRequest() {
 		PreGameController.randomPlayRequest(deck1, res -> {
 			if (res.isOk()) {
-				Platform.runLater(()->{
-					do {
-						showDialogAndWait(Dialogs.INFO(), "Waiting for opponent", "Waiting for a random opponent to join the game ...",
-								Map.entry("Cancel", e -> {
-									PreGameController.cancelRandomPlayRequest();
-									setupChoice();
-									onCreate();
-								}));
-					} while (PreGameController.isWaitingForOpponent());
+				Platform.runLater(() -> {
+					WaitExec waitForRandomDialogLoop = new WaitExec(false);
+					waitForRandomDialogLoop.run(100, new Runnable() {
+						@Override
+						public void run() {
+							if (!PreGameController.isWaitingForOpponent()) return;
+							showDialogAndWait(Dialogs.INFO(), "Waiting for opponent", "Waiting for a random opponent to join the game ...",
+									Map.entry("Cancel", e -> PreGameController.cancelRandomPlayRequest()));
+							waitForRandomDialogLoop.run(500, this);
+						}
+					});
 				});
 			} else {
 				ANSI.log("Failed to start game: " + res.getStatus());

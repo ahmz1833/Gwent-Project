@@ -1,20 +1,17 @@
 package org.apgrp10.gwent.client;
 
-import javafx.application.Platform;
 import javafx.stage.Window;
 import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.client.view.AbstractStage;
 import org.apgrp10.gwent.client.view.LoginStage;
-import org.apgrp10.gwent.client.view.MainStage;
 import org.apgrp10.gwent.utils.ANSI;
+import org.apgrp10.gwent.utils.WaitExec;
 
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class ClientMain {
-	private static final Timer connectionTimer = new Timer("connectionTimer", true);
+	private static final WaitExec connectionTimer = new WaitExec(false);
 
 	public static void main(String[] args) {
 		Locale.setDefault(Locale.ENGLISH);
@@ -36,21 +33,12 @@ public class ClientMain {
 		if (UserController.loadJWTFromFile() == null && !LoginStage.getInstance().isShowing())
 			LoginStage.getInstance().start();
 		UserController.onDisconnect();
-		for (Window window : new ArrayList<>(Window.getWindows()))
-			if (window instanceof AbstractStage stage)
-				stage.connectionLost();
-		connectionTimer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				connect();
-			}
-		}, 2500);
+		Gwent.forEachAbstractStage(AbstractStage::connectionLost);
+		connectionTimer.run(2500, ClientMain::connect);
 	}
 
 	public static void connect() {
-		Platform.runLater(()->{
-			Server.connect();
-			Server.run();
-		});
+		Server.connect();
+		Server.run();
 	}
 }

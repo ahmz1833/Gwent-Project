@@ -81,9 +81,8 @@ public class CardView extends Pane {
 		getChildren().add(getImageView(width / 2 + 13, height / 2 + 5, "icons/" + (isHero() ? "power_hero.png" : "power_normal.png")));
 		StackPane numberContainer = getStackPane(16, 16, 3, 3, Pos.CENTER);
 		Text text = new Text(String.valueOf(strength));
-		text.setStyle("-fx-font-size: 12px");
-		//TODO change font
-		text.setStyle("-fx-font-family: 'Comfortaa SemiBold' ");
+		text.setStyle("-fx-font-size: 12px;" +
+		              "-fx-font-family: 'Comfortaa SemiBold' ");
 		text.setLayoutY(height);
 		if (strength < this.strength) text.setFill(Color.color(1, 0, 0));
 		if (strength == this.strength) text.setFill(!isHero() ? Color.color(0, 0, 0) : Color.color(1, 1, 1));

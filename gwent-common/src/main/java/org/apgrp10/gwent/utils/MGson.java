@@ -4,9 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 
 import java.io.Reader;
+import java.lang.reflect.Type;
 
 public class MGson {
 	private static final Gson gson = new Gson();
@@ -38,15 +40,23 @@ public class MGson {
 		return gson.fromJson(reader, type);
 	}
 
+	public static <T> T fromJson(String json, Type typeOfT) {
+		return gson.fromJson(json, typeOfT);
+	}
+
+	public static <T> T fromJson(JsonElement json, Type typeOfT) {
+		return gson.fromJson(json, typeOfT);
+	}
+
 	public static JsonElement toJsonElement(Object object) {
 		return gson.toJsonTree(object);
 	}
 
 	public static JsonObject makeJsonObject(Object... objects) {
 		JsonObject json = new JsonObject();
-		if(objects.length % 2 != 0) throw new IllegalArgumentException("Invalid number of arguments");
+		if (objects.length % 2 != 0) throw new IllegalArgumentException("Invalid number of arguments");
 		for (int i = 0; i < objects.length; i += 2) {
-			if(!(objects[i] instanceof String)) throw new IllegalArgumentException("Key must be a string");
+			if (!(objects[i] instanceof String)) throw new IllegalArgumentException("Key must be a string");
 			String key = (String) objects[i];
 			Object value = objects[i + 1];
 			if (value instanceof String) json.addProperty(key, (String) value);

@@ -47,18 +47,18 @@ import javafx.util.Duration;
 
 public class GameMenu implements GameMenuInterface {
 	private GameController controller;
-	private Pane realRoot = new Pane();
-	private Pane rootPane = new Pane();
-	private Pane buttonPane = new Pane();
-	private Pane messagePane = new Pane();
-	private Pane overlayRedrawingPane = new Pane();
-	private Pane overlayNonredrawingPane = new Pane();
+	private final Pane realRoot = new Pane();
+	private final Pane rootPane = new Pane();
+	private final Pane buttonPane = new Pane();
+	private final Pane messagePane = new Pane();
+	private final Pane overlayRedrawingPane = new Pane();
+	private final Pane overlayNonredrawingPane = new Pane();
 	private Stage stage;
-	private boolean hasChat;
+	private final boolean hasChat;
 
 	public static GameMenu currentMenu;
 	private static final int WIDTH = 1280, HEIGHT = 720;
-	private WaitExec waitExec = new WaitExec(false);
+	private final WaitExec waitExec = new WaitExec(false);
 
 	protected static class Position {
 		public record RectPos(double posX, double posY, double posX2, double posY2) {
@@ -400,8 +400,8 @@ public class GameMenu implements GameMenuInterface {
 		StackPane textContainer = new StackPane();
 		textContainer.setAlignment(Pos.CENTER);
 		Text text = new Text(String.valueOf(playerData.deck.getDeck().size()));
-		text.setStyle("-fx-font-family: 'Comfortaa SemiBold'");
-		text.setStyle("-fx-font-size: 12px");
+		text.setStyle("-fx-font-family: 'Comfortaa SemiBold';" +
+		              "-fx-font-size: 12px");
 		text.setFill(Color.GOLD);
 		textContainer.getChildren().add(text);
 		textContainer.setBackground(Background.fill(Color.GRAY));
@@ -505,14 +505,25 @@ public class GameMenu implements GameMenuInterface {
 		vBox.setLayoutX(Position.profName[up ? 0 : 1].x());
 		vBox.setLayoutY(Position.profName[up ? 0 : 1].y());
 		vBox.setSpacing(4);
-		Text nickName = new Text(player.user.nickname());
-		nickName.setStyle("-fx-font-family: 'Yrsa SemiBold'");
-		nickName.setStyle("-fx-font-size: 16px");
-		nickName.setFill(Color.GOLD);
+		Text nickName = new Text();
+		if(playerIdx == controller.getTurn())
+		{
+			nickName.setText(player.user.nickname() + " (Active)");
+			nickName.setStyle("-fx-font-family: 'Comfortaa SemiBold';" +
+			                  "-fx-font-size: 17px;" +
+			                  "-fx-fill: #FFD900;");
+		}
+		else
+		{
+			nickName.setText(player.user.nickname());
+			nickName.setStyle("-fx-font-family: 'Comfortaa SemiBold';" +
+			                  "-fx-font-size: 16px;" +
+			                  "-fx-fill: #FFFFFF;");
+		}
 		vBox.getChildren().add(nickName);
 		Text faction = new Text(path.substring(path.lastIndexOf('_') + 1));
-		faction.setStyle("-fx-font-family: 'Yrsa SemiBold'");
-		faction.setStyle("-fx-font-size: 14px");
+		faction.setStyle("-fx-font-family: 'Comfortaa SemiBold';" +
+		                 "-fx-font-size: 14px");
 		faction.setFill(Color.GREY);
 		vBox.getChildren().add(faction);
 		ImageView cards = new ImageView(R.getImage("icons/icon_card_count.png"));
@@ -522,7 +533,8 @@ public class GameMenu implements GameMenuInterface {
 		hbox.setSpacing(5);
 		hbox.getChildren().add(cards);
 		Text cardsCounts = new Text(String.valueOf(player.handCards.size()));
-		cardsCounts.setStyle("-fx-font-size: 20px; -fx-font-family: 'Yrsa SemiBold'");
+		cardsCounts.setStyle("-fx-font-size: 20px; " +
+		                     "-fx-font-family: 'Yrsa SemiBold'");
 		cardsCounts.setFill(Color.GOLD);
 		hbox.getChildren().add(cardsCounts);
 		vBox.getChildren().add(hbox);
@@ -548,7 +560,8 @@ public class GameMenu implements GameMenuInterface {
 		addButton(buttonPane, "Resign", "resign", Position.resign);
 		if (controller.hasSwitchableSides()) {
 			MFXButton btn = new MFXButton("S\ni\nd\ne");
-			btn.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-background-color: rgba(245,222,196,0.54)");
+			btn.setStyle("-fx-font-family: 'Comfortaa SemiBold';" +
+			             "-fx-background-color: rgba(245,222,196,0.54)");
 			btn.setOnMouseClicked(e -> {
 				controller.setActivePlayer(1 - controller.getActivePlayer());
 				redraw();
@@ -558,7 +571,8 @@ public class GameMenu implements GameMenuInterface {
 		}
 		if (hasChat) {
 			MFXButton b = new MFXButton("C\nh\na\nt");
-			b.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-background-color: rgba(245,222,196,0.54)");
+			b.setStyle("-fx-font-family: 'Comfortaa SemiBold';" +
+			           "-fx-background-color: rgba(245,222,196,0.54)");
 			b.setOnAction(k -> {
 				if (!MessageStage.getInstance().isShowing())
 					MessageStage.getInstance().start();
@@ -926,7 +940,6 @@ public class GameMenu implements GameMenuInterface {
 				view.setPrefWidth(WIDTH / 6.0 - 20 * (Math.abs(placeIndex - 2)));
 				view.setPrefHeight(HEIGHT / 2.5 - 60 * (Math.abs(placeIndex - 2)));
 				view.setStyle("-fx-background-radius: 50px");
-				view.setStyle("-fx-background-radius: 50px");
 				images[placeIndex].setStyle("-fx-background-radius: 50px");
 				DropShadow dropShadow = new DropShadow();
 				dropShadow.setOffsetX(0);
@@ -972,7 +985,7 @@ public class GameMenu implements GameMenuInterface {
 	public static class MessageGame extends Pane {
 		private final Pane gamePane;
 		private final Pane self = this;
-		private WaitExec waitExec = new WaitExec(false);
+		private final WaitExec waitExec = new WaitExec(false);
 
 		MessageGame(Pane gamePane, Image image, String txt) {
 			this.gamePane = gamePane;
@@ -1002,7 +1015,8 @@ public class GameMenu implements GameMenuInterface {
 
 		private void addText(String comment) {
 			Text text = new Text(comment);
-			text.setStyle("-fx-font-family: 'Yrsa SemiBold'; -fx-font-size: 50px");
+			text.setStyle("-fx-font-family: 'Yrsa SemiBold'; " +
+			              "-fx-font-size: 50px");
 			text.setFill(Color.GOLD);
 			text.setY(365 / 720.0 * HEIGHT);
 			text.setX(500 / 1280.0 * WIDTH);

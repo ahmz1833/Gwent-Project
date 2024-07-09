@@ -148,7 +148,7 @@ public class GameTask extends Task {
 	// TODO: use this in requests.java for attending a live-watching
 	public void addLiveClient(Client client) {
 		addCommand(() -> {
-			client.send(startingRequest("liveRequest", true, true));
+			client.send(startingRequest("live", true, true));
 			liveClients.add(client);
 			client.setListener("chatMessage", req -> handleMessage(req, true));
 		});
@@ -176,7 +176,7 @@ public class GameTask extends Task {
 						c.send(startingRequest("continueGame", true, false), res -> {
 							if (res.isOk()) {
 								sendCommand(new Command.Connection(i, true));
-								addCommand(() -> { d.client = c; });
+								addCommand(() -> d.client = c);
 							}
 						});
 					}

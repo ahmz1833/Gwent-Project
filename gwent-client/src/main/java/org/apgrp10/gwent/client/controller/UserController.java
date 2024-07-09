@@ -2,6 +2,7 @@ package org.apgrp10.gwent.client.controller;
 
 
 import com.google.gson.JsonObject;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.apgrp10.gwent.client.Gwent;
 import org.apgrp10.gwent.client.Server;
@@ -79,18 +80,13 @@ public class UserController {
 			authenticate(response -> {
 				if (response.isOk()) {
 					ANSI.log("Authenticated; Username: " + UserController.getCurrentUser().username(), ANSI.LGREEN, false);
-					for (Window window : new ArrayList<>(Window.getWindows()))
-						if (window instanceof AbstractStage stage)
-							stage.connectionEstablished();
-					if (MainStage.getInstance().isWaitingForAuth())
-						MainStage.getInstance().start();
+					Gwent.forEachAbstractStage(AbstractStage::connectionEstablished);
+					if (MainStage.getInstance().isWaitingForAuth()) MainStage.getInstance().start();
+					Server.setListener("continueGame", PreGameController::startGame); // set listener for continueGame
 				} else {
 					ANSI.log("No Acceptable JWT, going to login page", ANSI.LRED, false);
-					for (Window window : new ArrayList<>(Window.getWindows()))
-						if (window instanceof AbstractStage stage)
-							stage.close();
-					if (!LoginStage.getInstance().isShowing())
-						LoginStage.getInstance().start();
+					Gwent.forEachStage(Stage::close);
+					if (!LoginStage.getInstance().isShowing()) LoginStage.getInstance().start();
 				}
 			});
 		}
@@ -202,9 +198,7 @@ public class UserController {
 				try {
 					Files.delete(Path.of(JWT_FILE_PATH));
 				} catch (IOException ignored) {}
-				for (Window window : new ArrayList<>(Window.getWindows()))
-					if (window instanceof AbstractStage stage)
-						stage.close();
+				Gwent.forEachStage(Stage::close);
 				ANSI.log("Logged out successfully, JWT removed.");
 				performAuthentication();   // for reset client state and go login page
 			} else
@@ -213,7 +207,7 @@ public class UserController {
 	}
 
 	public static void updateUser(User.PublicInfo newInfo, Consumer<Response> callback) {
-		if(newInfo.id() != currentUser.id()) ANSI.log("User ID mismatch, cannot update user information");
+		if (newInfo.id() != currentUser.id()) ANSI.log("User ID mismatch, cannot update user information");
 		JsonObject json = (JsonObject) MGson.toJsonElement(newInfo);
 		Server.send(new Request("updateUser", json), res -> {
 			if (res.isOk()) {

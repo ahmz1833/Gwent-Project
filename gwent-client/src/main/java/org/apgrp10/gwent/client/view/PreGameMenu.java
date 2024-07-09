@@ -62,7 +62,8 @@ public class PreGameMenu {
 		Text text = new Text("Good luck \"" + userInfo.nickname() + "\"");
 		text.setFill(Color.GREEN);
 		text.setWrappingWidth(200);
-		text.setStyle("-fx-font-size: 19px; -fx-font-family: 'Yrsa SemiBold'");
+		text.setStyle("-fx-font-size: 19px; " +
+		              "-fx-font-family: 'Comfortaa SemiBold'");
 		stackPane.getChildren().add(text);
 		stackPane.setLayoutX(primaryX + 20);
 		stackPane.setLayoutY(10);
@@ -363,7 +364,9 @@ public class PreGameMenu {
 		StackPane buttonBorder = getStackPane(160, 35, Pos.CENTER);
 		MFXButton btn = new MFXButton("Start Game");
 		btn.setOnMouseClicked(k -> startGame());
-		btn.setStyle("-fx-font-family: 'Comfortaa SemiBold'; -fx-font-size: 17px; -fx-background-color: gray;");
+		btn.setStyle("-fx-font-family: 'Comfortaa SemiBold'; " +
+		             "-fx-font-size: 17px; " +
+		             "-fx-background-color: gray;");
 		buttonBorder.getChildren().add(btn);
 		infoVBox.getChildren().add(buttonBorder);
 		pane.getChildren().add(infoVBox);
@@ -536,7 +539,9 @@ public class PreGameMenu {
 				images[i] = new ImageView(R.getImage("lg/faction_monsters.jpg"));
 				images[i].setFitWidth(screenWidth / 6.0 - 20 - 5 * Math.abs(i - 2));
 				images[i].setFitHeight(screenHeight / 2.5 + 35 - 10 * Math.abs(i - 2) );
-				images[i].setStyle("-fx-border-color: black; -fx-border-width: 2; -fx-padding: 2;");
+				images[i].setStyle("-fx-border-color: black; " +
+				                   "-fx-border-width: 2;" +
+				                   " -fx-padding: 2;");
 				//adding shadow
 				DropShadow dropShadow = new DropShadow();
 				dropShadow.setOffsetX(0);
@@ -601,7 +606,8 @@ public class PreGameMenu {
 			StackPane stackPane = getStackPane(1130, screenHeight / 5.0, Pos.TOP_CENTER);
 			Text text = new Text("\n");
 			text.setTextAlignment(TextAlignment.CENTER);
-			text.setStyle("-fx-font-size: 15px; -fx-font-family: 'Yrsa SemiBold'");
+			text.setStyle("-fx-font-size: 18px; " +
+			              "-fx-font-family: 'Yrsa SemiBold'");
 			text.setFill(Color.WHITE);
 			text.setWrappingWidth(400);
 			Rectangle clip = new Rectangle(400, 100);
