@@ -154,11 +154,14 @@ public class GameTask extends Task {
 		});
 	}
 
+	private Client continueWaitingResponse;
+
 	protected void iterate() {
 		if (done)
 			return;
 
-		for (int i = 0; i < 2; i++) {
+		for (int ii = 0; ii < 2; ii++) {
+			final int i = ii;
 			Data d = data[i];
 			if (d.client != null && d.client.isDone()) {
 				d.client = null;
@@ -166,12 +169,21 @@ public class GameTask extends Task {
 				sendCommandAsync(new Command.Connection(i, false));
 			}
 			if (d.client == null) {
-				Client c = Client.clientOfUser(d.user);
-				if (c != null) {
-					d.client = c;
-					sendCommandAsync(new Command.Connection(i, true));
-					c.send(startingRequest("continueGame", true, false));
-				} else if (System.currentTimeMillis() - d.disTime >= 60_000) {
+				if (continueWaitingResponse == null) {
+					Client c = Client.clientOfUser(d.user);
+					if (c != null) {
+						continueWaitingResponse = c;
+						c.send(startingRequest("continueGame", true, false), res -> {
+							if (res.isOk()) {
+								sendCommand(new Command.Connection(i, true));
+								addCommand(() -> { d.client = c; });
+							}
+						});
+					}
+				} else if (continueWaitingResponse.isDone()) {
+					continueWaitingResponse = null;
+				}
+				if (System.currentTimeMillis() - d.disTime >= 60_000) {
 					sendCommandAsync(new Command.Resign(i, "disconnected"));
 					sendCommandAsync(new Command.Sync(i));
 					return;
