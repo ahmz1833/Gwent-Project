@@ -79,8 +79,8 @@ public class GameTask extends Task {
 					new DummyInputController(),
 					data[0].user.publicInfo(),
 					data[1].user.publicInfo(),
-					data[0].deck,
-					data[1].deck,
+					data[0].deck.deepCopy(),
+					data[1].deck.deepCopy(),
 					seed,
 					null,
 					gr -> {
@@ -133,8 +133,8 @@ public class GameTask extends Task {
 				"seed", seed,
 				"user1", MGson.toJsonElement(data[0].user.publicInfo()),
 				"user2", MGson.toJsonElement(data[1].user.publicInfo()),
-				"deck1", data[0].deck.toJsonString(),
-				"deck2", data[1].deck.toJsonString()
+				"deck1", data[0].deck.toJson(),
+				"deck2", data[1].deck.toJson()
 		);
 		if (fastForward) {
 			startBody.add("cmds", MGson.toJsonElement(cmds.stream()

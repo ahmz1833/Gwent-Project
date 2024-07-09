@@ -33,6 +33,7 @@ public class GameStage extends AbstractStage {
 	private static Deck deck1, deck2;
 	private static long seed;
 	private static int player;
+
 	private GameStage() {
 		super("Gwent Game", R.icon.app_icon);
 		if (INSTANCE != null) throw new RuntimeException("Duplicate Instance of GameStage");
@@ -116,11 +117,12 @@ public class GameStage extends AbstractStage {
 		InputController c1 = player == 0 ? new MouseInputController() : new ServerInputController();
 		InputController c2 = player == 1 ? new MouseInputController() : new ServerInputController();
 		GameMenu gm = new GameMenu(this, true);
-		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> {
-			new WaitExec(false).run(3000, ()->{
+		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr ->
+				new WaitExec(false).run(3000, () -> {
+					// TODO: show results dialog
 
-			});
-		}, player, false);
+					close();
+				}), player, false);
 		if (fastForward) gc.fastForward(cmds);
 		setupServer(gc);
 	}

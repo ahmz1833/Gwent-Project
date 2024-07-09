@@ -492,7 +492,7 @@ public class PreGameMenu {
 				for (CardInfo cardInfo : CardInfo.allCards)
 					if (cardInfo.pathAddress.equals(cardView.getAddress())) {
 						for (int j = 0; j < cardView.getCount(); j++)
-							deck.addCard(deck.convertCortInfoToCard(cardInfo));
+							deck.addCard(Deck.convertCortInfoToCard(cardInfo));
 					}
 			} catch (Exception ignored) {
 			}

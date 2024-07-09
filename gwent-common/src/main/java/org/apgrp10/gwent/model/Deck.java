@@ -1,5 +1,7 @@
 package org.apgrp10.gwent.model;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.apgrp10.gwent.model.card.Card;
 import org.apgrp10.gwent.model.card.CardInfo;
 import org.apgrp10.gwent.model.card.Faction;
@@ -90,15 +92,37 @@ public class Deck {
 		}
 	}
 
+	public static Deck fromJson(JsonElement deck) {
+		return DeckToSave.loadFromJson(deck);
+	}
+
+	public JsonElement toJson() {
+		DeckToSave deckToSave = new DeckToSave();
+		deckToSave.changeFaction(this.faction);
+		deckToSave.changeLeader(this.leader);
+		for (Card card : this.deck) {
+			deckToSave.addCard(card.pathAddress);
+		}
+		return MGson.toJsonElement(deckToSave);
+	}
+
 	public static Deck fromJsonString(String string) {
-		return DeckToSave.loadFromJson(string);
+		return fromJson(MGson.fromJson(string, JsonObject.class));
+	}
+
+	public String toJsonString() {
+		return toJson().toString();
 	}
 
 	public static Deck fromBase64(String base64) {
 		return fromJsonString(new String(Base64.getDecoder().decode(base64)));
 	}
 
-	public Card convertCortInfoToCard(CardInfo cardInfo) {
+	public String toBase64() {
+		return Base64.getEncoder().encodeToString(toJsonString().getBytes());
+	}
+
+	public static Card convertCortInfoToCard(CardInfo cardInfo) {
 		return new Card(cardInfo.name, cardInfo.pathAddress, cardInfo.strength, cardInfo.row, cardInfo.faction, cardInfo.ability, cardInfo.isHero);
 	}
 
@@ -126,20 +150,6 @@ public class Deck {
 		return faction;
 	}
 
-	public String toJsonString() {
-		DeckToSave deckToSave = new DeckToSave();
-		deckToSave.changeFaction(this.faction);
-		deckToSave.changeLeader(this.leader);
-		for (Card card : this.deck) {
-			deckToSave.addCard(card.pathAddress);
-		}
-		return deckToSave.getJson();
-	}
-
-	public String toBase64() {
-		return Base64.getEncoder().encodeToString(toJsonString().getBytes());
-	}
-
 	public int assignGameIds(int startingId) {
 		int id = startingId;
 		for (Card card : deck)
@@ -149,6 +159,10 @@ public class Deck {
 
 	public void shuffle(Random random) {
 		Collections.shuffle(deck, random);
+	}
+
+	public Deck deepCopy() {
+		return fromJson(toJson());
 	}
 
 	static class DeckToSave {
@@ -165,7 +179,7 @@ public class Deck {
 			return null;
 		}
 
-		public static Deck loadFromJson(String json) {
+		public static Deck loadFromJson(JsonElement json) {
 			try {
 				DeckToSave deckToSave = MGson.fromJson(json, DeckToSave.class);
 				int factionIndex = -1;

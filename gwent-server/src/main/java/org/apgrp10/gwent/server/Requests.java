@@ -40,6 +40,8 @@ public class Requests {
 		if (payload != null && payload.get("exp").getAsLong() > System.currentTimeMillis()) try {
 			// Return user object
 			User user = UserManager.getUserById(payload.get("sub").getAsLong());
+			if(Client.clientOfUser(user) != null)
+				Client.clientOfUser(user).setLoggedInUser(null);
 			client.setLoggedInUser(user);
 			return req.response(Response.ACCEPTED, (JsonObject) MGson.toJsonElement(user));
 		} catch (Exception e) {
@@ -315,7 +317,7 @@ public class Requests {
 
 	@Authorizations(LOGGED_IN)
 	public static Response randomPlayRequest(Client client, Request req) throws Exception {
-		Deck deck = Deck.fromJsonString(req.getBody().get("deck").getAsString());
+		Deck deck = Deck.fromJson(req.getBody().get("deck"));
 		GamesManager.randomPlayRequest(client, deck);
 		return req.response(Response.OK_NO_CONTENT);
 	}
