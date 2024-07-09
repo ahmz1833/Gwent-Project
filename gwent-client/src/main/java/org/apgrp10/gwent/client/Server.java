@@ -101,24 +101,6 @@ public class Server {
 		packetHandler.send(req, onReceive);
 	}
 
-	public static Response sendAndWait(Request req) {
-		if (!isConnected()) return null;
-		AtomicBoolean done = new AtomicBoolean(false);
-		Response[] res = new Response[1];
-		packetHandler.send(req, response -> {
-			res[0] = response;
-			done.set(true);
-		});
-		while (!done.get()) {
-			try {
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		return res[0];
-	}
-
 	public static void send(Response res) {
 		if (!isConnected()) return;
 		packetHandler.send(res);
@@ -127,6 +109,10 @@ public class Server {
 	public static void setListener(String action, Function<Request, Response> onReceive) {
 		if (!isConnected()) return;
 		packetHandler.setListener(action, onReceive);
+	}
+
+	public static boolean hasListener(String start) {
+		return isConnected() && packetHandler.hasListener(start);
 	}
 
 	private static void fxLoop() {

@@ -313,11 +313,18 @@ public class Requests {
 		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(responseResult));
 	}
 
-//	@Authorizations(LOGGED_IN)
-//	public static Response makeRandomPlay(Client client, Request req) {
-//		GamesManager.
-//		return null;
-//	}
+	@Authorizations(LOGGED_IN)
+	public static Response randomPlayRequest(Client client, Request req) throws Exception {
+		Deck deck = Deck.fromJsonString(req.getBody().get("deck").getAsString());
+		GamesManager.randomPlayRequest(client, deck);
+		return req.response(Response.OK_NO_CONTENT);
+	}
+
+	@Authorizations(LOGGED_IN)
+	public static Response cancelRandomPlayRequest(Client client, Request req) {
+		GamesManager.cancelRandomPlayRequest(client);
+		return req.response(Response.OK_NO_CONTENT);
+	}
 
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface Authorizations {

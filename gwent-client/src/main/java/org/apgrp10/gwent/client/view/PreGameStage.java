@@ -1,12 +1,14 @@
 package org.apgrp10.gwent.client.view;
 
 import io.github.palexdev.materialfx.dialogs.MFXDialogs;
+import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.WindowEvent;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.MouseInputController;
+import org.apgrp10.gwent.client.controller.PreGameController;
 import org.apgrp10.gwent.client.controller.ServerInputController;
 import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.controller.GameController;
@@ -75,7 +77,8 @@ public class PreGameStage extends AbstractStage {
 							// TODO: choose a friend, send a request (contains deck) to server, and wait for response
 						}),
 						Map.entry("Make an online play with a random user", e -> {
-							// TODO: send a request of random play to server (contains deck) and wait for response
+							// send a request of random play to server (contains deck) and wait for response
+							Platform.runLater(this::randomPlayingRequest);
 						}));
 			}
 			case LOCAL -> {
@@ -95,6 +98,26 @@ public class PreGameStage extends AbstractStage {
 
 			}
 		}
+	}
+
+	private void randomPlayingRequest() {
+		PreGameController.randomPlayRequest(deck1, res -> {
+			if (res.isOk()) {
+				Platform.runLater(()->{
+					do {
+						showDialogAndWait(Dialogs.INFO(), "Waiting for opponent", "Waiting for a random opponent to join the game ...",
+								Map.entry("Cancel", e -> {
+									PreGameController.cancelRandomPlayRequest();
+									setupChoice();
+									onCreate();
+								}));
+					} while (PreGameController.isWaitingForOpponent());
+				});
+			} else {
+				ANSI.log("Failed to start game: " + res.getStatus());
+				showAlert(Dialogs.ERROR(), "Failed to start game", "Failed to start game with random opponent");
+			}
+		});
 	}
 
 	@Override

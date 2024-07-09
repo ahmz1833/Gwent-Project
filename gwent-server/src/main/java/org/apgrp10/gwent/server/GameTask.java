@@ -2,13 +2,11 @@ package org.apgrp10.gwent.server;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apgrp10.gwent.controller.GameController;
-import org.apgrp10.gwent.model.Command;
-import org.apgrp10.gwent.model.Deck;
-import org.apgrp10.gwent.model.Message;
-import org.apgrp10.gwent.model.User;
+import org.apgrp10.gwent.model.*;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
 import org.apgrp10.gwent.utils.ANSI;
@@ -34,8 +32,9 @@ public class GameTask extends Task {
 	private List<Command> cmds = new ArrayList<>();
 	private List<Client> liveClients = new ArrayList<>();
 	private long seed;
+	private Consumer<GameRecord> onEnd;
 
-	public GameTask(Client c1, Client c2, Deck d1, Deck d2) {
+	public GameTask(Client c1, Client c2, Deck d1, Deck d2, Consumer<GameRecord> onEnd) {
 		data[0].client = c1;
 		data[0].deck = d1;
 		data[1].client = c2;
@@ -44,6 +43,8 @@ public class GameTask extends Task {
 		data[1].user = c2.loggedInUser();
 		data[0].client.setListener("chatMessage", this::handleMessage);
 		data[1].client.setListener("chatMessage", this::handleMessage);
+		this.onEnd = onEnd;
+		start();
 	}
 
 	private Response handleMessage(Request req) {
@@ -94,9 +95,9 @@ public class GameTask extends Task {
 				null,
 				gr -> {
 					done = true;
-					if (data[0].client != null) data[0].client.setListener("command", null);
-					if (data[1].client != null) data[1].client.setListener("command", null);
+					removeAllListeners();
 					ANSI.log("game record: " + gr);
+					onEnd.accept(gr);
 				},
 				// these two are not important
 				0,
@@ -106,6 +107,12 @@ public class GameTask extends Task {
 			data[0].client.setListener("command", this::handleCommand);
 			data[1].client.setListener("command", this::handleCommand);
 		});
+	}
+
+	private void removeAllListeners() {
+		if (data[0].client != null) data[0].client.setListener("command", null);
+		if (data[1].client != null) data[1].client.setListener("command", null);
+		// TODO: remove listeners for chat , and listeners of live clients
 	}
 
 	private Response handleCommand(Request req) {
@@ -154,6 +161,7 @@ public class GameTask extends Task {
 	}
 
 	// TODO: use this in requests.java for attending a live-watching
+	// TODO: redirecting commands for live-watching clients
 	public void addLiveClient(Client client) {
 		addCommand(() -> {
 			client.send(liveRequest());

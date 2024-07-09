@@ -21,14 +21,7 @@ public class GamesManager {
 
 	private GamesManager() {}
 
-	public static synchronized void cancelRandomGame(Client client) {
-		if (waitingForRandom == client) {
-			waitingForRandom = null;
-			waitingForRandomDeck = null;
-		}
-	}
-
-	public static synchronized void startRandomGame(Client client, Deck deck) throws Exception {
+	public static synchronized void randomPlayRequest(Client client, Deck deck) throws Exception {
 		// first check if client is not in a game
 		if (games.containsKey(client.loggedInUser().id()))
 			throw new IllegalStateException("You are already in a game");
@@ -38,10 +31,22 @@ public class GamesManager {
 			waitingForRandom = client;
 			waitingForRandomDeck = deck;
 		} else {
-			Deck deck1 = waitingForRandomDeck;
+			GameTask newGame = new GameTask(waitingForRandom, client, waitingForRandomDeck, deck, gameRecord -> {
+				games.remove(gameRecord.player1ID());
+				games.remove(gameRecord.player2ID());
+			});
+			games.put(waitingForRandom.loggedInUser().id(), newGame);
+			games.put(client.loggedInUser().id(), newGame);
+			TaskManager.submit(newGame);
 			waitingForRandom = null;
 			waitingForRandomDeck = null;
-//			GameTask gt = new GameTask(waitingForRandom, client, deck1, deck);
+		}
+	}
+
+	public static synchronized void cancelRandomPlayRequest(Client client) {
+		if (waitingForRandom == client) {
+			waitingForRandom = null;
+			waitingForRandomDeck = null;
 		}
 	}
 

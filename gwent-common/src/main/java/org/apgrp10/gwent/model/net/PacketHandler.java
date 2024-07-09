@@ -27,6 +27,10 @@ public class PacketHandler implements Runnable {
 		return cb;
 	}
 
+	public boolean hasListener(String start) {
+		return reqCallbacks.containsKey(start) && reqCallbacks.get(start) != null;
+	}
+
 	public void send(Request req, Consumer<Response> onReceive) {
 		resCallbacks.put(req.getId(), onReceive);
 		if (!node.send(req.toString().getBytes()))
