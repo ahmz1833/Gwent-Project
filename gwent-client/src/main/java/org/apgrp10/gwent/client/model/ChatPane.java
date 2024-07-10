@@ -19,13 +19,13 @@ import javafx.scene.text.TextAlignment;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.ChatMenuController;
 import org.apgrp10.gwent.client.controller.UserController;
-import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.utils.ANSI;
 
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ChatPane extends Pane {
 	public final static int width = 250, height = 700;
@@ -58,12 +58,15 @@ public class ChatPane extends Pane {
 	}
 
 	public static StackPane getMessageReplyView(Message replyOn, User.PublicInfo user, boolean isReply) {
-		String reply;
-		if (isReply)
-			reply = "reply on " + (replyOn.getOwner().equals(user) ? "you" : replyOn.getOwner().nickname()) + ": " + replyOn.getText();
-		else reply = "edit: " + replyOn.getText();
-		if (reply.length() > 30) reply = reply.substring(0, 30) + "...";
-		Text text = new Text(reply);
+		AtomicReference<String> reply = new AtomicReference<>("");
+		if (isReply) {
+			UserController.getUserInfo(replyOn.getUserId(), false, publicInfo -> {
+				reply.set("reply on " + (replyOn.getUserId() == user.id() ? "you" : publicInfo.nickname()) + ": " + replyOn.getText());
+			});
+		}
+		else reply.set("edit: " + replyOn.getText());
+		if (reply.get().length() > 30) reply.set(reply.get().substring(0, 30) + "...");
+		Text text = new Text(reply.get());
 		text.setWrappingWidth(140);
 		text.setStyle("-fx-font-size: 10px");
 		text.setTextAlignment(TextAlignment.CENTER);
@@ -255,13 +258,6 @@ public class ChatPane extends Pane {
 		}
 	}
 
-	private User.PublicInfo getUserById(long id) {
-		try {
-			return Objects.requireNonNull(getMessageById(id)).getMessage().getOwner();
-		} catch (NullPointerException e) {
-			return null;
-		}
-	}
 
 	private MessageView getMessageById(long id) {
 		for (Node node : messagesBox.getChildren()) {
@@ -273,7 +269,7 @@ public class ChatPane extends Pane {
 	}
 
 	private void openNewWindow(double X, double Y, long id) {
-		new ReactionChat((int) (X - screenWidth + width), (int) Y, id, this, user.equals(getUserById(id)), reactionList.get(id));
+		new ReactionChat((int) (X - screenWidth + width), (int) Y, id, this, user.id() == (id), reactionList.get(id));
 	}
 
 	public void sendDeleteReaction(long id, int index) {

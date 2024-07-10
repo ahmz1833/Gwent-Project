@@ -49,7 +49,8 @@ public class ChatMenuController {
 	}
 
 	public void sendMessage(Message message) {
-		Server.send(new Request("chatMessage", MGson.makeJsonObject("msg", message.toString())));
+		getMessage(message.toString());
+		//Server.send(new Request("chatMessage", MGson.makeJsonObject("msg", message.toString())));
 	}
 
 	public void getMessage(String str) {

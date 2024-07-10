@@ -72,9 +72,12 @@ public class Message implements Serializable {
 		return numberOfReaction;
 	}
 
-	public User.PublicInfo getOwner() {
-		//TODO return PublicInfo of this user id;
-		return new User.PublicInfo(System.currentTimeMillis(), "salam", "khobi?", Avatar.random());
+//	public User.PublicInfo getOwner() {
+//		//TODO return PublicInfo of this user id;
+//		return new User.PublicInfo(System.currentTimeMillis(), "salam", "khobi?", Avatar.random());
+//	}
+	public long getUserId(){
+		return userId;
 	}
 
 	public Instant getCreationTime() {

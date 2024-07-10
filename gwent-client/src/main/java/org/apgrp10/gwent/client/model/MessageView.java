@@ -11,8 +11,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import org.apgrp10.gwent.client.R;
-import org.apgrp10.gwent.client.model.AvatarView;
-import org.apgrp10.gwent.client.model.ChatPane;
+import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.utils.ANSI;
@@ -24,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class MessageView extends HBox {
 	private final Message message;
@@ -31,7 +31,7 @@ public class MessageView extends HBox {
 	private final HBox[] reactions = new HBox[4];
 	private final HBox allReactions = new HBox();
 	private final Text messageText = new Text();
-	private final StackPane mainPain = new StackPane(), backPane = new StackPane();
+	private final StackPane mainPain = new StackPane(), backPane = new StackPane(), image = new StackPane();
 	private final Text time = new Text();
 	boolean edited = false;
 	private VBox messageBox;
@@ -158,7 +158,7 @@ public class MessageView extends HBox {
 	private void addMessage() {
 		messageBox = new VBox();
 		Rectangle background = new Rectangle();
-		if (!user.equals(message.getOwner())) background.setFill(Color.rgb(238, 180, 114));
+		if (user.id() != (message.getUserId())) background.setFill(Color.rgb(238, 180, 114));
 		else background.setFill(Color.rgb(141, 227, 118));
 		background.setArcWidth(20);
 		background.setArcHeight(20);
@@ -179,18 +179,20 @@ public class MessageView extends HBox {
 	}
 
 	private void addUserName() {
-		Text username;
-		if (user.equals(message.getOwner())) {
-			username = new Text("you:");
-			username.setFill(Color.RED);
+		AtomicReference<Text> username = new AtomicReference<>();
+		if (user.id() == (message.getUserId())) {
+			username.set(new Text("you:"));
+			username.get().setFill(Color.RED);
 
 		} else {
-			username = new Text(message.getOwner().nickname() + ":");
-			username.setFill(Color.GREEN);
+			UserController.getUserInfo(message.getUserId(), false, publicInfo -> {
+				username.set(new Text(publicInfo.nickname() + ":"));
+			});
+			username.get().setFill(Color.GREEN);
 		}
-		username.setWrappingWidth(150);
-		username.setStyle("-fx-font-size: 14px");
-		messageBox.getChildren().add(username);
+		username.get().setWrappingWidth(150);
+		username.get().setStyle("-fx-font-size: 14px");
+		messageBox.getChildren().add(username.get());
 	}
 
 	private void addText() {
@@ -216,6 +218,7 @@ public class MessageView extends HBox {
 		messageBox.requestLayout();
 		mainPain.requestLayout();
 		backPane.requestLayout();
+		image.requestLayout();
 	}
 
 	public void changeText(String text) {
@@ -224,6 +227,7 @@ public class MessageView extends HBox {
 		messageBox.requestLayout();
 		backPane.requestLayout();
 		mainPain.requestLayout();
+		image.requestLayout();
 		if (!edited) {
 			time.setText("\"EDITED\" " + time.getText());
 			edited = true;
