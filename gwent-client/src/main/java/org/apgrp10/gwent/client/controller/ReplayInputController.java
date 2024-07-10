@@ -26,7 +26,7 @@ public class ReplayInputController implements InputController {
 	}
 
 	private void runOne() {
-		if (controller.getGameMenuNonnull().isAnimationPlaying()) {
+		if (controller.getGameMenu().isAnimationPlaying()) {
 			Platform.runLater(this::runOne);
 			return;
 		}

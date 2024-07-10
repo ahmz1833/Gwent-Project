@@ -61,9 +61,9 @@ public class GameTask extends Task {
 					ANSI.log("game record: " + gr);
 					onEnd.accept(gr);
 				},
-				// these two are not important
 				0,
-				false
+				false,
+				null
 		);
 
 		data[0].client.setListener("command", this::handleCommand);
@@ -187,7 +187,6 @@ public class GameTask extends Task {
 				}
 				if (System.currentTimeMillis() - d.disTime >= 60_000) {
 					sendCommandAsync(new Command.Resign(i, "disconnected"));
-					sendCommandAsync(new Command.Sync(i));
 					return;
 				}
 			}

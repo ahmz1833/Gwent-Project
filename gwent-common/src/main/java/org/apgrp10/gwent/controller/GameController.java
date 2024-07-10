@@ -16,7 +16,7 @@ public class GameController {
 	public static class PlayerData {
 		public final User.PublicInfo user;
 		public final Deck deck;
-		public final InputController controller;
+		public InputController controller;
 		public final List<Card> handCards = new ArrayList<>();
 		public final List<Card> usedCards = new ArrayList<>();
 		public final List<Card> ownedCards = new ArrayList<>();
@@ -35,7 +35,7 @@ public class GameController {
 			this.controller = controller;
 		}
 	}
-	private GameMenuInterface gameMenu, fastForwardGameMenu;
+	private GameMenuInterface gameMenu;
 	private final PlayerData playerData[] = new PlayerData[2];
 	private final List<List<Card>> row = new ArrayList<>();
 	private final List<List<Card>> special = new ArrayList<>();
@@ -79,7 +79,8 @@ public class GameController {
 			GameMenuInterface gameMenu,
 			Consumer<GameRecord> onEnd,
 			int firstSide,
-			boolean switchableSides
+			boolean switchableSides,
+			List<Command> previousCmds
 	) {
 		this.onEnd = onEnd;
 		this.seed = seed;
@@ -116,21 +117,47 @@ public class GameController {
 
 		turn = startingTurn();
 
-		this.waitExec = new WaitExec(gameMenu == null);
+		this.waitExec = new WaitExec(true);
 
-		// must be last so GameController initialization is complete
+		c0.start(this, 0);
+		c1.start(this, 1);
+
+		PlayerData data0 = playerData[0];
+		PlayerData data1 = playerData[1];
+
+		data0.controller = new FFInputController(data0.controller);
+		data1.controller = new FFInputController(data1.controller);
+
+		data0.controller.veto(0);
+		if (!data1.controller.vetoShouldWait(data0.controller))
+			data1.controller.veto(0);
+
+		if (previousCmds == null)
+			previousCmds = new ArrayList<>();
+
+		for (Command cmd : previousCmds)
+			sendCommand(cmd);
+
+		this.waitExec.setDummy(gameMenu == null);
 		this.gameMenu = gameMenu;
 		if (gameMenu != null) {
 			gameMenu.setController(this);
 			gameMenu.start();
 		}
 
-		// must be after instanciating GameMenu
-		c0.start(this, 0);
-		c1.start(this, 1);
-		c0.veto(0);
-		if (!c1.vetoShouldWait(c0))
-			c1.veto(0);
+		data0.controller = restoreFF((FFInputController)data0.controller);
+		data1.controller = restoreFF((FFInputController)data1.controller);
+	}
+
+	private InputController restoreFF(FFInputController ff) {
+		InputController c = ff.getActualInputController();
+		switch (ff.state) {
+			case NONE -> {}
+			case PLAY -> c.play();
+			case VETO -> c.veto(ff.vetoI);
+			case PICK -> c.pick(ff.pickList, ff.pickWhat);
+		}
+		return c;
 	}
 
 	public boolean hasSwitchableSides() { return switchableSides; }
@@ -198,7 +225,6 @@ public class GameController {
 	}
 
 	public GameMenuInterface getGameMenu() { return gameMenu; }
-	public GameMenuInterface getGameMenuNonnull() { return gameMenu != null? gameMenu: fastForwardGameMenu; }
 
 	public PlayerData getPlayer(int player) { return playerData[player]; }
 
@@ -793,20 +819,6 @@ public class GameController {
 		// we make a deep copy because some listeners might remove themselves while we are iterating
 		for (Consumer<Command> cb : new ArrayList<>(commandListeners))
 			cb.accept(cmd);
-	}
-
-	public void fastForward(List<Command> cmds) {
-		fastForwardGameMenu = gameMenu;
-		waitExec.setDummy(true);
-		gameMenu = null;
-
-		for (Command cmd : cmds)
-			sendCommand(cmd);
-
-		gameMenu = fastForwardGameMenu;
-		waitExec.setDummy(gameMenu == null);
-
-		gameMenu.redraw();
 	}
 
 	public void setActivePlayer(int player) {

@@ -21,22 +21,21 @@ public class MouseInputController implements InputController {
 	}
 
 	private void addListeners() {
-		listeners.add(controller.getGameMenuNonnull().addButtonListener(this::buttonAction));
-		listeners.add(controller.getGameMenuNonnull().addCardListener(this::cardAction));
-		listeners.add(controller.getGameMenuNonnull().addRowListener(this::rowAction));
-		listeners.add(controller.getGameMenuNonnull().addBgListener(this::bgAction));
+		listeners.add(controller.getGameMenu().addButtonListener(this::buttonAction));
+		listeners.add(controller.getGameMenu().addCardListener(this::cardAction));
+		listeners.add(controller.getGameMenu().addRowListener(this::rowAction));
+		listeners.add(controller.getGameMenu().addBgListener(this::bgAction));
 	}
 
 	private void removeListeners() {
-		controller.getGameMenuNonnull().cancelPossiblePick();
+		controller.getGameMenu().cancelPossiblePick();
 		for (Object listener : listeners)
-			controller.getGameMenuNonnull().removeListener(listener);
+			controller.getGameMenu().removeListener(listener);
 		listeners.clear();
 	}
 
 	@Override
 	public void play() {
-		System.out.println("salam");
 		controller.setActivePlayer(player);
 		addListeners();
 	}
@@ -56,7 +55,7 @@ public class MouseInputController implements InputController {
 		}
 
 		controller.setActivePlayer(player);
-		controller.getGameMenuNonnull().pickCard(controller.getPlayer(player).handCards, card -> {
+		controller.getGameMenu().pickCard(controller.getPlayer(player).handCards, card -> {
 			controller.sendCommand(new Command.VetoCard(player, card != null? card.getGameId(): -1));
 		}, true);
 	}
@@ -64,7 +63,7 @@ public class MouseInputController implements InputController {
 	@Override
 	public void pick(List<Card> list, String what) {
 		boolean nullPossible = what.equals("view_enemy_hand") || what.equals("cheat_enemy_hand");
-		controller.getGameMenuNonnull().pickCard(list, card -> {
+		controller.getGameMenu().pickCard(list, card -> {
 			controller.sendCommand(new Command.PickResponse(player, card != null ? card.getGameId() : -1, what));
 		}, nullPossible);
 	}

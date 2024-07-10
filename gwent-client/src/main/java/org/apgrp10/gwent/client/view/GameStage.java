@@ -27,7 +27,7 @@ import javafx.stage.WindowEvent;
 import org.apgrp10.gwent.utils.WaitExec;
 
 public class GameStage extends AbstractStage {
-	private static final List<Command> cmds = new ArrayList<>();
+	private static List<Command> cmds = new ArrayList<>();
 	private static GameStage INSTANCE;
 	private static GameMode mode = GameMode.NONE;
 	private static User.PublicInfo user1, user2;
@@ -59,24 +59,25 @@ public class GameStage extends AbstractStage {
 
 	public static void setOnline(int localPlayer) {
 		player = localPlayer;
+		cmds = null;
 		mode = GameMode.ONLINE;
 	}
 
 	public static void setContinue(int localPlayer, List<Command> pastCommands) {
 		player = localPlayer;
-		cmds.addAll(pastCommands);
+		cmds = new ArrayList<>(pastCommands);
 		mode = GameMode.CONTINUE;
 	}
 
 	public static void setLive(int pov, List<Command> pastCommands) {
 		player = pov;
-		cmds.addAll(pastCommands);
+		cmds = new ArrayList<>(pastCommands);
 		mode = GameMode.LIVE;
 	}
 
 	public static void setReplay(int pov, List<Command> commands) {
 		player = pov;
-		cmds.addAll(commands);
+		cmds = new ArrayList<>(commands);
 		mode = GameMode.REPLAY;
 	}
 
@@ -112,10 +113,10 @@ public class GameStage extends AbstractStage {
 			showWinnerDialog(gr, true);
 
 			this.close();
-		}, 0, false);
+		}, 0, false, null);
 	}
 
-	private void createOnline(boolean fastForward) {
+	private void createOnline() {
 		InputController c1 = player == 0 ? new MouseInputController() : new DummyInputController();
 		InputController c2 = player == 1 ? new MouseInputController() : new DummyInputController();
 		GameMenu gm = new GameMenu(this, true);
@@ -123,8 +124,7 @@ public class GameStage extends AbstractStage {
 				new WaitExec(false).run(3000, () -> {
 					showWinnerDialog(gr, false);
 					close();
-				}), player, false);
-		if (fastForward) gc.fastForward(cmds);
+				}), player, false, cmds);
 		setupServer(gc);
 	}
 
@@ -133,8 +133,7 @@ public class GameStage extends AbstractStage {
 		InputController c2 = new DummyInputController();
 		GameMenu gm = new GameMenu(this, true);
 		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr ->
-				new WaitExec(false).run(3000, this::close), player, true);
-		gc.fastForward(cmds);
+				new WaitExec(false).run(3000, this::close), player, true, cmds);
 		setupServer(gc);
 	}
 
@@ -143,7 +142,7 @@ public class GameStage extends AbstractStage {
 		InputController c2 = new ReplayInputController(cmds);
 		GameMenu gm = new GameMenu(this, false);
 		new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr ->
-				new WaitExec(false).run(3000, this::close), player, true);
+				new WaitExec(false).run(3000, this::close), player, true, null);
 	}
 
 	@Override
@@ -154,8 +153,8 @@ public class GameStage extends AbstractStage {
 				return false;
 			}
 			case LOCAL -> createLocal();
-			case ONLINE -> createOnline(false);
-			case CONTINUE -> createOnline(true);
+			case ONLINE -> createOnline();
+			case CONTINUE -> createOnline();
 			case LIVE -> createLive();
 			case REPLAY -> createReplay();
 		}
