@@ -97,6 +97,9 @@ public class R {
 			getImage("reacts/4.png"),
 			getImage("reacts/5.png"),
 			getImage("reacts/6.png"),
+			getImage("reacts/7.png"),
+			getImage("reacts/8.png"),
+
 		};
 	}
 

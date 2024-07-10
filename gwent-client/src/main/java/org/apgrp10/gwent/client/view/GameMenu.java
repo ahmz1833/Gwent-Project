@@ -159,6 +159,7 @@ public class GameMenu implements GameMenuInterface {
 				RectPos.bySize(0.0117, 0.0930, 0.0480, 0.0882),
 				RectPos.bySize(0.0117, 0.7916, 0.0480, 0.0882),
 		};
+		public static final RectPos chat = RectPos.bySize(0.9725, 0.82, 0.0275, 0.13);
 		public static final RectPos deckCards[] = {
 				RectPos.bySize(0.9062, 0.0833, 0.0578, 0.1291),
 				RectPos.bySize(0.9062, 0.7819, 0.0578, 0.1291),
@@ -261,6 +262,42 @@ public class GameMenu implements GameMenuInterface {
 		             "-fx-background-color: rgba(245,222,196,0.54);" +
 		             "-fx-text-fill: #000000;");
 		parent.getChildren().add(btn);
+	}
+	private void addReactButton(){
+		for(int i = 1; i < 9; i++) {
+			MFXButton btn = new MFXButton(String.valueOf(i));
+			int finalI = i;
+			btn.setOnMouseClicked(e -> {
+				notifyListeners(buttonListeners, "react" + (e.getClickCount() < 2? "": "S") + "_" + (finalI - 1));
+			});
+			new Position.RectPos(0.9725, 0.1900 + 0.033 * i, 0.999, 0.2200 + 0.033 * i)
+					.setBounds(btn);
+			btn.setStyle("-fx-font-family: 'Comfortaa SemiBold';" +
+			             "-fx-background-color: rgba(245,222,196,0.54);" +
+			             "-fx-text-fill: #000000;");
+			StackPane hoverText = new StackPane();
+			new Position.RectPos(0.9225, 0.1900 + 0.033 * i, 0.969, 0.2200 + 0.033 * i)
+					.setBounds(hoverText);
+			hoverText.setAlignment(Pos.CENTER);
+			hoverText.setBackground(Background.fill(Color.rgb(245, 222, 196, 0.54)));
+			Text text = new Text(switch (i){
+				case 1 -> "excellent";
+				case 2 -> "genius";
+				case 3 -> "haa haa";
+				case 4 -> "pain";
+				case 5 -> "reprisal";
+				case 6 -> "cry";
+				case 7 -> "OK";
+				case 8 -> "Good";
+				default -> "?";
+			});
+			hoverText.getChildren().add(text);
+			hoverText.setVisible(false);
+			text.setStyle("-fx-font-family: 'Comfortaa SemiBold';");
+			btn.setOnMouseEntered(k -> hoverText.setVisible(true));
+			btn.setOnMouseExited(k-> hoverText.setVisible(false));
+			buttonPane.getChildren().addAll(btn, hoverText);
+		}
 	}
 
 	private void addImage(Image image, Position.RectPos pos) {
@@ -561,7 +598,7 @@ public class GameMenu implements GameMenuInterface {
 
 	private void addNonredrawingButtons() {
 		addButton(buttonPane, "Pass", "pass", Position.pass);
-		addButton(buttonPane, "React", "react_0", new Position.RectPos(0.1625, 0.0958, 0.2244, 0.1900));
+		addReactButton();
 		addButton(buttonPane, "Resign", "resign", Position.resign);
 		if (controller.hasSwitchableSides()) {
 			MFXButton btn = new MFXButton("S\ni\nd\ne");
@@ -578,6 +615,7 @@ public class GameMenu implements GameMenuInterface {
 			MFXButton b = new MFXButton("C\nh\na\nt");
 			b.setStyle("-fx-font-family: 'Comfortaa SemiBold';" +
 			           "-fx-background-color: rgba(245,222,196,0.54)");
+			Position.chat.setBounds(b);
 			b.setOnAction(k -> {
 				if (!MessageStage.getInstance().isShowing())
 					MessageStage.getInstance().start();
@@ -587,7 +625,7 @@ public class GameMenu implements GameMenuInterface {
 					primaryStage.setX(primaryStage.getX() + 125);
 				}
 			});
-			overlayNonredrawingPane.getChildren().add(b);
+			buttonPane.getChildren().add(b);
 		}
 	}
 
