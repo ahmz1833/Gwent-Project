@@ -31,11 +31,11 @@ public class Random {
 		return bytes;
 	}
 
-	public static long nextPosLong() {return get().nextLong() & 0x7f_ff_ff_ff_ff_ff_ff_ffl;}
+	public static long nextPosLong() {return get().nextLong() & 0x7f_ff_ff_ff_ff_ff_ff_ffL;}
 
 	public static long nextId() {
 		long id;
-		do id = nextPosLong(); while (id < 0x1_00_00_00_00l);
+		do id = nextPosLong(); while (id < 0x1_00_00_00_00L);
 		return id;
 	}
 

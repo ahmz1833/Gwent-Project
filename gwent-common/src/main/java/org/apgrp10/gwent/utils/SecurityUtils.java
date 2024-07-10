@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocketFactory;
@@ -15,7 +14,7 @@ public class SecurityUtils {
 	private static final String ALGORITHM_RSA = "RSA";
 
 	public static KeyPair generateKeyPair() {
-		KeyPairGenerator keyGen = null;
+		KeyPairGenerator keyGen;
 		try {
 			keyGen = KeyPairGenerator.getInstance(ALGORITHM_RSA);
 			keyGen.initialize(2048);
@@ -23,20 +22,6 @@ public class SecurityUtils {
 		} catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	public static byte[] encrypt(PublicKey key, String message)
-			throws Exception {
-		Cipher cipher = Cipher.getInstance(ALGORITHM_RSA);
-		cipher.init(Cipher.ENCRYPT_MODE, key);
-		return cipher.doFinal(message.getBytes());
-	}
-
-	public static byte[] decrypt(PrivateKey key, byte[] encryptMessage)
-			throws Exception {
-		Cipher cipher = Cipher.getInstance(ALGORITHM_RSA);
-		cipher.init(Cipher.DECRYPT_MODE, key);
-		return cipher.doFinal(encryptMessage);
 	}
 
 	public static String sha256(String input) {
@@ -64,14 +49,6 @@ public class SecurityUtils {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	public static SSLServerSocketFactory getSSLServerSocketFactory() {
-		return (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
-	}
-
-	public static SSLSocketFactory getSSLSocketFactory() {
-		return (SSLSocketFactory) SSLSocketFactory.getDefault();
 	}
 
 	public static String makeJWT(JsonObject payload, String key) {

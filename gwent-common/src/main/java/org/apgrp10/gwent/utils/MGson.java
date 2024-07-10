@@ -32,13 +32,6 @@ public class MGson {
 		return gson.fromJson(json, type);
 	}
 
-	public static <T> T fromJson(Reader reader, Class<T> type) {
-		return gson.fromJson(reader, type);
-	}
-
-	public static <T> T fromJson(JsonReader reader, Class<T> type) {
-		return gson.fromJson(reader, type);
-	}
 
 	public static <T> T fromJson(String json, Type typeOfT) {
 		return gson.fromJson(json, typeOfT);
