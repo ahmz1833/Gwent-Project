@@ -414,7 +414,6 @@ public class GameController {
 	private void nextTurn() {
 		if (nextTurnDelay == -1) {
 			nextTurnDelay = 1000;
-			playerData[turn].controller.play();
 			return;
 		}
 		if (!lastPassed) {
@@ -608,7 +607,10 @@ public class GameController {
 	}
 
 	private void pickViewEnemyHand(int player) { }
-	private void pickCheatEnemyHand(int player) { nextTurnDelay = -1; }
+	private void pickCheatEnemyHand(int player) {
+		nextTurnDelay = -1;
+		playerData[player].controller.play();
+	}
 	private void pickStealUsed(int player, Card card) {
 		if (card == null) return;
 		moveCard(card, playerData[player].handCards);

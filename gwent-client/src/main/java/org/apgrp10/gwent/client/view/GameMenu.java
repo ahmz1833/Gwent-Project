@@ -416,6 +416,7 @@ public class GameMenu implements GameMenuInterface {
 	private final ArrayList<MessageGame> messages = new ArrayList<>();
 	private boolean isMessageShowing = false;
 	private boolean messageAnimation = false;
+	private int messageAnimationCount = 0;
 
 	private void showAllMessages() {
 		if (isMessageShowing == false)
@@ -431,7 +432,10 @@ public class GameMenu implements GameMenuInterface {
 			message.show(delay);
 			delay += 1050;
 		}
-		controller.waitExec.run(delay, () -> messageAnimation = false);
+		controller.waitExec.run(delay, () -> {
+			messageAnimation = false;
+			messageAnimationCount--;
+		});
 		messages.clear();
 		isMessageShowing = false;
 	}
@@ -439,6 +443,7 @@ public class GameMenu implements GameMenuInterface {
 	private void tryShowAllMessages() {
 		if (!isMessageShowing) {
 			isMessageShowing = true;
+			messageAnimationCount++;
 			Platform.runLater(() -> showAllMessages());
 		}
 	}
@@ -865,7 +870,7 @@ public class GameMenu implements GameMenuInterface {
 	}
 
 	public boolean isAnimationPlaying() {
-		return !animationNodes.isEmpty() || !scorchCards.isEmpty() || isMessageShowing || messageAnimation;
+		return !animationNodes.isEmpty() || !scorchCards.isEmpty() || isMessageShowing || messageAnimationCount > 0;
 	}
 
 	private List<Card> scorchCards = new ArrayList<>();

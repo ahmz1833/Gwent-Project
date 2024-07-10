@@ -35,7 +35,12 @@ public class ReplayInputController implements InputController {
 			Command cmd = cmds.get(cmdPos++);
 			if (cmd.player() != player)
 				continue;
-			controller.sendCommand(cmd);
+
+			if (cmd instanceof Command.VetoCard || cmd instanceof Command.SetActiveCard)
+				controller.sendCommand(cmd);
+			else
+				controller.waitExec.run(700, () -> controller.sendCommand(cmd));
+
 			return;
 		}
 	}

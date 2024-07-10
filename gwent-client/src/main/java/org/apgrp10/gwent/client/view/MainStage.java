@@ -61,7 +61,23 @@ public class MainStage extends AbstractStage {
 			//TODO: show a dialog , User specifies whether he wants to review a file record or a recording on server
 
 			// TODO: if user chooses to review a file record, check if the file is valid and then start the replay
-//			String path = Utils.chooseFileToUpload("Choose recording", getInstance());
+
+			// TODO: this is a temporary implementation. see previous TODOs
+
+			String path = Utils.chooseFileToUpload("Choose recording", getInstance());
+			if (path == null)
+				return;
+
+			GameRecord gr = MGson.fromJson(Utils.loadFile(path), GameRecord.class);
+			Deck deck1 = Deck.fromJsonString(gr.deck1());
+			Deck deck2 = Deck.fromJsonString(gr.deck2());
+			User.PublicInfo publicInfo1 = new User.PublicInfo(1337, "user1", "nick1", Avatar.random());
+			User.PublicInfo publicInfo2 = new User.PublicInfo(1984, "user2", "nick2", Avatar.random());
+			long seed = gr.seed();
+
+			GameStage.setCommonData(publicInfo1, publicInfo2, deck1, deck2, seed);
+			GameStage.setReplay(0, gr.commands());
+			GameStage.getInstance().start();
 		});
 
 		setOnPressListener(playingBtn, event -> {
