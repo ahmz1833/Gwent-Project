@@ -111,7 +111,7 @@ public class UserManager {
 		database.removeFriendship(id1, id2);
 	}
 
-	private static class UserDatabase extends DatabaseTable {
+	static class UserDatabase extends DatabaseTable {
 		UserDatabase() throws Exception {
 			super(ServerMain.SERVER_FOLDER + "gwent.db", "users", Random::nextId, UserDBColumns.values());
 			if (database != null)
