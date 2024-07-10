@@ -1,10 +1,18 @@
 package org.apgrp10.gwent;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
+import org.apgrp10.gwent.utils.MGson;
 import org.apgrp10.gwent.utils.SecurityUtils;
 import org.junit.jupiter.api.Test;
 
+import javax.sound.sampled.BooleanControl;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -61,6 +69,49 @@ public class JwtTest {
 	public void testVerifyJWTInvalidToken() {
 		String invalidJwt = "invalid.jwt.token";
 		assertNull(SecurityUtils.verifyJWT(invalidJwt, TEST_SECRET_KEY));
+	}
+	@Test
+	public void testCreatingGson(){
+
+		JsonObject o = MGson.makeJsonObject("int", 2,
+				"long", 2L,"boolean", true,"null", null, "char", 'c', "person",
+				new Person("abc", 20));
+		assert (o.get("long").getAsLong() == 2L);
+		assert (o.get("boolean").getAsBoolean());
+		assert (o.get("null").isJsonNull());
+		Person person = MGson.fromJson(o.get("person"), Person.class);
+		assert person.age == 20;
+		assert Objects.equals(person.name, "abc");
+	}
+	@Test
+	public void testJsonElement(){
+		Person person = new Person("boss", 50);
+		ArrayList<Person> persons = new ArrayList<>();
+		persons.add(person);
+		JsonElement json = MGson.toJsonElement(persons);
+		ArrayList<Person> persons1 = MGson.fromJson(json, TypeToken.getParameterized(ArrayList.class, Person.class).getType());
+		assert persons1.get(0).name.equals(persons.get(0).name);
+	}
+	@Test
+	public void testGson() {
+		Gson builder = MGson.get(true, true);
+		String json = MGson.toJson(new Person("aaa", 2));
+		Person person = builder.fromJson(json, Person.class);
+		assert person.age == 2;
+		assert person.name.equals("aaa");
+		ArrayList<Person> persons = new ArrayList<>();
+		persons.add(person);
+		json = MGson.toJson(persons);
+		ArrayList<Person> persons1 = MGson.fromJson(json, TypeToken.getParameterized(ArrayList.class, Person.class).getType());
+		assert persons1.get(0).name.equals(persons.get(0).name);
+	}
+	static class Person{
+		String name;
+		int age;
+		Person(String name, int age){
+			this.name = name;
+			this.age = age;
+		}
 	}
 
 }
