@@ -112,7 +112,7 @@ public class PreGameStage extends AbstractStage {
 		// TODO: show a dialog listing and searching friends and send a request to the selected friend
 
 
-		long testTarget = 4491737055656897591L;
+		long testTarget = 184837367028312630L;
 		requestForPlay(testTarget, "'online2'");
 	}
 
