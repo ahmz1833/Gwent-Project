@@ -1,0 +1,90 @@
+diff --git a/gwent-client/src/main/java/org/apgrp10/gwent/client/view/GameMenu.java b/gwent-client/src/main/java/org/apgrp10/gwent/client/view/GameMenu.java
+index f7f8505..46f8610 100644
+--- a/gwent-client/src/main/java/org/apgrp10/gwent/client/view/GameMenu.java
++++ b/gwent-client/src/main/java/org/apgrp10/gwent/client/view/GameMenu.java
+@@ -420,7 +420,7 @@ public class GameMenu implements GameMenuInterface {
+ 	private void showAllMessages() {
+ 		if (isMessageShowing == false)
+ 			return;
+-		if (!animationNodes.isEmpty() || !scorchCards.isEmpty()) {
++		if (!animationNodes.isEmpty() || !scorchCards.isEmpty() || messageAnimation) {
+ 			Platform.runLater(this::showAllMessages);
+ 			return;
+ 		}
+diff --git a/gwent-common/src/main/java/org/apgrp10/gwent/controller/GameController.java b/gwent-common/src/main/java/org/apgrp10/gwent/controller/GameController.java
+index 10a69f2..a518fcf 100644
+--- a/gwent-common/src/main/java/org/apgrp10/gwent/controller/GameController.java
++++ b/gwent-common/src/main/java/org/apgrp10/gwent/controller/GameController.java
+@@ -113,6 +113,8 @@ public class GameController {
+ 			}
+ 		}
+ 
++		turn = startingTurn();
++
+ 		this.waitExec = new WaitExec(gameMenu == null);
+ 
+ 		// must be last so GameController initialization is complete
+@@ -131,9 +133,8 @@ public class GameController {
+ 
+ 	public boolean hasSwitchableSides() { return switchableSides; }
+ 
+-	private void beginRound() {
+-		currentRound++;
+-
++	private int startingTurn() {
++		int turn;
+ 		Faction f0 = playerData[0].deck.getFaction();
+ 		Faction f1 = playerData[1].deck.getFaction();
+ 		if (f0 == Faction.SCOIATAEL && f1 != Faction.SCOIATAEL)
+@@ -142,6 +143,14 @@ public class GameController {
+ 			turn = 1;
+ 		else
+ 			turn = rand.nextInt(2);
++		return turn;
++	}
++
++	private void beginRound() {
++		currentRound++;
++
++		if (currentRound != 1)
++			turn = startingTurn();
+ 
+ 		if (currentRound >= 3) {
+ 			for (int p = 0; p < 2; p++) {
+@@ -408,8 +417,8 @@ public class GameController {
+ 			if (gameMenu != null)
+ 				gameMenu.userTurn(getTurn());
+ 			playerData[turn].controller.endTurn();
++			turn = 1 - turn;
+ 			waitExec.run(nextTurnDelay, () -> {
+-				turn = 1 - turn;
+ 				playerData[turn].controller.beginTurn();
+ 			});
+ 			nextTurnDelay = 1000;
+@@ -792,6 +801,8 @@ public class GameController {
+ 
+ 		gameMenu = fastForwardGameMenu;
+ 		waitExec.setDummy(gameMenu == null);
++
++		gameMenu.redraw();
+ 	}
+ 
+ 	public void setActivePlayer(int player) {
+diff --git a/gwent-server/src/main/java/org/apgrp10/gwent/server/Client.java b/gwent-server/src/main/java/org/apgrp10/gwent/server/Client.java
+index d598dcf..13ee6ce 100644
+--- a/gwent-server/src/main/java/org/apgrp10/gwent/server/Client.java
++++ b/gwent-server/src/main/java/org/apgrp10/gwent/server/Client.java
+@@ -84,7 +84,12 @@ public class Client extends Task {
+ 		addCommand(() -> {
+ 			if (loggedInUser != null) userToClient.remove(loggedInUser.id());
+ 			loggedInUser = user;
+-			if (user != null) userToClient.put(user.id(), this);
++			if (user != null) {
++				Client possibleOldClient = userToClient.get(user.id());
++				if (possibleOldClient != null)
++					possibleOldClient.destruct();
++				userToClient.put(user.id(), this);
++			}
+ 		});
+ 	}
+ 

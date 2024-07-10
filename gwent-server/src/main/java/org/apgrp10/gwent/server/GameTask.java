@@ -58,7 +58,8 @@ public class GameTask extends Task {
 				gr -> {
 					done = true;
 					removeAllListeners();
-					ANSI.log("game record: " + gr);
+					ANSI.log("Game Finished between " + data[0].user.username() + " and " + data[1].user.username());
+					ANSI.log("Winner : " + gr.gameWinner());
 					onEnd.accept(gr);
 				},
 				0,
@@ -169,6 +170,7 @@ public class GameTask extends Task {
 				if (continueWaitingResponse[i] == null) {
 					Client c = Client.clientOfUser(d.user);
 					if (c != null) {
+						ANSI.log("user connected " + d.user.username());
 						continueWaitingResponse[i] = c;
 						c.send(startingRequest("continueGame", true, false), res -> {
 							if (res.isOk()) {
@@ -179,6 +181,9 @@ public class GameTask extends Task {
 								});
 								c.setListener("command", this::handleCommand);
 								c.setListener("chatMessage", req -> handleMessage(req, false));
+							}
+							else {
+								ANSI.log("request Rejected : " + res);
 							}
 						});
 					}

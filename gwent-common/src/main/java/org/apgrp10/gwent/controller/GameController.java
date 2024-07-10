@@ -1,5 +1,6 @@
 package org.apgrp10.gwent.controller;
 
+import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.WaitExec;
 import org.apgrp10.gwent.view.GameMenuInterface;
 import org.apgrp10.gwent.model.Command;
@@ -183,7 +184,7 @@ public class GameController {
 
 		if (currentRound >= 3) {
 			for (int p = 0; p < 2; p++) {
-				Faction f = p == 1? playerData[1].deck.getFaction(): playerData[0].deck.getFaction();
+				Faction f = p == 1 ? playerData[1].deck.getFaction() : playerData[0].deck.getFaction();
 				if (f != Faction.SKELLIGE)
 					continue;
 				for (int i = 0; i < 2; i++) {
@@ -803,7 +804,8 @@ public class GameController {
 	private List<Command> cmdHistory = new ArrayList<>();
 
 	public void sendCommand(Command cmd) {
-		System.out.println(cmd);
+		ANSI.log("Received command: " + cmd.toString() + " At game between " +
+		         playerData[0].user.username() + " and " + playerData[1].user.username());
 
 		if (cmd instanceof Command.Informational) {
 			if (cmd instanceof Command.Connection) connection((Command.Connection)cmd);

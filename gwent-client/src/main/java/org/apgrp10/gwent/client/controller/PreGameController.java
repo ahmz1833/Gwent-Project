@@ -4,7 +4,10 @@ import com.google.gson.reflect.TypeToken;
 import javafx.stage.Stage;
 import org.apgrp10.gwent.client.Gwent;
 import org.apgrp10.gwent.client.Server;
+import org.apgrp10.gwent.client.view.Dialogs;
 import org.apgrp10.gwent.client.view.GameStage;
+import org.apgrp10.gwent.client.view.MainStage;
+import org.apgrp10.gwent.client.view.PreGameStage;
 import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.User;
@@ -18,9 +21,35 @@ import java.util.function.Consumer;
 
 public class PreGameController {
 
+	public static final int NONE = 0, WAITING = 1, DECLINED = 2, CANCELED = 3;   // Accepted is also none
+	public static int lastRequestStatus = NONE;
 	private PreGameController() {}
 
+	public static Response handlePlayRequest(Request request) {
+		long from = request.getBody().get("from").getAsLong();
+		boolean isPublic = request.getBody().get("isPublic").getAsBoolean();
+		UserController.getUserInfo(from, false, publicInfo -> {
+			ANSI.log("Play Request Received From: " + publicInfo.username());
+			if(MainStage.getInstance().isShowing()){
+				boolean result = MainStage.getInstance().showConfirmDialog(Dialogs.INFO(), "Play Request",
+						"You have a play request from " + publicInfo.username() + "\n" +
+						"The Game Will be " + (isPublic ? "Public" : "Private") + "\n" +
+						"Do you want to play?",
+						"Select Deck", "Cancel");
+				if(result) {
+					Gwent.forEachStage(Stage::close);
+					PreGameStage.getInstance().setupFriendMode(isPublic);
+					PreGameStage.getInstance().start();
+					return;
+				}
+			}
+			Server.send(new Request("declinePlayRequest")); // Decline the request
+		});
+		return request.response(Response.OK_NO_CONTENT);
+	}
+
 	public static Response startGame(Request request) {
+		lastRequestStatus = NONE;
 		Server.setListener(request.getAction(), null);
 		long seed = request.getBody().get("seed").getAsLong();
 		User.PublicInfo user1 = MGson.fromJson(request.getBody().get("user1"), User.PublicInfo.class);
@@ -49,18 +78,21 @@ public class PreGameController {
 				return request.response(Response.BAD_REQUEST);
 			}
 		}
-		Gwent.forEachStage(Stage::close);
 		GameStage.getInstance().start();
 		return request.response(Response.OK_NO_CONTENT);
 	}
 
-	public static void randomPlayRequest(Deck deck, Consumer<Response> callback) {
-		Server.send(new Request("randomPlayRequest", MGson.makeJsonObject("deck", deck.toJson())), res -> {
+	public static void requestPlay(Deck deck, long target, boolean isPublic, Consumer<Response> callback)
+	{
+		Server.send(new Request("requestPlay", MGson.makeJsonObject(
+				"deck", deck.toJson(), "target", target, "isPublic", isPublic)), res -> {
 			if (res.isOk()) {
-				ANSI.log("Random Play Request Sent");
+				ANSI.log("Play Request Sent");
 				Server.setListener("start", PreGameController::startGame);
+				lastRequestStatus = WAITING;
 			} else {
-				ANSI.log("Failed to send Random Play Request");
+				lastRequestStatus = NONE;
+				ANSI.log("Failed to send Play Request");
 				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
 					ANSI.printErrorResponse(null, res);
 			}
@@ -68,24 +100,29 @@ public class PreGameController {
 		});
 	}
 
-	public static void cancelRandomPlayRequest() {
-		Server.send(new Request("cancelRandomPlayRequest"), res -> {
+	public static void cancelPlayRequest() {
+		Server.send(new Request("cancelPlayRequest"), res -> {
 			if (res.isOk()) {
-				ANSI.log("Random Play Request Cancelled");
+				ANSI.log("Play Request Cancelled");
 				Server.setListener("start", null);
+				lastRequestStatus = CANCELED;
 			} else {
-				ANSI.log("Failed to cancel Random Play Request");
+				lastRequestStatus = NONE;
+				ANSI.log("Failed to cancel Play Request");
 				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
 					ANSI.printErrorResponse(null, res);
 			}
 		});
 	}
 
-	public static boolean isWaitingForOpponent() {
-		return Server.hasListener("start");
+	public static Response handlePlayRequestDecline(Request request) {
+		ANSI.log("Play Request Declined");
+		Server.setListener("start", null);
+		lastRequestStatus = DECLINED;
+		return request.response(Response.OK_NO_CONTENT);
 	}
-//	public static void startGame(User opponent, Deck deck) {
-//		PreGameMenu.getInstance().close();
-//		GameController.startGame(opponent, deck);
-//	}
+
+	public static int getLastRequestState() {
+		return lastRequestStatus;
+	}
 }

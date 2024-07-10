@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import io.github.palexdev.materialfx.controls.MFXTableView?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.Scene?>
+
+<Scene stylesheets="@../css/score.css" xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1">
+    <AnchorPane maxHeight="520.0" maxWidth="700">
+        <ImageView fitHeight="520.0" fitWidth="700.0" pickOnBounds="true">
+            <Image url="@../image/scores_bkg.png"/>
+        </ImageView>
+        <VBox alignment="CENTER" styleClass="frame" AnchorPane.bottomAnchor="10" AnchorPane.leftAnchor="10"
+              AnchorPane.rightAnchor="10"
+              AnchorPane.topAnchor="10">
+            <Label styleClass="header" text=" Top 10 Users scores "/>
+            <MFXTableView fx:id="scoreTable" footerVisible="false" maxWidth="-Infinity" minHeight="-Infinity"
+                          minWidth="-Infinity"
+                          prefHeight="410.0" prefWidth="630.0">
+                <VBox.margin>
+                    <Insets top="10.0"/>
+                </VBox.margin>
+            </MFXTableView>
+        </VBox>
+    </AnchorPane>
+</Scene>

@@ -3,7 +3,6 @@ package org.apgrp10.gwent.server;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apgrp10.gwent.model.Deck;
-import org.apgrp10.gwent.model.GameRecord;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
@@ -40,7 +39,7 @@ public class Requests {
 		if (payload != null && payload.get("exp").getAsLong() > System.currentTimeMillis()) try {
 			// Return user object
 			User user = UserManager.getUserById(payload.get("sub").getAsLong());
-			if(Client.clientOfUser(user) != null)
+			if (Client.clientOfUser(user) != null)
 				Client.clientOfUser(user).setLoggedInUser(null);
 			client.setLoggedInUser(user);
 			return req.response(Response.ACCEPTED, (JsonObject) MGson.toJsonElement(user));
@@ -264,12 +263,12 @@ public class Requests {
 	 * Handles the 'getUserInfo' request. Returns the public information of the user.
 	 *
 	 * @jsonParam userId:long : The user ID || username:String : The username of the user
-	 * @statusCode 200 - OK -> body:{info:User.PublicInfo, online:boolean, best:GameRecord}
+	 * @statusCode 200 - OK -> body:User.PublicInfo
 	 * @statusCode 404 - Not Found (User not found)
 	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
 	 */
 	@Authorizations(LOGGED_IN)
-	public static Response getUserInfo(Client client, Request req) throws Exception {
+	public static Response getUserInfo(Client client, Request req) {
 		JsonElement userIdElement = req.getBody().get("userId");
 		JsonElement usernameElement = req.getBody().get("username");
 		User user;
@@ -285,17 +284,24 @@ public class Requests {
 		} catch (Exception e) {
 			return req.response(Response.NOT_FOUND);
 		}
-
-		JsonObject body = MGson.makeJsonObject(
-				"info", user.publicInfo(),
-				"online", UserManager.isUserOnline(user.id()),
-				"best", getBestGameRecord(user.id()));
-		return req.response(Response.OK, body);
+		if (user == null) return req.response(Response.NOT_FOUND);
+		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(user.publicInfo()));
 	}
 
-	// TODO: implement and move to a better place (GamesManager)
-	private static GameRecord getBestGameRecord(long id) {
-		return null;
+	/**
+	 * Handles the 'isUserOnline' request. Returns whether the user is online.
+	 *
+	 * @jsonParam userId (long) : The user ID
+	 * @statusCode 200 - OK -> body:{"online":boolean} : Whether the user is online
+	 * @statusCode 404 - Not Found (User not found)
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	@Authorizations(LOGGED_IN)
+	public static Response isUserOnline(Client client, Request req) {
+		long userId = req.getBody().get("userId").getAsLong();
+		if (!UserManager.isIdExist(userId))
+			return req.response(Response.NOT_FOUND);
+		return req.response(Response.OK, MGson.makeJsonObject("online", UserManager.isUserOnline(userId)));
 	}
 
 	/**
@@ -311,20 +317,74 @@ public class Requests {
 		String query = req.getBody().get("query").getAsString();
 		int limit = req.getBody().get("limit").getAsInt();
 		List<User> result = UserManager.searchUsername(query, limit);
-		List<User.PublicInfo> responseResult = result.stream().map(User::publicInfo).collect(Collectors.toList());
+		List<Long> responseResult = result.stream().map(User::id).collect(Collectors.toList());
 		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(responseResult));
 	}
 
 	@Authorizations(LOGGED_IN)
-	public static Response randomPlayRequest(Client client, Request req) throws Exception {
-		Deck deck = Deck.fromJson(req.getBody().get("deck"));
-		GamesManager.randomPlayRequest(client, deck);
-		return req.response(Response.OK_NO_CONTENT);
+	public static Response getUserExperience(Client client, Request req) {
+		long userId = req.getBody().get("userId").getAsLong();
+
+//		return req.response(Response.OK, MGson.toJsonElement(GamesManager.getUserExperience(userId)));
+		return null;
 	}
 
 	@Authorizations(LOGGED_IN)
-	public static Response cancelRandomPlayRequest(Client client, Request req) {
-		GamesManager.cancelRandomPlayRequest(client);
+	public static Response getTopUsers(Client client, Request req) {
+		int count = req.getBody().get("count").getAsInt();
+		boolean sortByMaxScore = req.getBody().get("sortByMaxScore").getAsBoolean(); // false: sort by wins
+//		List<UserExperience> scoreboard = GamesManager.getScoreboard(count, sortByMaxScore);
+//		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(scoreboard));
+		return null;
+	}
+
+	@Authorizations(LOGGED_IN)
+	public static Response getCurrentGames(Client client, Request req) {
+//		return req.response(Response.OK, MGson.toJsonElement(GamesManager.getCurrentGames()));
+		return null;
+	}
+
+	/**
+	 * Handles the 'requestPlay' request. Requests to play a game.
+	 *
+	 * @jsonParam deck (Deck) : The deck to play with
+	 * @jsonParam target (long) : The target user ID (-1 for random play)
+	 * @jsonParam isPublic (boolean) : Whether the game should be public
+	 * @statusCode 200 - OK
+	 * @statusCode 400 - Bad Request (Client is already in a game)
+	 * @statusCode 404 - Not Found (The target is offline or non-existing)
+	 * @statusCode 409 - Conflict (The target is already requested or in a game)
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	@Authorizations(LOGGED_IN)
+	public static Response requestPlay(Client client, Request req) {
+		Deck deck = Deck.fromJson(req.getBody().get("deck"));
+		long target = req.getBody().get("target").getAsLong();
+		boolean isPublic = req.getBody().get("isPublic").getAsBoolean();
+		return req.response(GamesManager.requestPlay(client, deck, target, isPublic));
+	}
+
+	/**
+	 * Handles the 'cancelPlayRequest' request. Cancels the 'requestPlay' already sent from client
+	 *
+	 * @statusCode 204 - No Content (Play request cancelled)
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	@Authorizations(LOGGED_IN)
+	public static Response cancelPlayRequest(Client client, Request req) {
+		GamesManager.cancelPlayRequest(client);
+		return req.response(Response.OK_NO_CONTENT);
+	}
+
+	/**
+	 * Handles the 'declinePlayRequest' request. Declines the 'requestPlay' from another client
+	 * (It sends a 'declinePlayRequest' to the other client)
+	 * @statusCode 204 - No Content (Play request declined)
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	@Authorizations(LOGGED_IN)
+	public static Response declinePlayRequest(Client client, Request req) {
+		GamesManager.declinePlayRequest(client);
 		return req.response(Response.OK_NO_CONTENT);
 	}
 

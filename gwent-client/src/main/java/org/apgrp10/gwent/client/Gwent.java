@@ -9,9 +9,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.client.model.TerminalAsyncReader;
-import org.apgrp10.gwent.client.view.AbstractStage;
-import org.apgrp10.gwent.client.view.LoginStage;
-import org.apgrp10.gwent.client.view.MainStage;
+import org.apgrp10.gwent.client.view.*;
 import org.apgrp10.gwent.utils.ANSI;
 
 import java.io.IOException;
@@ -19,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -50,15 +49,26 @@ public class Gwent extends Application {
 	}
 
 	public static void forEachStage(Consumer<Stage> action) {
+		HashSet<Stage> toApply = new HashSet<>();
 		for (Window window : new ArrayList<>(Window.getWindows()))
 			if (window instanceof Stage stage)
-				action.accept(stage);
+				toApply.add(stage);
+		toApply.add(LoginStage.getInstance());
+		toApply.add(MainStage.getInstance());
+		toApply.add(ProfileStage.getInstance());
+		toApply.add(FriendshipStage.getInstance());
+		toApply.add(ScoreboardStage.getInstance());
+		toApply.add(PreGameStage.getInstance());
+		toApply.add(GameStage.getInstance());
+		toApply.add(MessageStage.getInstance());
+		toApply.forEach(action);
 	}
 
 	public static void forEachAbstractStage(Consumer<AbstractStage> action) {
-		for (Window window : new ArrayList<>(Window.getWindows()))
-			if (window instanceof AbstractStage stage)
-				action.accept(stage);
+		forEachStage(stage -> {
+			if(stage instanceof AbstractStage abstractStage)
+				action.accept(abstractStage);
+		});
 	}
 
 	@Override
@@ -72,6 +82,8 @@ public class Gwent extends Application {
 			LoginStage.getInstance().start();
 		else
 			MainStage.getInstance().start();
+
+		// TODO: Enable This
 		ClientMain.connect(); // Start the connection javafx is fully ready
 	}
 

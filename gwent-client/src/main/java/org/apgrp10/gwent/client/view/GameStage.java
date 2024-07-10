@@ -2,9 +2,8 @@ package org.apgrp10.gwent.client.view;
 
 import java.util.*;
 
-import io.github.palexdev.materialfx.dialogs.MFXDialogs;
-import javafx.application.Platform;
-import javafx.geometry.Orientation;
+import javafx.stage.Stage;
+import org.apgrp10.gwent.client.Gwent;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.Server;
 import org.apgrp10.gwent.client.controller.MouseInputController;
@@ -99,8 +98,9 @@ public class GameStage extends AbstractStage {
 		});
 	}
 
-	private void stopServer() {
+	private void exit() {
 		Server.setListener("command", null);
+		Gwent.exit();
 	}
 
 	private void createLocal() {
@@ -111,8 +111,7 @@ public class GameStage extends AbstractStage {
 		// TODO: better way to save recording
 		new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> {
 			showWinnerDialog(gr, true);
-
-			this.close();
+			this.exit();
 		}, 0, false, null);
 	}
 
@@ -123,7 +122,7 @@ public class GameStage extends AbstractStage {
 		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr ->
 				new WaitExec(false).run(3000, () -> {
 					showWinnerDialog(gr, false);
-					close();
+					exit();
 				}), player, false, cmds);
 		setupServer(gc);
 	}
@@ -133,7 +132,7 @@ public class GameStage extends AbstractStage {
 		InputController c2 = new DummyInputController();
 		GameMenu gm = new GameMenu(this, true);
 		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr ->
-				new WaitExec(false).run(3000, this::close), player, true, cmds);
+				new WaitExec(false).run(3000, this::exit), player, true, cmds);
 		setupServer(gc);
 	}
 
@@ -142,7 +141,7 @@ public class GameStage extends AbstractStage {
 		InputController c2 = new ReplayInputController(cmds);
 		GameMenu gm = new GameMenu(this, false);
 		new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr ->
-				new WaitExec(false).run(3000, this::close), player, true, null);
+				new WaitExec(false).run(3000, this::exit), player, true, null);
 	}
 
 	@Override
@@ -153,38 +152,36 @@ public class GameStage extends AbstractStage {
 				return false;
 			}
 			case LOCAL -> createLocal();
-			case ONLINE -> createOnline();
-			case CONTINUE -> createOnline();
+			case ONLINE, CONTINUE -> createOnline();
 			case LIVE -> createLive();
 			case REPLAY -> createReplay();
 		}
+		Gwent.forEachStage(Stage::close);
 		return true;
 	}
 
 	@Override
 	protected void onCloseRequest(WindowEvent event) {
 		event.consume();
-		if (showExitDialog()) stopServer();
+		if (showExitDialog()) exit();
 	}
+
 	private void showWinnerDialog(GameRecord gr, boolean hasSave){
 		String title;
 		if(gr.gameWinner() == -1)
 			title = "Draw!";
 		else if((gr.gameWinner() == 0 && UserController.getCurrentUser().id() == gr.player1ID()) ||
 		        (gr.gameWinner() == 1 && UserController.getCurrentUser().id() == gr.player2ID()))
-			title = "you win!";
+			title = "You won!";
 		else
-			title = "you lose!";
+			title = "You lose!";
 		StringBuilder content = new StringBuilder();
-		for(int i = 0; i < gr.p1Sc().size(); i++){
-			content.append("Round ").append(i).append(" : ").append(gr.p1Sc().get(i)).append("_").append(gr.p2Sc().get(i)).append(" / ");
-		}
-		if(content.length() > 3)
-			content = new StringBuilder(content.substring(0, content.length() - 3));
+		for(int i = 0; i < gr.p1Sc().size(); i++)
+			content.append("Round ").append(i).append(" : ").append(gr.p1Sc().get(i)).append(" - ").append(gr.p2Sc().get(i)).append("\n");
 		if(!hasSave)
-			Dialogs.showDialogAndWait(this, MFXDialogs.info(), title, content.toString(), Map.entry("#OK", k -> {}));
+			showDialogAndWait(Dialogs.INFO(), title, content.toString(), Map.entry("#OK", k -> {}));
 		else
-			Dialogs.showDialogAndWait(this, MFXDialogs.info(), title, content.toString(), Map.entry("#OK", k -> {}), Map.entry("save game", k ->
+			showDialogAndWait(Dialogs.INFO(), title, content.toString(), Map.entry("#OK", k -> {}), Map.entry("save game", k ->
 					Utils.choosePlaceAndDownload("Choose place to save recording", "recording.gwent", this,
 					MGson.get(true, true).toJson(gr))));
 	}

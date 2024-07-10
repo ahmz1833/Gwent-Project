@@ -11,7 +11,7 @@ public class MessageStage extends AbstractStage {
 
 	private MessageStage() {
 		super("chat", R.getImage("ic_chat.png"));
-		controller = ChatMenuController.cleanInstance();
+//		controller = ChatMenuController.cleanInstance();
 	}
 
 	public static MessageStage getInstance() {

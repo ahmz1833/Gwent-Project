@@ -2,6 +2,7 @@ package org.apgrp10.gwent.client.controller;
 
 
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.apgrp10.gwent.client.Gwent;
@@ -22,10 +23,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class UserController {
 	private static final String JWT_FILE_PATH = Gwent.APP_DATA + "jwt.txt";
+	private static final HashMap<Long, User.PublicInfo> userInfoCache = new HashMap<>();
 	private static User currentUser;
 	private static long toVerifyUser;
 	private static String jwt;
@@ -83,6 +87,8 @@ public class UserController {
 					Gwent.forEachAbstractStage(AbstractStage::connectionEstablished);
 					if (MainStage.getInstance().isWaitingForAuth()) MainStage.getInstance().start();
 					Server.setListener("continueGame", PreGameController::startGame); // set listener for continueGame
+					Server.setListener("requestPlay", PreGameController::handlePlayRequest); // set listener for playReplay
+					Server.setListener("declinePlayRequest", PreGameController::handlePlayRequestDecline); // set listener for declinePlayRequest
 				} else {
 					ANSI.log("No Acceptable JWT, going to login page", ANSI.LRED, false);
 					Gwent.forEachStage(Stage::close);
@@ -249,6 +255,89 @@ public class UserController {
 					ANSI.printErrorResponse(null, res);
 			}
 			performAuthentication(); // for the changes to take effect to local user
+			callback.accept(res);
+		});
+	}
+
+	public static void getUserInfo(String username, boolean refresh, Consumer<User.PublicInfo> callback) {
+		Optional<User.PublicInfo> optInfo = userInfoCache.values().parallelStream()
+				.filter(info -> info.username().equals(username)).findFirst();
+		if (!refresh && optInfo.isPresent())
+			callback.accept(optInfo.get());
+		else Server.send(new Request("getUserInfo", MGson.makeJsonObject("username", username)), res -> {
+			if(res.isOk()) {
+				User.PublicInfo info = MGson.fromJson(res.getBody(), User.PublicInfo.class);
+				userInfoCache.put(info.id(), info);
+				callback.accept(info);
+			}
+			else {
+				ANSI.log("Failed to get user info, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+		});
+	}
+
+	public static void getUserInfo(long id, boolean refresh, Consumer<User.PublicInfo> callback) {
+		if (!refresh && userInfoCache.containsKey(id))
+			callback.accept(userInfoCache.get(id));
+
+		else{
+			ANSI.log("Getting user info for id " + id);
+			Server.send(new Request("getUserInfo", MGson.makeJsonObject("userId", id)), res -> {
+				if(res.isOk()) {
+					User.PublicInfo info = MGson.fromJson(res.getBody(), User.PublicInfo.class);
+					userInfoCache.put(info.id(), info);
+					callback.accept(info);
+				}
+				else {
+					ANSI.log("Failed to get user info, error code " + res.getStatus());
+					if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+						ANSI.printErrorResponse(null, res);
+				}
+			});
+		}
+	}
+
+	public static void clearUserInfoCache() {
+		userInfoCache.clear();
+	}
+
+	public static void isUserOnline(long id, Consumer<Boolean> callback) {
+		Server.send(new Request("isUserOnline", MGson.makeJsonObject("userId", id)), res -> {
+			if(res.isOk())
+				callback.accept(res.getBody().get("online").getAsBoolean());
+			else {
+				ANSI.log("Failed to check user online status, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+		});
+	}
+
+	public static void searchUsername(String query, int limit, Consumer<ArrayList<Long>> callback) {
+		Server.send(new Request("searchUsername", MGson.makeJsonObject("query", query, "limit", limit)), res -> {
+			if(res.isOk()) {
+				ArrayList<Long> result = MGson.fromJson(res.getBody(), TypeToken.getParameterized(ArrayList.class, Long.class).getType());
+				callback.accept(result);
+			}
+			else {
+				ANSI.log("Failed to search for username, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+		});
+	}
+
+	public static void sendFriendRequest(long id, Consumer<Response> callback) {
+		Server.send(new Request("sendFriendRequest", MGson.makeJsonObject("userId", id)), res -> {
+			if(res.isOk())
+				ANSI.log("Friend request sent successfully");
+			else {
+				ANSI.log("Failed to send friend request, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
 			callback.accept(res);
 		});
 	}

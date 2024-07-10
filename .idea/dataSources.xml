@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="gwent.db" uuid="3dd70a7d-0e43-4090-97a0-f3e9daf7737b">
+    <data-source source="LOCAL" name="users.db" uuid="3549e978-28b2-4af7-9869-8cfe7374d605">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$USER_HOME$/gwent-data/gwent.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:$USER_HOME$/gwent-server-db/users.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

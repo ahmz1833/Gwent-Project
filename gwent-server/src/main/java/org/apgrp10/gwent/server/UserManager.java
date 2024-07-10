@@ -36,6 +36,10 @@ public class UserManager {
 
 	public static boolean isUserOnline(long id) { return Client.clientOfUser(id) != null; }
 
+	public static boolean isIdExist(long userId) {
+		return database.isIdTaken(userId);
+	}
+
 	public static User getUserById(long id) throws Exception {
 		return database.getUserById(id);
 	}
@@ -111,14 +115,14 @@ public class UserManager {
 		database.removeFriendship(id1, id2);
 	}
 
-	static class UserDatabase extends DatabaseTable {
-		UserDatabase() throws Exception {
-			super(ServerMain.SERVER_FOLDER + "gwent.db", "users", Random::nextId, UserDBColumns.values());
+	private static class UserDatabase extends DatabaseTable {
+		private UserDatabase() throws Exception {
+			super(ServerMain.SERVER_FOLDER + "users.db", "users", Random::nextId, UserDBColumns.values());
 			if (database != null)
 				throw new IllegalStateException("UserDatabase already exists");
 		}
 
-		User addUser(User.RegisterInfo userInfo) throws Exception {
+		private User addUser(User.RegisterInfo userInfo) throws Exception {
 			if (isUsernameTaken(userInfo.username()))
 				throw new IllegalArgumentException("Username " + userInfo.username() + " is already taken");
 			long id = insert(Map.entry(UserDBColumns.username, userInfo.username()),
@@ -131,7 +135,7 @@ public class UserManager {
 			return new User(User.RegisterInfo.copyWithId(userInfo, id));
 		}
 
-		User getUserById(long id) throws Exception {
+		private User getUserById(long id) throws Exception {
 			if (!isIdTaken(id))
 				throw new IllegalArgumentException("User with id " + id + " does not exist");
 			User user = new User(getUserRegisterInfoById(id));
@@ -139,7 +143,7 @@ public class UserManager {
 			return user;
 		}
 
-		User.PublicInfo getUserPublicInfoById(long id) throws Exception {
+		private User.PublicInfo getUserPublicInfoById(long id) throws Exception {
 			if (!isIdTaken(id))
 				throw new IllegalArgumentException("User with id " + id + " does not exist");
 			return new User.PublicInfo(id,
@@ -148,7 +152,7 @@ public class UserManager {
 					Avatar.fromBase64(getValue(id, UserDBColumns.avatar)));
 		}
 
-		User.RegisterInfo getUserRegisterInfoById(long id) throws Exception {
+		private User.RegisterInfo getUserRegisterInfoById(long id) throws Exception {
 			if (!isIdTaken(id))
 				throw new IllegalArgumentException("User with id " + id + " does not exist");
 			return new User.RegisterInfo(
@@ -158,29 +162,29 @@ public class UserManager {
 					getValue(id, UserDBColumns.securityQuestion));
 		}
 
-		long getUserId(String username) {
+		private long getUserId(String username) {
 			return getId("WHERE username = ('" + username + "')");
 		}
 
-		void updateUserInfo(User.PublicInfo info) throws Exception {
+		private void updateUserInfo(User.PublicInfo info) throws Exception {
 			updateInfo(info.id(), UserDBColumns.username, info.username());
 			updateInfo(info.id(), UserDBColumns.nickname, info.nickname());
 			updateInfo(info.id(), UserDBColumns.avatar, info.avatar().toBase64());
 		}
 
-		void updateEmail(long id, String newEmail) throws Exception {
+		private void updateEmail(long id, String newEmail) throws Exception {
 			updateInfo(id, UserDBColumns.email, newEmail);
 		}
 
-		void updatePassword(long id, String newPassHash) throws Exception {
+		private void updatePassword(long id, String newPassHash) throws Exception {
 			updateInfo(id, UserDBColumns.passHash, newPassHash);
 		}
 
-		List<Long> getFriendsIds(long id) throws Exception {
+		private List<Long> getFriendsIds(long id) throws Exception {
 			return stringToList(getValue(id, UserDBColumns.friends), Long::parseLong);
 		}
 
-		void addFriendShip(long id1, long id2) throws Exception {
+		private void addFriendShip(long id1, long id2) throws Exception {
 			if (haveFriendship(id1, id2))
 				return;
 			addNewFriend(id1, id2);
@@ -193,7 +197,7 @@ public class UserManager {
 			updateInfo(idOwner, UserDBColumns.friends, listToString(list, String::valueOf));
 		}
 
-		void removeFriendship(long id1, long id2) throws Exception {
+		private void removeFriendship(long id1, long id2) throws Exception {
 			removeFriend(id1, id2);
 			removeFriend(id2, id1);
 		}
@@ -204,7 +208,7 @@ public class UserManager {
 			updateInfo(id1, UserDBColumns.friends, listToString(list, String::valueOf));
 		}
 
-		List<User> getAllUsers() {
+		private List<User> getAllUsers() {
 			return getAllIds().stream().map(id -> {
 				try {
 					return getUserById(id);
@@ -214,7 +218,7 @@ public class UserManager {
 			}).collect(Collectors.toList());
 		}
 
-		enum UserDBColumns implements DBColumn {
+		private enum UserDBColumns implements DBColumn {
 			username("TEXT"),
 			nickname("TEXT"),
 			email("TEXT"),

@@ -1,6 +1,7 @@
 package org.apgrp10.gwent.client.view;
 
 import io.github.palexdev.materialfx.controls.MFXButton;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.WindowEvent;
@@ -39,6 +40,8 @@ public class MainStage extends AbstractStage {
 		MFXButton gameBtn, replayBtn, playingBtn, profileBtn, friendsBtn, rankingsBtn;
 
 		setScene(R.scene.main);
+
+		// TODO: enable these
 		if (!Server.isConnected() || UserController.getCurrentUser() == null) {
 			disable();  // Disable the buttons until the user is authenticated
 			waitingForAuth = UserController.getCurrentUser() == null;
@@ -55,7 +58,11 @@ public class MainStage extends AbstractStage {
 		friendsBtn = lookup("#friendsBtn");
 		rankingsBtn = lookup("#rankingsBtn");
 
-		setOnPressListener(gameBtn, event -> PreGameStage.getInstance().start());
+		setOnPressListener(gameBtn, event -> {
+			Platform.runLater(this::close);
+			PreGameStage.getInstance().setupChoice();
+			PreGameStage.getInstance().start();
+		});
 
 		setOnPressListener(replayBtn, event -> {
 			//TODO: show a dialog , User specifies whether he wants to review a file record or a recording on server

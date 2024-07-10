@@ -1,5 +1,7 @@
 package org.apgrp10.gwent.model.net;
 
+import org.apgrp10.gwent.utils.ANSI;
+
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
@@ -7,6 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class PacketHandler implements Runnable {
+	private static final boolean VERBOSE = false;
 	private final NetNode node;
 
 	public PacketHandler(Socket socket) { node = new NetNode(socket, this::parsePacket); }
@@ -32,12 +35,14 @@ public class PacketHandler implements Runnable {
 	}
 
 	public void send(Request req, Consumer<Response> onReceive) {
+		if(VERBOSE) ANSI.log("_verobse:sending: " + req, ANSI.DIM, false);
 		resCallbacks.put(req.getId(), onReceive);
 		if (!node.send(req.toString().getBytes()))
 			node.close();
 	}
 
 	public void send(Response res) {
+		if(VERBOSE) ANSI.log("_verobse:sending: " + res, ANSI.DIM, false);
 		if (!node.send(res.toString().getBytes()))
 			node.close();
 	}
@@ -51,6 +56,7 @@ public class PacketHandler implements Runnable {
 			node.close();
 			return;
 		}
+		if(VERBOSE) ANSI.log("_verobse:received: " + packet, ANSI.DIM, false);
 		if (packet instanceof Response) handleResponse((Response)packet);
 		if (packet instanceof Request) handleRequest((Request)packet);
 	}
