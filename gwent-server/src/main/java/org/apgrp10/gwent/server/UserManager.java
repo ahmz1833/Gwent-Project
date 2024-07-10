@@ -3,6 +3,7 @@ package org.apgrp10.gwent.server;
 import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.FriendshipRequest;
 import org.apgrp10.gwent.model.User;
+import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.DatabaseTable;
 import org.apgrp10.gwent.utils.Random;
 import org.apgrp10.gwent.utils.Utils;
@@ -34,10 +35,14 @@ public class UserManager {
 		return database.getUserId(username) != -1;
 	}
 
-	public static boolean isUserOnline(long id) { return Client.clientOfUser(id) != null; }
+	public static boolean isUserOnline(long id) {return Client.clientOfUser(id) != null;}
 
 	public static boolean isIdExist(long userId) {
 		return database.isIdTaken(userId);
+	}
+
+	public static User.PublicInfo getUserPublicInfoById(long id) throws Exception {
+		return database.getUserPublicInfoById(id);
 	}
 
 	public static User getUserById(long id) throws Exception {
@@ -65,7 +70,7 @@ public class UserManager {
 		return Utils.search(database.getAllUsers(), User::username, query, limit);
 	}
 
-	public static synchronized void addFriendshipRequest(long from, long to) throws Exception {
+	public static synchronized void addFriendshipRequest(long from, long to) {
 		if (UserManager.haveFriendship(from, to))
 			throw new IllegalArgumentException("Friendship Exists between Users " + from + " and " + to);
 		if (haveFriendshipRequest(from, to) || haveFriendshipRequest(to, from))
@@ -106,13 +111,22 @@ public class UserManager {
 		return friendshipRequests.stream().filter(r -> r.from() == userId).collect(Collectors.toList());
 	}
 
-	public static synchronized boolean haveFriendship(long id1, long id2) throws Exception {
+	public static synchronized boolean haveFriendship(long id1, long id2) {
 		// if id2 is in list if id1's friends, and vice versa
-		return database.getFriendsIds(id1).contains(id2) && database.getFriendsIds(id2).contains(id1);
+		try {
+			return database.getFriendsIds(id1).contains(id2) && database.getFriendsIds(id2).contains(id1);
+		} catch (Exception e) {
+			ANSI.logError(System.err, "Error checking friendship: ", e);
+			return false;
+		}
 	}
 
 	public static synchronized void removeFriendship(long id1, long id2) throws Exception {
 		database.removeFriendship(id1, id2);
+	}
+
+	public static List<Long> getAllUsers() {
+		return database.getAllIds();
 	}
 
 	private static class UserDatabase extends DatabaseTable {

@@ -2,8 +2,7 @@ package org.apgrp10.gwent.server;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.apgrp10.gwent.model.Deck;
-import org.apgrp10.gwent.model.User;
+import org.apgrp10.gwent.model.*;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
 import org.apgrp10.gwent.utils.MGson;
@@ -11,8 +10,7 @@ import org.apgrp10.gwent.utils.SecurityUtils;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.apgrp10.gwent.server.Client.AuthLevel.*;
@@ -321,27 +319,229 @@ public class Requests {
 		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(responseResult));
 	}
 
+	/**
+	 * Handles the 'getFriendList' request. Returns the list of friends of the user.
+	 *
+	 * @statusCode 200 - OK -> body:[long] : The list of user IDs
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	@Authorizations(LOGGED_IN)
+	public static Response getFriendList(Client client, Request req) throws Exception {
+		List<Long> friendList = UserManager.getUserById(client.loggedInUser().id()).getFriends();
+		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(friendList));
+	}
+
+	/**
+	 * Handles the 'addFriendshipRequest' request. Adds a friendship request.
+	 *
+	 * @jsonParam from (long) : The user ID of the sender
+	 * @jsonParam to (long) : The user ID of the receiver
+	 * @statusCode 204 - No Content (Friendship request added)
+	 * @statusCode 400 - Bad Request (from and to are the same)
+	 * @statusCode 401 - Unauthorized (from is not the client)
+	 * @statusCode 404 - Not Found (User not found)
+	 * @statusCode 500 - Internal Server Error (Exception - in case of existing friendship request)
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	@Authorizations(LOGGED_IN)
+	public static Response addFriendshipRequest(Client client, Request req) throws Exception {
+		long from = req.getBody().get("from").getAsLong();
+		long to = req.getBody().get("to").getAsLong();
+		if (from != client.loggedInUser().id())
+			return req.response(Response.UNAUTHORIZED);
+		if (from == to)
+			return req.response(Response.BAD_REQUEST);
+		if (!UserManager.isIdExist(to))
+			return req.response(Response.NOT_FOUND);
+		UserManager.addFriendshipRequest(from, to);
+		return req.response(Response.OK_NO_CONTENT);
+	}
+
+	/**
+	 * Handles the 'getIncomingFriendshipRequests' request. Returns the list of incoming friendship requests.
+	 *
+	 * @statusCode 200 - OK -> body:[FriendshipRequest] : The list of friendship requests
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	@Authorizations(LOGGED_IN)
+	public static Response getIncomingFriendshipRequests(Client client, Request req) throws Exception {
+		List<FriendshipRequest> incomingRequests = UserManager.getIncomingRequests(client.loggedInUser().id());
+		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(incomingRequests));
+	}
+
+	/**
+	 * Handles the 'getOutgoingFriendshipRequests' request. Returns the list of outgoing friendship requests.
+	 *
+	 * @statusCode 200 - OK -> body:[FriendshipRequest] : The list of friendship requests
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	@Authorizations(LOGGED_IN)
+	public static Response getOutgoingFriendshipRequests(Client client, Request req) throws Exception {
+		List<FriendshipRequest> outgoingRequests = UserManager.getOutgoingRequests(client.loggedInUser().id());
+		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(outgoingRequests));
+	}
+
+	/**
+	 * Handles the 'acceptFriendshipRequest' request. Accepts a friendship request.
+	 *
+	 * @jsonParam from (long) : The user ID of the sender
+	 * @statusCode 204 - No Content (Friendship request accepted)
+	 * @statusCode 404 - Not Found (User not found)
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	@Authorizations(LOGGED_IN)
+	public static Response acceptFriendshipRequest(Client client, Request req) throws Exception {
+		long from = req.getBody().get("from").getAsLong();
+		if (!UserManager.isIdExist(from))
+			return req.response(Response.NOT_FOUND);
+		UserManager.acceptFriendshipRequest(from, client.loggedInUser().id());
+		return req.response(Response.OK_NO_CONTENT);
+	}
+
+	/**
+	 * Handles the 'rejectFriendshipRequest' request. Rejects a friendship request.
+	 *
+	 * @jsonParam from (long) : The user ID of the sender
+	 * @statusCode 204 - No Content (Friendship request rejected)
+	 * @statusCode 404 - Not Found (User not found)
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	@Authorizations(LOGGED_IN)
+	public static Response rejectFriendshipRequest(Client client, Request req) throws Exception {
+		long from = req.getBody().get("from").getAsLong();
+		if (!UserManager.isIdExist(from))
+			return req.response(Response.NOT_FOUND);
+		UserManager.rejectFriendshipRequest(from, client.loggedInUser().id());
+		return req.response(Response.OK_NO_CONTENT);
+	}
+
+	/**
+	 * Handles the 'removeFriendship' request. Removes a friendship.
+	 *
+	 * @jsonParam id (long) : The user ID of the friend
+	 * @statusCode 204 - No Content (Friendship removed)
+	 * @statusCode 404 - Not Found (User is not a friend)
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	@Authorizations(LOGGED_IN)
+	public static Response removeFriendship(Client client, Request req) throws Exception {
+		long id = req.getBody().get("id").getAsLong();
+		if (!UserManager.isIdExist(id) || !UserManager.haveFriendship(client.loggedInUser().id(), id))
+			return req.response(Response.NOT_FOUND);
+		UserManager.removeFriendship(client.loggedInUser().id(), id);
+		return req.response(Response.OK_NO_CONTENT);
+	}
+
+	/**
+	 * Handles the 'getUserExperience' request. Returns the experience of the user.
+	 *
+	 * @jsonParam userId (long) : The user ID
+	 * @statusCode 200 - OK -> body:UserExperience : The experience of the user
+	 * @statusCode 404 - Not Found (User not found)
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
 	@Authorizations(LOGGED_IN)
 	public static Response getUserExperience(Client client, Request req) {
 		long userId = req.getBody().get("userId").getAsLong();
-
-//		return req.response(Response.OK, MGson.toJsonElement(GamesManager.getUserExperience(userId)));
-		return null;
+		if (!UserManager.isIdExist(userId)) return req.response(Response.NOT_FOUND);
+		Map<Long, UserExperience> allExp = GamesManager.getAllExperiences();
+		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(allExp.get(userId)));
 	}
 
+	/**
+	 * Handles the 'getTopUsers' request. Returns the top users.
+	 *
+	 * @jsonParam count (int) : The number of users to return
+	 * @jsonParam sortByMaxScore (boolean) : Whether to sort by max score or wins
+	 * @statusCode 200 - OK -> body:[UserExperience] : The list of user experiences
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
 	@Authorizations(LOGGED_IN)
 	public static Response getTopUsers(Client client, Request req) {
 		int count = req.getBody().get("count").getAsInt();
 		boolean sortByMaxScore = req.getBody().get("sortByMaxScore").getAsBoolean(); // false: sort by wins
-//		List<UserExperience> scoreboard = GamesManager.getScoreboard(count, sortByMaxScore);
-//		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(scoreboard));
-		return null;
+		List<UserExperience> scoreboard = GamesManager.getTopPlayers(count, sortByMaxScore);
+		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(scoreboard));
 	}
 
+	/**
+	 * Handles the 'getCurrentGames' request. Returns the list of current games that the user can see.
+	 *
+	 * @statusCode 200 - OK -> body:[ {p1:long, p2:long, isPublic:boolean} ] : The list of current games visible for the user
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
 	@Authorizations(LOGGED_IN)
 	public static Response getCurrentGames(Client client, Request req) {
-//		return req.response(Response.OK, MGson.toJsonElement(GamesManager.getCurrentGames()));
-		return null;
+		List<GamesManager.CurrentGame> currentGames = GamesManager.getVisibleCurrentGames(client.loggedInUser().id());
+		List<JsonObject> result = currentGames.stream().map(game -> {
+			JsonObject gameJson = MGson.toJsonElement(game.game()).getAsJsonObject();
+			gameJson.addProperty("p1", game.p1());
+			gameJson.addProperty("p2", game.p2());
+			gameJson.addProperty("isPublic", game.isPublic());
+			return gameJson;
+		}).toList();
+		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(result));
+	}
+
+	/**
+	 * Handles the 'attendLiveWatching' request. Attends a live watching of a game.
+	 *
+	 * @jsonParam player (long) : The ID of a player in the game
+	 * @statusCode 204 - No Content (Attended) -> Server will send 'live' request soon
+	 * @statusCode 404 - Not Found (Game not found)
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	public static Response attendLiveWatching(Client client, Request req) {
+		long gameId = req.getBody().get("player").getAsLong();
+		if (GamesManager.attendLiveWatching(client, gameId))
+			return req.response(Response.OK_NO_CONTENT);
+		else
+			return req.response(Response.NOT_FOUND);
+	}
+
+	/**
+	 * Handles the 'getMyDoneGameList' request. Returns the list of games that the user has played.
+	 *
+	 * @statusCode 200 - OK -> body:{long:GameRecord} : The list of game records (not playable - without commands)
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	public static Response getMyDoneGameList(Client client, Request req) {
+		HashMap<Long, GameRecord> doneGames = GamesManager.getGamesByPlayer(client.loggedInUser().id());
+		// remove Command List in each record (because of its large size)
+		for (Long gameId : new ArrayList<>(doneGames.keySet()))
+			doneGames.put(gameId, doneGames.get(gameId).withoutCmds());
+		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(doneGames));
+	}
+
+	/**
+	 * Handles the 'getLastGame' request. Returns the last game of the user.
+	 *
+	 * @statusCode 200 - OK -> body:GameRecord : The last game record
+	 * @statusCode 404 - Not Found (No games found)
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	public static Response getLastGame(Client client, Request req) {
+		long userId = req.getBody().get("userId").getAsLong();
+		// get the last game of the user (greatest key in the map)
+		HashMap<Long, GameRecord> games = GamesManager.getGamesByPlayer(userId);
+		Optional<Long> greatestId = games.keySet().stream().max(Long::compareTo);
+		if (greatestId.isEmpty())
+			return req.response(Response.NOT_FOUND);
+		GameRecord lastGame = games.get(greatestId.get());
+		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(lastGame));
+	}
+
+	/**
+	 * Handles the 'replayGame' request. Replays a game.
+	 *
+	 * @jsonParam recordedGameId (long) : The ID of the recorded game
+	 * @statusCode 204 - No Content (Game replayed) -> Server will send 'replay' request soon
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	public static Response replayGame(Client client, Request req) {
+		long recordedGameId = req.getBody().get("recordedGameId").getAsLong();
+		GamesManager.replayGame(client, recordedGameId);
+		return req.response(Response.OK_NO_CONTENT);
 	}
 
 	/**
@@ -350,7 +550,7 @@ public class Requests {
 	 * @jsonParam deck (Deck) : The deck to play with
 	 * @jsonParam target (long) : The target user ID (-1 for random play)
 	 * @jsonParam isPublic (boolean) : Whether the game should be public
-	 * @statusCode 200 - OK
+	 * @statusCode 204 - No Content (Play request sent) -> When the target accepts, Server will send 'start' request soon
 	 * @statusCode 400 - Bad Request (Client is already in a game)
 	 * @statusCode 404 - Not Found (The target is offline or non-existing)
 	 * @statusCode 409 - Conflict (The target is already requested or in a game)
@@ -378,7 +578,8 @@ public class Requests {
 
 	/**
 	 * Handles the 'declinePlayRequest' request. Declines the 'requestPlay' from another client
-	 * (It sends a 'declinePlayRequest' to the other client)
+	 * (It sends a 'declinePlayRequest' to the waiter client)
+	 *
 	 * @statusCode 204 - No Content (Play request declined)
 	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
 	 */

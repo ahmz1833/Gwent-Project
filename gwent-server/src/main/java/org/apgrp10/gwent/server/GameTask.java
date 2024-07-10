@@ -129,21 +129,18 @@ public class GameTask extends Task {
 	private Request startingRequest(String action, boolean fastForward, boolean isPublic) {
 		JsonObject startBody = MGson.makeJsonObject(
 				"seed", seed,
-				"user1", MGson.toJsonElement(data[0].user.publicInfo()),
-				"user2", MGson.toJsonElement(data[1].user.publicInfo()),
+				"user1", data[0].user.publicInfo(),
+				"user2", data[1].user.publicInfo(),
 				"deck1", data[0].deck.toJson(),
 				"deck2", data[1].deck.toJson()
 		);
 		if (fastForward) {
-			startBody.add("cmds", MGson.toJsonElement(cmds.stream()
-					.map(Command::toBase64).collect(Collectors.toList())));
-			startBody.add("msgs", MGson.toJsonElement((isPublic ? publicMsgs : msgs).stream()
-					.map(Message::toString).collect(Collectors.toList())));
+			startBody.add("cmds", MGson.toJsonElement(cmds));
+			startBody.add("msgs", MGson.toJsonElement(isPublic ? publicMsgs : msgs));
 		}
 		return new Request(action, startBody);
 	}
 
-	// TODO: use this in requests.java for attending a live-watching
 	public void addLiveClient(Client client) {
 		addCommand(() -> {
 			client.send(startingRequest("live", true, true));

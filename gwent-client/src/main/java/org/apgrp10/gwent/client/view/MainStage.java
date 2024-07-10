@@ -76,10 +76,10 @@ public class MainStage extends AbstractStage {
 				return;
 
 			GameRecord gr = MGson.fromJson(Utils.loadFile(path), GameRecord.class);
-			Deck deck1 = Deck.fromJsonString(gr.deck1());
-			Deck deck2 = Deck.fromJsonString(gr.deck2());
-			User.PublicInfo publicInfo1 = new User.PublicInfo(1337, "user1", "nick1", Avatar.random());
-			User.PublicInfo publicInfo2 = new User.PublicInfo(1984, "user2", "nick2", Avatar.random());
+			Deck deck1 = gr.getDeck1();
+			Deck deck2 = gr.getDeck2();
+			User.PublicInfo publicInfo1 = new User.PublicInfo(1, "user1", "nick1", Avatar.random());
+			User.PublicInfo publicInfo2 = new User.PublicInfo(2, "user2", "nick2", Avatar.random());
 			long seed = gr.seed();
 
 			GameStage.setCommonData(publicInfo1, publicInfo2, deck1, deck2, seed);

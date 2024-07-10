@@ -83,7 +83,6 @@ public class Gwent extends Application {
 		else
 			MainStage.getInstance().start();
 
-		// TODO: Enable This
 		ClientMain.connect(); // Start the connection javafx is fully ready
 	}
 

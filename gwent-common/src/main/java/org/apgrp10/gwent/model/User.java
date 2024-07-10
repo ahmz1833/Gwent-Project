@@ -27,8 +27,8 @@ public class User {
 		friends.addAll(newFriends);
 	}
 
-	public void getFriends(List<Long> friends) {
-		friends.addAll(this.friends);
+	public List<Long> getFriends() {
+		return friends;
 	}
 
 	public boolean isPassHashCorrect(String passHash) {

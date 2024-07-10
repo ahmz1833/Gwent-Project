@@ -1,14 +1,17 @@
 package org.apgrp10.gwent.model;
 
 
-import com.google.gson.Gson;
+import com.google.gson.TypeAdapter;
+import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import org.apgrp10.gwent.utils.ANSI;
-import org.apgrp10.gwent.utils.MGson;
 
 import java.io.*;
 import java.time.Instant;
 import java.util.Base64;
 
+@JsonAdapter(Message.MessageAdapter.class)
 public class Message implements Serializable {
 	private long id;
 	private final int numberOfReaction;
@@ -109,6 +112,18 @@ public class Message implements Serializable {
 		} catch (IOException | ClassNotFoundException e) {
 			ANSI.logError(System.err, "invalid message", e);
 			return null;
+		}
+	}
+
+	static class MessageAdapter extends TypeAdapter<Message> {
+		@Override
+		public void write(JsonWriter jsonWriter, Message message) throws IOException {
+			jsonWriter.value(message.toString());
+		}
+
+		@Override
+		public Message read(JsonReader jsonReader) throws IOException {
+			return Message.fromString(jsonReader.nextString());
 		}
 	}
 }

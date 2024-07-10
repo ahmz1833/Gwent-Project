@@ -1,9 +1,7 @@
 package org.apgrp10.gwent.server;
 
 import javafx.util.Pair;
-import org.apgrp10.gwent.model.Command;
-import org.apgrp10.gwent.model.Deck;
-import org.apgrp10.gwent.model.GameRecord;
+import org.apgrp10.gwent.model.*;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
 import org.apgrp10.gwent.utils.ANSI;
@@ -36,7 +34,7 @@ public class GamesManager {
 	 * @param target:   the target client that the client wants to play with (-1 for random play)
 	 * @param isPublic: whether the game should be public or not
 	 * @return errorCode:
-	 * -OK (200): OK
+	 * -OK_NO_CONTENT (204): The request is successful
 	 * -BAD_REQUEST (400): Client is already in a game
 	 * -CONFLICT (409): The target is already requested, or in a game
 	 * -NOT_FOUND (404): The target is offline (or non-existing)
@@ -75,12 +73,13 @@ public class GamesManager {
 				// check the target if is already in a game
 				if (games.stream().anyMatch(g -> g.p1() == target || g.p2() == target))
 					return Response.CONFLICT;
-				Client.clientOfUser(target).send(new Request("requestPlay", MGson.makeJsonObject("from", client.loggedInUser().id(), "isPublic", isPublic)));
+				Client.clientOfUser(target).send(new Request("requestPlay",
+						MGson.makeJsonObject("from", client.loggedInUser().id(), "isPublic", isPublic)));
 			} else if (target != -1)
 				return Response.NOT_FOUND;  // requesting to an offline (or non-existing) User!
 			waitingForPlaying.put(target, new Pair<>(client, deck));
 		}
-		return Response.OK;
+		return Response.OK_NO_CONTENT;
 	}
 
 	public static synchronized void cancelPlayRequest(Client client) {
@@ -89,8 +88,97 @@ public class GamesManager {
 
 	public static void declinePlayRequest(Client client) {
 		var waiter = waitingForPlaying.remove(client.loggedInUser().id());
-		if(waiter != null && waiter.getKey() != null && !waiter.getKey().isDone())
+		if (waiter != null && waiter.getKey() != null && !waiter.getKey().isDone())
 			waiter.getKey().send(new Request("declinePlayRequest"));
+	}
+
+	public static List<CurrentGame> getVisibleCurrentGames(long watcher) {
+		return games.stream().filter(game -> game.isPublic ||
+		                                     (UserManager.haveFriendship(watcher, game.p1) &&
+		                                      UserManager.haveFriendship(watcher, game.p2)))
+				.collect(Collectors.toList());
+	}
+
+	public static boolean attendLiveWatching(Client client, long playerId) {
+		Optional<CurrentGame> currentGame = games.stream().filter(game -> game.p1() == playerId ||
+		                                                                  game.p2() == playerId).findFirst();
+		if (currentGame.isPresent())
+			currentGame.get().game().addLiveClient(client);
+		else return false;
+		return true;
+	}
+
+	public static HashMap<Long, GameRecord> getGamesByPlayer(long playerId) {
+		try {
+			return database.allGamesByPlayer(playerId).stream().collect(Collectors.toMap(id -> id, id -> {
+				try {
+					return database.getGameById(id);
+				} catch (Exception e) {
+					ANSI.log("Error getting game by id: " + e.getMessage());
+					return null;
+				}
+			}, (a, b) -> a, HashMap::new));
+		} catch (Exception e) {
+			ANSI.log("Error getting games by player: " + e.getMessage());
+			return new HashMap<>();
+		}
+	}
+
+	public static void replayGame(Client client, long recordedGameId) {
+		try {
+			client.send(database.getGameById(recordedGameId).createReplayRequest(userId -> {
+				try {
+					return UserManager.getUserPublicInfoById(userId);
+				} catch (Exception e) {
+					ANSI.log("Error getting user public info: " + e.getMessage());
+					return null;
+				}
+			}));
+		} catch (Exception e) {
+			ANSI.log("Error replaying game: " + e.getMessage());
+		}
+	}
+
+	public static Map<Long, UserExperience> getAllExperiences() {
+		HashMap<Long, UserExperience> experiences = new HashMap<>();
+		UserManager.getAllUsers().forEach(userId -> experiences.put(userId, getPerUserExp(userId)));
+
+		// Now, sort By wins and put them a new UserExperience having rankByWins
+		List<UserExperience> sortedByWins = experiences.values().stream()
+				.sorted(Comparator.comparingInt(UserExperience::wins).reversed()).toList();
+		sortedByWins.forEach(userExp -> experiences.put(userExp.userId(),
+				userExp.withRankByWins(sortedByWins.indexOf(userExp) + 1)));
+
+		// Now, sort By maxScore and put them a new UserExperience having rankByMaxScore
+		List<UserExperience> sortedByMaxScore = experiences.values().stream()
+				.sorted(Comparator.comparingInt(UserExperience::maxScore).reversed()).toList();
+		sortedByMaxScore.forEach(userExp -> experiences.put(userExp.userId(),
+				userExp.withRankByMaxScore(sortedByMaxScore.indexOf(userExp) + 1)));
+
+		return experiences;
+	}
+
+	private static UserExperience getPerUserExp(long playerId) {
+		List<GameRecord> games = getGamesByPlayer(playerId).values().stream().toList();
+		int maxScore = 0, wins = 0, losses = 0, draws = 0;
+		for (GameRecord game : games) {
+			int score = game.totalScore(playerId);
+			maxScore = Math.max(maxScore, score);
+			if (game.gameWinner() == playerId)
+				wins++;
+			else if (game.gameWinner() == -1)
+				draws++;
+			else
+				losses++;
+		}
+		return new UserExperience(playerId, maxScore, wins, losses, draws, 0, 0);
+	}
+
+	public static List<UserExperience> getTopPlayers(int count, boolean sortByMaxScore) {
+		return getAllExperiences().values().stream()
+				.sorted(sortByMaxScore ? Comparator.comparingInt(UserExperience::rankByMaxScore) :
+						Comparator.comparingInt(UserExperience::rankByWins))
+				.limit(count).toList();
 	}
 
 	public record CurrentGame(long p1, long p2, boolean isPublic, GameTask game) {}
@@ -134,31 +222,12 @@ public class GamesManager {
 					stringToList(getValue(id, GameDBColumn.p2Sc), Integer::parseInt));
 		}
 
-		private synchronized List<GameRecord> allGamesByPlayer(long playerId) {
-//			return getAllIds().stream().filter(id -> {
-//				try {
-//					return getValue(id, GameDBColumn.player1).equals(playerId) || getValue(id, GameDBColumn.player2).equals(playerId);
-//				} catch (Exception e) {
-//					return false;
-//				}
-//			}).map(id -> {
-//				try {
-//					return getGameById(id);
-//				} catch (Exception e) {
-//					return null;
-//				}
-//			}).collect(Collectors.toList());
-			return null;
-		}
-
-		private synchronized List<GameRecord> getLastGames(int n) {
-			// if n is -1, return all games
-			// because id is incremented, the last n games are the last n ids
-			return getAllIds().stream().sorted().limit(n).map(id -> {
+		private synchronized List<Long> allGamesByPlayer(long playerId) {
+			return getAllIds().stream().filter(id -> {
 				try {
-					return getGameById(id);
+					return getValue(id, GameDBColumn.player1).equals(playerId) || getValue(id, GameDBColumn.player2).equals(playerId);
 				} catch (Exception e) {
-					return null;
+					return false;
 				}
 			}).collect(Collectors.toList());
 		}
