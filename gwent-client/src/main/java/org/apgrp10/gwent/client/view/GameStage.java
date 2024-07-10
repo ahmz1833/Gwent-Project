@@ -9,8 +9,8 @@ import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.Server;
 import org.apgrp10.gwent.client.controller.MouseInputController;
 import org.apgrp10.gwent.client.controller.ReplayInputController;
-import org.apgrp10.gwent.client.controller.ServerInputController;
 import org.apgrp10.gwent.client.controller.UserController;
+import org.apgrp10.gwent.controller.DummyInputController;
 import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.controller.InputController;
 import org.apgrp10.gwent.model.Command;
@@ -83,13 +83,13 @@ public class GameStage extends AbstractStage {
 	private void setupServer(GameController gc) {
 		InputController c1 = gc.getPlayer(0).controller;
 		InputController c2 = gc.getPlayer(1).controller;
-		boolean isOnline1 = c1 instanceof ServerInputController;
-		boolean isOnline2 = c2 instanceof ServerInputController;
+		boolean isOnline1 = c1 instanceof DummyInputController;
+		boolean isOnline2 = c2 instanceof DummyInputController;
 		Server.setListener("command", req -> {
 			Command cmd = Command.fromBase64(req.getBody().get("cmd").getAsString());
 			int player = req.getBody().get("player").getAsInt();
-			if (player == 0 && isOnline1) ((ServerInputController) c1).sendCommand(cmd);
-			if (player == 1 && isOnline2) ((ServerInputController) c2).sendCommand(cmd);
+			if (player == 0 && isOnline1) gc.sendCommand(cmd);
+			if (player == 1 && isOnline2) gc.sendCommand(cmd);
 			return req.response(Response.OK_NO_CONTENT);
 		});
 		gc.addCommandListener(cmd -> {
@@ -116,8 +116,8 @@ public class GameStage extends AbstractStage {
 	}
 
 	private void createOnline(boolean fastForward) {
-		InputController c1 = player == 0 ? new MouseInputController() : new ServerInputController();
-		InputController c2 = player == 1 ? new MouseInputController() : new ServerInputController();
+		InputController c1 = player == 0 ? new MouseInputController() : new DummyInputController();
+		InputController c2 = player == 1 ? new MouseInputController() : new DummyInputController();
 		GameMenu gm = new GameMenu(this, true);
 		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr ->
 				new WaitExec(false).run(3000, () -> {
@@ -129,8 +129,8 @@ public class GameStage extends AbstractStage {
 	}
 
 	private void createLive() {
-		InputController c1 = new ServerInputController();
-		InputController c2 = new ServerInputController();
+		InputController c1 = new DummyInputController();
+		InputController c2 = new DummyInputController();
 		GameMenu gm = new GameMenu(this, true);
 		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr ->
 				new WaitExec(false).run(3000, this::close), player, true);

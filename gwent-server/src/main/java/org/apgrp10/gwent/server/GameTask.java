@@ -7,6 +7,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.google.gson.JsonElement;
+
+import org.apgrp10.gwent.controller.DummyInputController;
 import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.model.*;
 import org.apgrp10.gwent.model.net.Request;

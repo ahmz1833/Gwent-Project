@@ -26,6 +26,7 @@ public class GameController {
 		public boolean leaderCancelled;
 		public boolean cheatHorn;
 		public final String originalDeckJson;
+		public int vetoCount = 0;
 
 		public PlayerData(User.PublicInfo user, Deck deck, InputController controller) {
 			originalDeckJson = deck.toJsonString();
@@ -127,8 +128,9 @@ public class GameController {
 		// must be after instanciating GameMenu
 		c0.start(this, 0);
 		c1.start(this, 1);
-		c0.veto();
-		c1.veto();
+		c0.veto(0);
+		if (!c1.vetoShouldWait(c0))
+			c1.veto(0);
 	}
 
 	public boolean hasSwitchableSides() { return switchableSides; }
@@ -158,7 +160,7 @@ public class GameController {
 				if (f != Faction.SKELLIGE)
 					continue;
 				for (int i = 0; i < 2; i++) {
-					// TODO: medic requires "pick"ing which is a pain and currently is not possible when it's not your turn
+					// TODO: medic requires "pick"ing which is a pain
 					Card card = chooseRandom(playerData[p].usedCards.stream()
 							.filter(c -> c.row != Row.NON)
 							.filter(c -> c.ability != Ability.MEDIC)
@@ -177,7 +179,7 @@ public class GameController {
 			gameMenu.beginRound();
 
 		nextTurnDelay = 1000;
-		playerData[turn].controller.beginTurn();
+		playerData[turn].controller.play();
 	}
 
 	private long nextTurnDelay = 1000;
@@ -405,27 +407,23 @@ public class GameController {
 
 	private void playCard(Command.PlayCard cmd) {
 		playCardImpl(cmd.player(), cardById(cmd.cardId()), cmd.row());
+		activeCard = null;
 		nextTurn();
 	}
 
 	private void nextTurn() {
 		if (nextTurnDelay == -1) {
 			nextTurnDelay = 1000;
+			playerData[turn].controller.play();
 			return;
 		}
 		if (!lastPassed) {
 			if (gameMenu != null)
 				gameMenu.userTurn(getTurn());
-			playerData[turn].controller.endTurn();
 			turn = 1 - turn;
-			waitExec.run(nextTurnDelay, () -> {
-				playerData[turn].controller.beginTurn();
-			});
-			nextTurnDelay = 1000;
-		} else if (nextTurnDelay > 1000) {
-			playerData[turn].controller.pauseTurn();
-			waitExec.run(nextTurnDelay, () -> { playerData[turn].controller.resumeTurn(); });
 		}
+		waitExec.run(nextTurnDelay, () -> { playerData[turn].controller.play(); });
+		nextTurnDelay = 1000;
 	}
 
 	private void swapCard(Command.SwapCard cmd) {
@@ -447,16 +445,13 @@ public class GameController {
 			}
 		}
 
+		activeCard = null;
 		nextTurn();
-	}
-
-	private void moveToHand(Command.MoveToHand cmd) {
-		Card card = cardById(cmd.cardId());
-		moveCard(card, playerData[cmd.player()].handCards);
 	}
 
 	private void setActiveCard(Command.SetActiveCard cmd) {
 		activeCard = cardById(cmd.cardId());
+		playerData[cmd.player()].controller.play();
 	}
 
 	public boolean gonnaWin(int player) {
@@ -497,7 +492,6 @@ public class GameController {
 	}
 
 	private void nextRound() {
-		playerData[turn].controller.endTurn();
 		p1Sc.add(calcPlayerScore(0));
 		p2Sc.add(calcPlayerScore(1));
 		boolean end = false;
@@ -570,6 +564,7 @@ public class GameController {
 	}
 
 	private void pass(Command.Pass cmd) {
+		activeCard = null;
 		if (gameMenu != null)
 			gameMenu.userPassed(cmd.player());
 		if (!lastPassed) {
@@ -583,25 +578,32 @@ public class GameController {
 	private void vetoCard(Command.VetoCard cmd) {
 		Card card = cardById(cmd.cardId());
 		PlayerData data = playerData[cmd.player()];
+		PlayerData data2 = playerData[1 - cmd.player()];
 
-		if (card == null) {
-			data.vetoDone = true;
-			if (playerData[0].vetoDone && playerData[1].vetoDone)
-				beginRound();
+		if (card != null) {
+			List<Card> deck = data.deck.getDeck();
+			List<Card> hand = data.handCards;
+			hand.set(hand.indexOf(card), deck.get(0));
+			deck.remove(0);
+			deck.add(card);
+			data.controller.veto(++data.vetoCount);
 			return;
 		}
 
-		List<Card> deck = data.deck.getDeck();
-		List<Card> hand = data.handCards;
-		hand.set(hand.indexOf(card), deck.get(0));
-		deck.remove(0);
-		deck.add(card);
+		data.vetoDone = true;
+
+		if (cmd.player() == 0 && data2.controller.vetoShouldWait(data.controller))
+			waitExec.run(1000, () -> data2.controller.veto(0));
+
+		if (data.vetoDone && data2.vetoDone)
+			beginRound();
 	}
 
 	private void playLeader(Command.PlayLeader cmd) {
 		PlayerData data = playerData[cmd.player()];
 		data.leaderUsed = true;
 		doLeaderAbility(cmd.player(), data.deck.getLeader().ability);
+		activeCard = null;
 		nextTurn();
 	}
 
@@ -713,16 +715,18 @@ public class GameController {
 			}
 			default -> { assert false; }
 		}
+		if (cmd.cheatId() != 5) // cheat_enemy_hand
+			playerData[p].controller.play();
 	}
 
 	private void react(Command.React cmd) {
 		if (gameMenu == null)
 			return;
 		gameMenu.reactTo(lastPlayed, cmd.reactId());
+		playerData[cmd.player()].controller.play();
 	}
 
 	private void resign(Command.Resign cmd) {
-		playerData[turn].controller.endTurn();
 		p1Sc.add(calcPlayerScore(0));
 		p2Sc.add(calcPlayerScore(1));
 		roundWinner.add(1 - cmd.player());
@@ -746,6 +750,8 @@ public class GameController {
 	// it is for when precessing commands causes for new commands to arrive
 	private boolean syncLock = false;
 	private void syncCommands() {
+		if (syncLock)
+			return;
 		syncLock = true;
 		for (int i = 0; i < commandQueue.size(); i++) {
 			Command cmd = commandQueue.get(i);
@@ -753,7 +759,6 @@ public class GameController {
 			if (cmd instanceof Command.PlayCard) playCard((Command.PlayCard)cmd);
 			if (cmd instanceof Command.SwapCard) swapCard((Command.SwapCard)cmd);
 			if (cmd instanceof Command.PlayLeader) playLeader((Command.PlayLeader)cmd);
-			if (cmd instanceof Command.MoveToHand) moveToHand((Command.MoveToHand)cmd);
 			if (cmd instanceof Command.Pass) pass((Command.Pass)cmd);
 			if (cmd instanceof Command.SetActiveCard) setActiveCard((Command.SetActiveCard)cmd);
 			if (cmd instanceof Command.PickResponse) pickResponse((Command.PickResponse)cmd);
@@ -777,14 +782,11 @@ public class GameController {
 			return;
 		}
 
-		cmdHistory.add(cmd);
+		playerData[cmd.player()].controller.end();
 
-		if (cmd instanceof Command.Sync) {
-			if (!syncLock)
-				syncCommands();
-		} else {
-			commandQueue.add(cmd);
-		}
+		cmdHistory.add(cmd);
+		commandQueue.add(cmd);
+		syncCommands();
 
 		// we make a deep copy because some listeners might remove themselves while we are iterating
 		for (Consumer<Command> cb : new ArrayList<>(commandListeners))

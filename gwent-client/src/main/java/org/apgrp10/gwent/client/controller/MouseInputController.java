@@ -35,68 +35,30 @@ public class MouseInputController implements InputController {
 	}
 
 	@Override
-	public void beginTurn() {
+	public void play() {
+		System.out.println("salam");
 		controller.setActivePlayer(player);
 		addListeners();
 	}
 
 	@Override
-	public void endTurn() {removeListeners();}
+	public void end() {
+		removeListeners();
+	}
+
+	@Override public boolean vetoShouldWait(InputController c) { return c instanceof MouseInputController; }
 
 	@Override
-	public void pauseTurn() {removeListeners();}
-
-	@Override
-	public void resumeTurn() {addListeners();}
-
-	@Override
-	public void endGame() {}
-
-	@Override
-	public void veto() {
-		// TODO: this function is pure shit! maybe do something better?
-		// also note that if it's a local game player 2 needs to wait for player 1 before choosing
-
-		Consumer<Card> pickCb = card1 -> {
-			if (card1 == null) {
-				controller.waitExec.run(1000, () -> {
-					controller.sendCommand(new Command.VetoCard(player, -1));
-					controller.sendCommand(new Command.Sync(player));
-				});
-				return;
-			}
-			controller.sendCommand(new Command.VetoCard(player, card1.getGameId()));
-			controller.sendCommand(new Command.Sync(player));
-
-			controller.getGameMenuNonnull().pickCard(controller.getPlayer(player).handCards, card2 -> {
-				if (card2 != null) {
-					controller.sendCommand(new Command.VetoCard(player, card2.getGameId()));
-					controller.sendCommand(new Command.Sync(player));
-				}
-
-				controller.waitExec.run(1000, () -> {
-					controller.sendCommand(new Command.VetoCard(player, -1));
-					controller.sendCommand(new Command.Sync(player));
-				});
-			}, true);
-		};
-
-		if (player == 1 && controller.getPlayer(0).controller instanceof MouseInputController) {
-			controller.addCommandListener(new Consumer<Command>() {
-				@Override
-				public void accept(Command cmd) {
-					if (!controller.getPlayer(0).vetoDone)
-						return;
-					controller.removeCommandListener(this);
-					controller.setActivePlayer(player);
-					controller.getGameMenuNonnull().pickCard(controller.getPlayer(player).handCards, pickCb, true);
-				}
-			});
+	public void veto(int i) {
+		if (i == 2) {
+			controller.sendCommand(new Command.VetoCard(player, -1));
 			return;
 		}
 
 		controller.setActivePlayer(player);
-		controller.getGameMenuNonnull().pickCard(controller.getPlayer(player).handCards, pickCb, true);
+		controller.getGameMenuNonnull().pickCard(controller.getPlayer(player).handCards, card -> {
+			controller.sendCommand(new Command.VetoCard(player, card != null? card.getGameId(): -1));
+		}, true);
 	}
 
 	@Override
@@ -104,13 +66,11 @@ public class MouseInputController implements InputController {
 		boolean nullPossible = what.equals("view_enemy_hand") || what.equals("cheat_enemy_hand");
 		controller.getGameMenuNonnull().pickCard(list, card -> {
 			controller.sendCommand(new Command.PickResponse(player, card != null ? card.getGameId() : -1, what));
-			controller.sendCommand(new Command.Sync(player));
 		}, nullPossible);
 	}
 
 	private void bgAction(Object obj) {
 		controller.sendCommand(new Command.SetActiveCard(player, -1));
-		controller.sendCommand(new Command.Sync(player));
 	}
 
 	private void rowAction(Object obj) {
@@ -118,8 +78,6 @@ public class MouseInputController implements InputController {
 		int row = (int) obj;
 		Card card = controller.getActiveCard();
 		controller.sendCommand(new Command.PlayCard(player, card.getGameId(), row));
-		controller.sendCommand(new Command.SetActiveCard(player, -1));
-		controller.sendCommand(new Command.Sync(player));
 	}
 
 	private void cardAction(Object obj) {
@@ -129,15 +87,11 @@ public class MouseInputController implements InputController {
 
 		if (data.deck.getLeader() == card && !data.leaderUsed) {
 			controller.sendCommand(new Command.PlayLeader(player));
-			controller.sendCommand(new Command.SetActiveCard(player, -1));
-			controller.sendCommand(new Command.Sync(player));
 			return;
 		}
 
 		if (active != null && controller.canSwap(player, active, card)) {
 			controller.sendCommand(new Command.SwapCard(player, active.getGameId(), card.getGameId()));
-			controller.sendCommand(new Command.SetActiveCard(player, -1));
-			controller.sendCommand(new Command.Sync(player));
 			return;
 		}
 
@@ -146,7 +100,6 @@ public class MouseInputController implements InputController {
 
 		if (active != card) {
 			controller.sendCommand(new Command.SetActiveCard(player, card.getGameId()));
-			controller.sendCommand(new Command.Sync(player));
 			return;
 		}
 	}
@@ -157,20 +110,16 @@ public class MouseInputController implements InputController {
 		String str = (String) obj;
 		if (str.equals("pass")) {
 			controller.sendCommand(new Command.Pass(player));
-			controller.sendCommand(new Command.Sync(player));
 		}
 		if (str.equals("resign")) {
 			controller.sendCommand(new Command.Resign(player, "explicit"));
-			controller.sendCommand(new Command.Sync(player));
 		}
 		if (str.startsWith("cheat_")) {
 			controller.sendCommand(new Command.Cheat(player, Integer.parseInt(str.substring(6))));
-			controller.sendCommand(new Command.Sync(player));
 		}
 		if (str.startsWith("react_") && System.currentTimeMillis() - lastReact > 2000 && controller.lastPlayed() != null) {
-			controller.sendCommand(new Command.React(player, Integer.parseInt(str.substring(6))));
-			controller.sendCommand(new Command.Sync(player));
 			lastReact = System.currentTimeMillis();
+			controller.sendCommand(new Command.React(player, Integer.parseInt(str.substring(6))));
 		}
 	}
 }
