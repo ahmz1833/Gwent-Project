@@ -149,7 +149,7 @@ public class GameTask extends Task {
 		});
 	}
 
-	private Client continueWaitingResponse;
+	private Client continueWaitingResponse[] = {null, null};
 
 	protected void iterate() {
 		if (done)
@@ -164,23 +164,24 @@ public class GameTask extends Task {
 				sendCommandAsync(new Command.Connection(i, false));
 			}
 			if (d.client == null) {
-				if (continueWaitingResponse == null) {
+				if (continueWaitingResponse[i] == null) {
 					Client c = Client.clientOfUser(d.user);
 					if (c != null) {
-						continueWaitingResponse = c;
+						continueWaitingResponse[i] = c;
 						c.send(startingRequest("continueGame", true, false), res -> {
 							if (res.isOk()) {
 								addCommand(() -> {
 									d.client = c;
 									sendCommandAsync(new Command.Connection(i, true));
+									continueWaitingResponse[i] = null;
 								});
 								c.setListener("command", this::handleCommand);
 								c.setListener("chatMessage", req -> handleMessage(req, false));
 							}
 						});
 					}
-				} else if (continueWaitingResponse.isDone()) {
-					continueWaitingResponse = null;
+				} else if (continueWaitingResponse[i].isDone()) {
+					continueWaitingResponse[i] = null;
 				}
 				if (System.currentTimeMillis() - d.disTime >= 60_000) {
 					sendCommandAsync(new Command.Resign(i, "disconnected"));

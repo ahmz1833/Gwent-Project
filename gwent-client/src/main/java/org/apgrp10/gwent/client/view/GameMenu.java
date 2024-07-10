@@ -420,7 +420,7 @@ public class GameMenu implements GameMenuInterface {
 	private void showAllMessages() {
 		if (isMessageShowing == false)
 			return;
-		if (!animationNodes.isEmpty() || !scorchCards.isEmpty()) {
+		if (!animationNodes.isEmpty() || !scorchCards.isEmpty() || messageAnimation) {
 			Platform.runLater(this::showAllMessages);
 			return;
 		}

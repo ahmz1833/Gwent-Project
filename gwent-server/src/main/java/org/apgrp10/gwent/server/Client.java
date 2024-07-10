@@ -84,7 +84,12 @@ public class Client extends Task {
 		addCommand(() -> {
 			if (loggedInUser != null) userToClient.remove(loggedInUser.id());
 			loggedInUser = user;
-			if (user != null) userToClient.put(user.id(), this);
+			if (user != null) {
+				Client possibleOldClient = userToClient.get(user.id());
+				if (possibleOldClient != null)
+					possibleOldClient.destruct();
+				userToClient.put(user.id(), this);
+			}
 		});
 	}
 

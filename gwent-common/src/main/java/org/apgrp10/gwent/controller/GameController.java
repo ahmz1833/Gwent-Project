@@ -113,6 +113,8 @@ public class GameController {
 			}
 		}
 
+		turn = startingTurn();
+
 		this.waitExec = new WaitExec(gameMenu == null);
 
 		// must be last so GameController initialization is complete
@@ -131,9 +133,8 @@ public class GameController {
 
 	public boolean hasSwitchableSides() { return switchableSides; }
 
-	private void beginRound() {
-		currentRound++;
-
+	private int startingTurn() {
+		int turn;
 		Faction f0 = playerData[0].deck.getFaction();
 		Faction f1 = playerData[1].deck.getFaction();
 		if (f0 == Faction.SCOIATAEL && f1 != Faction.SCOIATAEL)
@@ -142,10 +143,18 @@ public class GameController {
 			turn = 1;
 		else
 			turn = rand.nextInt(2);
+		return turn;
+	}
+
+	private void beginRound() {
+		currentRound++;
+
+		if (currentRound != 1)
+			turn = startingTurn();
 
 		if (currentRound >= 3) {
 			for (int p = 0; p < 2; p++) {
-				Faction f = p == 1? f1: f0;
+				Faction f = p == 1? playerData[1].deck.getFaction(): playerData[0].deck.getFaction();
 				if (f != Faction.SKELLIGE)
 					continue;
 				for (int i = 0; i < 2; i++) {
@@ -408,8 +417,8 @@ public class GameController {
 			if (gameMenu != null)
 				gameMenu.userTurn(getTurn());
 			playerData[turn].controller.endTurn();
+			turn = 1 - turn;
 			waitExec.run(nextTurnDelay, () -> {
-				turn = 1 - turn;
 				playerData[turn].controller.beginTurn();
 			});
 			nextTurnDelay = 1000;
@@ -792,6 +801,8 @@ public class GameController {
 
 		gameMenu = fastForwardGameMenu;
 		waitExec.setDummy(gameMenu == null);
+
+		gameMenu.redraw();
 	}
 
 	public void setActivePlayer(int player) {
