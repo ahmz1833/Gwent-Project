@@ -15,6 +15,8 @@ import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
 import org.apgrp10.gwent.utils.Utils;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 
 public class MainStage extends AbstractStage {
 	private static MainStage INSTANCE;
@@ -60,18 +62,12 @@ public class MainStage extends AbstractStage {
 
 		setOnPressListener("#replayBtn", event -> {
 			String path = Utils.chooseFileToUpload("Choose recording", getInstance());
-			if (path == null) {return;}
-
+			if (path == null) return;
 			GameRecord gr = MGson.fromJson(Utils.loadFile(path), GameRecord.class);
-			Deck deck1 = gr.getDeck1();
-			Deck deck2 = gr.getDeck2();
-			User.PublicInfo publicInfo1 = new User.PublicInfo(1, "user1", "nick1", Avatar.random());
-			User.PublicInfo publicInfo2 = new User.PublicInfo(2, "user2", "nick2", Avatar.random());
-			long seed = gr.seed();
-
-			GameStage.setCommonData(publicInfo1, publicInfo2, deck1, deck2, seed);
-			GameStage.setReplay(0, gr.commands());
-			GameStage.getInstance().start();
+			AtomicInteger number = new AtomicInteger();
+			PreGameController.startGame(gr.createReplayRequest(id -> (number.getAndIncrement() == 0) ?
+					new User.PublicInfo(1, "player1", "Player 1", Avatar.random()) :
+					new User.PublicInfo(2, "player2", "Player 2", Avatar.random())));
 		});
 
 		setOnPressListener("#liveBtn", event -> {
