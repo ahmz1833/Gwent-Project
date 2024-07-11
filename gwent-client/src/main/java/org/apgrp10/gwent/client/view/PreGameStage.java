@@ -137,8 +137,8 @@ public class PreGameStage extends AbstractStage {
 						"Do you want to send a play request to " + UserController.getCachedInfo(userId).nickname() + "?",
 						"Yes", "No");
 				if(!request) return;
-				Dialogs.getShowingDialogs(this).getLast().close();
 				requestForPlay(userId, UserController.getCachedInfo(userId).username());
+				Dialogs.getShowingDialogs(this).getLast().close();
 			});
 			return cell;
 		});
