@@ -1,25 +1,19 @@
 package org.apgrp10.gwent.client.view;
 
-import io.github.palexdev.materialfx.controls.MFXButton;
 import javafx.application.Platform;
-import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
-import javafx.stage.WindowEvent;
+import javafx.scene.control.Label;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.Server;
-import org.apgrp10.gwent.client.controller.PreGameController;
-import org.apgrp10.gwent.client.controller.ReplayInputController;
 import org.apgrp10.gwent.client.controller.UserController;
-import org.apgrp10.gwent.controller.GameController;
+import org.apgrp10.gwent.client.model.AvatarView;
 import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.GameRecord;
 import org.apgrp10.gwent.model.User;
-import org.apgrp10.gwent.model.net.Request;
-import org.apgrp10.gwent.model.net.Response;
 import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
 import org.apgrp10.gwent.utils.Utils;
+
 
 public class MainStage extends AbstractStage {
 	private static MainStage INSTANCE;
@@ -37,34 +31,25 @@ public class MainStage extends AbstractStage {
 
 	@Override
 	protected boolean onCreate() {
-		MFXButton gameBtn, replayBtn, playingBtn, profileBtn, friendsBtn, rankingsBtn;
-
 		setScene(R.scene.main);
+		updateInformation();
 
-		// TODO: enable these
-		if (!Server.isConnected() || UserController.getCurrentUser() == null) {
-			disable();  // Disable the buttons until the user is authenticated
-			waitingForAuth = UserController.getCurrentUser() == null;
-		}
-		else {
-			enable();
-			waitingForAuth = false;
-		}
+		setOnPressListener(lookup("#loggedInText"), event -> {
+			boolean logout = showConfirmDialog(Dialogs.WARN(), "Logout", "Are you sure you want to logout?", "Logout", "Cancel");
+			if (logout) {
+				UserController.logout();
+				Platform.runLater(this::close);
+				LoginStage.getInstance().start();
+			}
+		});
 
-		gameBtn = lookup("#gameBtn");
-		replayBtn = lookup("#replayBtn");
-		playingBtn = lookup("#playingBtn");
-		profileBtn = lookup("#profileBtn");
-		friendsBtn = lookup("#friendsBtn");
-		rankingsBtn = lookup("#rankingsBtn");
-
-		setOnPressListener(gameBtn, event -> {
+		setOnPressListener(lookup("#gameBtn"), event -> {
 			Platform.runLater(this::close);
 			PreGameStage.getInstance().setupChoice();
 			PreGameStage.getInstance().start();
 		});
 
-		setOnPressListener(replayBtn, event -> {
+		setOnPressListener(lookup("#replayBtn"), event -> {
 			//TODO: show a dialog , User specifies whether he wants to review a file record or a recording on server
 
 			// TODO: if user chooses to review a file record, check if the file is valid and then start the replay
@@ -87,24 +72,52 @@ public class MainStage extends AbstractStage {
 			GameStage.getInstance().start();
 		});
 
-		setOnPressListener(playingBtn, event -> {
+		setOnPressListener(lookup("#playingBtn"), event -> {
 			// TODO: implement
 		});
 
-		setOnPressListener(profileBtn, event -> ProfileStage.getInstance().start());
+		setOnPressListener(lookup("#profileBtn"), event -> ProfileStage.getInstance().start());
 
-		setOnPressListener(friendsBtn, event -> {
+		setOnPressListener(lookup("#friendsBtn"), event -> {
 			// TODO: show a dialog , User specifies whether he wants to add a friend or view friends list
 		});
 
-		setOnPressListener(rankingsBtn, event -> {
-			// TODO: start the rankings stage
-		});
+		setOnPressListener(lookup("#rankingsBtn"), event -> ScoreboardStage.getInstance().start());
+
 
 		return true;
 	}
 
 	public boolean isWaitingForAuth() {
 		return waitingForAuth;
+	}
+
+	@Override
+	protected void updateInformation() {
+		if (!Server.isConnected() || UserController.getCurrentUser() == null) {
+			disable();
+			waitingForAuth = true;
+			return;
+		}
+
+		enable();
+		waitingForAuth = false;
+
+		//Set avatar
+		this.<AvatarView>lookup("#avatar").setAvatar(UserController.getCurrentUser().avatar());
+
+		// Set nickname
+		this.<Label>lookup("#nickname").setText(UserController.getCurrentUser().nickname());
+
+		// Set information
+		UserController.getUserExperience(UserController.getCurrentUser().id(), experience -> {
+			ANSI.log("Experience: " + experience);
+			this.<Label>lookup("#info").setText("Rank: " + experience.rankByWins() + "\n" +
+			                                    "Wins: " + experience.losses() + "\n" +
+			                                    "Total: " + experience.draws());
+		});
+
+		// Set LoggedInText to "Logged in as: " + username
+		this.<Label>lookup("#loggedInText").setText("Logged in as: " + UserController.getCurrentUser().username());
 	}
 }

@@ -1,2 +1,11 @@
 @import "styles.css";
 
+.logged-in-as {
+    -fx-font-family: 'Visby Round CF';
+    -fx-font-size: 18px;
+}
+
+.logged-in-as:hover {
+    -fx-text-fill: #800000;
+    -fx-underline: true;
+}

@@ -12,6 +12,7 @@ import org.apgrp10.gwent.client.view.LoginStage;
 import org.apgrp10.gwent.client.view.MainStage;
 import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.User;
+import org.apgrp10.gwent.model.UserExperience;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
 import org.apgrp10.gwent.utils.ANSI;
@@ -339,6 +340,20 @@ public class UserController {
 					ANSI.printErrorResponse(null, res);
 			}
 			callback.accept(res);
+		});
+	}
+
+	public static void getUserExperience(long userId, Consumer<UserExperience> callback) {
+		Server.send(new Request("getUserExperience", MGson.makeJsonObject("userId", userId)), res -> {
+			if(res.isOk()) {
+				UserExperience experience = MGson.fromJson(res.getBody(), UserExperience.class);
+				callback.accept(experience);
+			}
+			else {
+				ANSI.log("Failed to get user experience, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
 		});
 	}
 //	public static void updateUser() {authenticate();}

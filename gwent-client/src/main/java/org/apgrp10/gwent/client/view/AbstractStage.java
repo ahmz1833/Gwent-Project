@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
@@ -51,7 +52,7 @@ public abstract class AbstractStage extends Stage {
 		return (T) getScene().lookup(id);
 	}
 
-	public void setOnPressListener(Button button, EventHandler<Event> handler) {
+	public void setOnPressListener(Node button, EventHandler<Event> handler) {
 		button.setOnMouseClicked(handler);
 		button.setOnKeyReleased(e -> {
 			if (e.getCode().getName().equals("Enter") && handler != null) handler.handle(e);

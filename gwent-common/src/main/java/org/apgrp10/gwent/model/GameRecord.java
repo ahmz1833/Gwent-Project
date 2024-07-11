@@ -44,4 +44,8 @@ public record GameRecord(long player1ID,
 	public GameRecord withoutCmds() {
 		return new GameRecord(player1ID, player2ID, seed, deck1, deck2, List.of(), gameWinner, roundWinner, p1Sc, p2Sc);
 	}
+
+	public long gameWinnerId() {
+		return gameWinner == 0 ? player1ID : gameWinner == 1 ? player2ID : -1;
+	}
 }

@@ -145,13 +145,15 @@ public class GamesManager {
 
 		// Now, sort By wins and put them a new UserExperience having rankByWins
 		List<UserExperience> sortedByWins = experiences.values().stream()
-				.sorted(Comparator.comparingInt(UserExperience::wins).reversed()).toList();
+				.sorted(Comparator.comparingInt(UserExperience::wins).reversed()
+						.thenComparing(UserExperience::losses)).toList();
 		sortedByWins.forEach(userExp -> experiences.put(userExp.userId(),
 				userExp.withRankByWins(sortedByWins.indexOf(userExp) + 1)));
 
 		// Now, sort By maxScore and put them a new UserExperience having rankByMaxScore
 		List<UserExperience> sortedByMaxScore = experiences.values().stream()
-				.sorted(Comparator.comparingInt(UserExperience::maxScore).reversed()).toList();
+				.sorted(Comparator.comparingInt(UserExperience::maxScore)
+						.thenComparing(UserExperience::wins).reversed()).toList();
 		sortedByMaxScore.forEach(userExp -> experiences.put(userExp.userId(),
 				userExp.withRankByMaxScore(sortedByMaxScore.indexOf(userExp) + 1)));
 
@@ -164,14 +166,16 @@ public class GamesManager {
 		for (GameRecord game : games) {
 			int score = game.totalScore(playerId);
 			maxScore = Math.max(maxScore, score);
-			if (game.gameWinner() == playerId)
+			if (game.gameWinnerId() == playerId)
 				wins++;
 			else if (game.gameWinner() == -1)
 				draws++;
 			else
 				losses++;
 		}
-		return new UserExperience(playerId, maxScore, wins, losses, draws, 0, 0);
+		UserExperience userExperience = new UserExperience(playerId, maxScore, wins, losses, draws, 0, 0);
+		ANSI.log("User Experience: " + userExperience);
+		return userExperience;
 	}
 
 	public static List<UserExperience> getTopPlayers(int count, boolean sortByMaxScore) {
@@ -197,8 +201,8 @@ public class GamesManager {
 					Map.entry(GameDBColumn.player1, gameRecord.player1ID()),
 					Map.entry(GameDBColumn.player2, gameRecord.player2ID()),
 					Map.entry(GameDBColumn.seed, gameRecord.seed()),
-					Map.entry(GameDBColumn.deck1, gameRecord.deck1()),
-					Map.entry(GameDBColumn.deck2, gameRecord.deck2()),
+					Map.entry(GameDBColumn.deck1, gameRecord.getDeck1().toBase64()),
+					Map.entry(GameDBColumn.deck2, gameRecord.getDeck2().toBase64()),
 					Map.entry(GameDBColumn.commands, listToString(gameRecord.commands(), Command::toBase64)),
 					Map.entry(GameDBColumn.gameWinner, gameRecord.gameWinner()),
 					Map.entry(GameDBColumn.roundWinner, listToString(gameRecord.roundWinner(), String::valueOf)),
@@ -210,6 +214,7 @@ public class GamesManager {
 		private synchronized GameRecord getGameById(long id) throws Exception {
 			if (!isIdTaken(id))
 				throw new IllegalArgumentException("Game with id " + id + " does not exist");
+
 			return new GameRecord(getValue(id, GameDBColumn.player1),
 					getValue(id, GameDBColumn.player2),
 					getValue(id, GameDBColumn.seed),

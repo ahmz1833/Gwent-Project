@@ -2,54 +2,100 @@
 
 <?import io.github.palexdev.materialfx.controls.*?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.Group?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.Scene?>
-
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.AnchorPane?>
-<Scene stylesheets="@../css/main.css" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1">
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.Scene?>
+<?import org.apgrp10.gwent.client.model.AvatarView?>
+
+<Scene stylesheets="@../css/main.css" xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <AnchorPane>
         <ImageView fitHeight="600.0" fitWidth="1024.0" pickOnBounds="true" preserveRatio="true"
-                   AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                   AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                   AnchorPane.topAnchor="0.0">
             <Image url="@../image/main_bkg.png"/>
         </ImageView>
-        <Group>
-            <VBox alignment="CENTER_LEFT" fillWidth="false" spacing="10.0" styleClass="frame"
-                  StackPane.alignment="TOP_CENTER">
-                <padding>
-                    <Insets left="10.0"/>
-                </padding>
-                <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="22.0" prefWidth="400.0"
-                       text="Welcome to Gwent!" textAlignment="CENTER"/>
-                <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="22.0" prefWidth="400.0"
-                       text="Please select an option from the menu below." textAlignment="CENTER"/>
+        <HBox layoutX="209.0" layoutY="14.0" prefHeight="232.0" prefWidth="564.0" spacing="10.0" styleClass="frame"
+              AnchorPane.leftAnchor="230.0" AnchorPane.rightAnchor="230">
+            <VBox spacing="10.0">
+                <AvatarView fx:id="avatar" prefWidth="100"/>
+                <Label fx:id="nickname" alignment="CENTER" prefWidth="100.0" styleClass="boldText" text="User"
+                       textAlignment="CENTER"/>
+                <Label fx:id="info" alignment="CENTER" prefHeight="50.0" prefWidth="100.0" text="info"/>
             </VBox>
-        </Group>
-        <Group>
-            <VBox alignment="CENTER_LEFT" fillWidth="false" spacing="10.0" styleClass="frame"
-                  StackPane.alignment="CENTER">
-                <padding>
-                    <Insets left="10.0"/>
-                </padding>
-                <MFXButton fx:id="gameBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false"
-                           prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Start New Game"/>
-                <MFXButton fx:id="replayBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false"
-                           prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Load a Recorded Game"/>
-                <MFXButton fx:id="playingBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false"
-                           prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Current Playing Games"/>
-                <MFXButton fx:id="profileBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false"
-                           prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Profile Menu"/>
-                <MFXButton fx:id="friendsBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false"
-                           prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Friends"/>
-                <MFXButton fx:id="rankingsBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false"
-                           prefHeight="43.0" prefWidth="400.0" styleClass="light-button" text="Rankings"/>
+            <VBox spacing="10.0">
+                <Label fx:id="welcomeLbl" alignment="CENTER" contentDisplay="CENTER" prefHeight="20.0"
+                       prefWidth="400.0" styleClass="header" text="Welcome to Gwent!" textAlignment="CENTER">
+                    <padding>
+                        <Insets top="5.0"/>
+                    </padding>
+                </Label>
+                <Label fx:id="loggedInText" alignment="CENTER" prefWidth="400.0" styleClass="logged-in-as"
+                       text="Logged in as ...">
+                    <VBox.margin>
+                        <Insets top="-5.0"/>
+                    </VBox.margin>
+                </Label>
+                <HBox spacing="10.0">
+                    <MFXButton fx:id="profileBtn" buttonType="RAISED" depthLevel="LEVEL3"
+                               mnemonicParsing="false" prefHeight="43.0" prefWidth="200.0"
+                               styleClass="light-button" text="Profile Menu"/>
+                    <MFXButton fx:id="friendsBtn" buttonType="RAISED" depthLevel="LEVEL3"
+                               mnemonicParsing="false" prefHeight="43.0" prefWidth="200.0"
+                               styleClass="light-button" text="Friends"/>
+                </HBox>
+                <MFXButton fx:id="historyBtn" buttonType="RAISED" depthLevel="LEVEL3" graphicTextGap="5.0"
+                           mnemonicParsing="false" prefHeight="65.0" prefWidth="410.0" styleClass="light-button"
+                           text="Game History">
+                    <graphic>
+                        <ImageView fitHeight="50.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+                            <Image url="@../image/ic_wait.png"/>
+                        </ImageView>
+                    </graphic>
+                </MFXButton>
             </VBox>
-        </Group>
+        </HBox>
+        <VBox alignment="CENTER" fillWidth="false" layoutX="270.0" layoutY="258.0" prefHeight="318.0" prefWidth="424.0"
+              spacing="10.0" styleClass="frame" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="300.0"
+              AnchorPane.rightAnchor="300.0">
+            <padding>
+                <Insets left="10.0"/>
+            </padding>
+            <MFXButton fx:id="gameBtn" buttonType="RAISED" depthLevel="LEVEL3" graphicTextGap="47.0"
+                       mnemonicParsing="false" prefHeight="60.0" prefWidth="400.0" styleClass="light-button"
+                       text="Start New Game" textAlignment="CENTER">
+                <graphic>
+                    <ImageView fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@../image/ic_gwent.png"/>
+                    </ImageView>
+                </graphic>
+            </MFXButton>
+            <MFXButton fx:id="replayBtn" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false"
+                       prefHeight="60.0" prefWidth="400.0" styleClass="light-button" text="Load a Recorded Game">
+                <graphic>
+                    <ImageView fitHeight="50.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@../image/ic_play.png"/>
+                    </ImageView>
+                </graphic>
+            </MFXButton>
+            <MFXButton fx:id="playingBtn" buttonType="RAISED" depthLevel="LEVEL3" graphicTextGap="7.0"
+                       mnemonicParsing="false" prefHeight="60.0" prefWidth="400.0" styleClass="light-button"
+                       text="Current Playing Games">
+                <graphic>
+                    <ImageView fitHeight="50.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@../image/ic_current.png"/>
+                    </ImageView>
+                </graphic>
+            </MFXButton>
+            <MFXButton fx:id="rankingsBtn" buttonType="RAISED" depthLevel="LEVEL3" graphicTextGap="100.0"
+                       mnemonicParsing="false" prefHeight="60.0" prefWidth="400.0" styleClass="light-button"
+                       text="Rankings">
+                <graphic>
+                    <ImageView fitHeight="50.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@../image/ic_scoreboard.png"/>
+                    </ImageView>
+                </graphic>
+            </MFXButton>
+        </VBox>
     </AnchorPane>
-
 </Scene>
