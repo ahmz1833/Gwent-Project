@@ -19,6 +19,7 @@ import javafx.scene.text.TextAlignment;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.ChatMenuController;
 import org.apgrp10.gwent.client.controller.UserController;
+import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.utils.ANSI;
@@ -54,15 +55,20 @@ public class ChatPane extends Pane {
 	}
 
 	private void updateUser(){
-		user = UserController.getCurrentUser().publicInfo();
+		User tmp = UserController.getCurrentUser();
+		user = tmp != null? tmp.publicInfo(): new User.PublicInfo(666, "lucifer", "The Fallen Angel", Avatar.random());
 	}
 
 	public static StackPane getMessageReplyView(Message replyOn, User.PublicInfo user, boolean isReply) {
 		AtomicReference<String> reply = new AtomicReference<>("");
 		if (isReply) {
-			UserController.getUserInfo(replyOn.getUserId(), false, publicInfo -> {
-				reply.set("reply on " + (replyOn.getUserId() == user.id() ? "you" : publicInfo.nickname()) + ": " + replyOn.getText());
-			});
+			if (replyOn.getUserId() != user.id()) {
+				UserController.getUserInfo(replyOn.getUserId(), false, publicInfo -> {
+					reply.set("reply on " + publicInfo.nickname() + ": " + replyOn.getText());
+				});
+			} else {
+				reply.set("reply on you: " + replyOn.getText());
+			}
 		}
 		else reply.set("edit: " + replyOn.getText());
 		if (reply.get().length() > 30) reply.set(reply.get().substring(0, 30) + "...");

@@ -1,23 +1,42 @@
 package org.apgrp10.gwent.client.view;
 
 import javafx.stage.Stage;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.ChatMenuController;
 import org.apgrp10.gwent.utils.WaitExec;
 
 public class MessageStage extends AbstractStage {
+	private static List<String> toAdd = new ArrayList<>();
 	private static MessageStage instance;
 	private ChatMenuController controller;
 
 	private MessageStage() {
 		super("chat", R.getImage("ic_chat.png"));
-		controller = ChatMenuController.cleanInstance();
+		controller = ChatMenuController.getInstance();
 	}
 
 	public static MessageStage getInstance() {
 		if (instance == null)
 			instance = new MessageStage();
 		return instance;
+	}
+
+	public static void setup() {
+		deleteInstance();
+		getInstance();
+		instance.controller.setup();
+		for (String msg : toAdd)
+			instance.controller.getMessage(msg);
+		toAdd.clear();
+	}
+
+	public static void setInitialMessages(List<String> list) {
+		toAdd.clear();
+		toAdd.addAll(list);
 	}
 
 	@Override
