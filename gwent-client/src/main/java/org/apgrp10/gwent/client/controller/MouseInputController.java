@@ -116,9 +116,13 @@ public class MouseInputController implements InputController {
 		if (str.startsWith("cheat_")) {
 			controller.sendCommand(new Command.Cheat(player, Integer.parseInt(str.substring(6))));
 		}
-		if (str.startsWith("react_") && System.currentTimeMillis() - lastReact > 2000 && controller.lastPlayed() != null) {
+		if (str.startsWith("react_") && System.currentTimeMillis() - lastReact >= 1000 && controller.lastPlayed() != null) {
 			lastReact = System.currentTimeMillis();
 			controller.sendCommand(new Command.React(player, Integer.parseInt(str.substring(6))));
+		}
+		if (str.startsWith("reactgeneral_") && System.currentTimeMillis() - lastReact >= 1000) {
+			lastReact = System.currentTimeMillis();
+			controller.sendCommand(new Command.ReactGeneral(player, Integer.parseInt(str.substring(13))));
 		}
 	}
 }

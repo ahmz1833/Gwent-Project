@@ -755,6 +755,13 @@ public class GameController {
 		playerData[cmd.player()].controller.play();
 	}
 
+	private void reactGeneral(Command.ReactGeneral cmd) {
+		if (gameMenu == null)
+			return;
+		gameMenu.reactTo(null, cmd.reactId());
+		playerData[cmd.player()].controller.play();
+	}
+
 	private void resign(Command.Resign cmd) {
 		p1Sc.add(calcPlayerScore(0));
 		p2Sc.add(calcPlayerScore(1));
@@ -794,6 +801,7 @@ public class GameController {
 			if (cmd instanceof Command.Resign) resign((Command.Resign)cmd);
 			if (cmd instanceof Command.Cheat) cheat((Command.Cheat)cmd);
 			if (cmd instanceof Command.React) react((Command.React)cmd);
+			if (cmd instanceof Command.ReactGeneral) reactGeneral((Command.ReactGeneral)cmd);
 		}
 		syncLock = false;
 		commandQueue.clear();
