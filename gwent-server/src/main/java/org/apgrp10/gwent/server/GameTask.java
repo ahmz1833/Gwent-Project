@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import com.google.gson.JsonElement;
 
+import com.google.gson.reflect.TypeToken;
 import org.apgrp10.gwent.controller.DummyInputController;
 import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.model.*;
@@ -135,8 +136,10 @@ public class GameTask extends Task {
 				"deck2", data[1].deck.toJson()
 		);
 		if (fastForward) {
-			startBody.add("cmds", MGson.toJsonElement(cmds));
-			startBody.add("msgs", MGson.toJsonElement(isPublic ? publicMsgs : msgs));
+			startBody.add("cmds", MGson.toJsonElement(cmds,
+					TypeToken.getParameterized(List.class, Command.class).getType()));
+			startBody.add("msgs", MGson.toJsonElement(isPublic ? publicMsgs : msgs,
+					TypeToken.getParameterized(List.class, Message.class).getType()));
 		}
 		return new Request(action, startBody);
 	}

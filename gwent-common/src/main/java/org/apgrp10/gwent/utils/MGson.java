@@ -23,6 +23,9 @@ public class MGson {
 	public static String toJson(Object object) {
 		return gson.toJson(object);
 	}
+	public static String toJson(Object object, Type type) {
+		return gson.toJson(object, type);
+	}
 
 	public static <T> T fromJson(String json, Class<T> type) {
 		return gson.fromJson(json, type);
@@ -43,6 +46,10 @@ public class MGson {
 
 	public static JsonElement toJsonElement(Object object) {
 		return gson.toJsonTree(object);
+	}
+
+	public static JsonElement toJsonElement(Object object, Type type) {
+		return gson.toJsonTree(object, type);
 	}
 
 	public static JsonObject makeJsonObject(Object... objects) {

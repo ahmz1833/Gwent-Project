@@ -173,9 +173,7 @@ public class GamesManager {
 			else
 				losses++;
 		}
-		UserExperience userExperience = new UserExperience(playerId, maxScore, wins, losses, draws, 0, 0);
-		ANSI.log("User Experience: " + userExperience);
-		return userExperience;
+		return new UserExperience(playerId, maxScore, wins, losses, draws, 0, 0);
 	}
 
 	public static List<UserExperience> getTopPlayers(int count, boolean sortByMaxScore) {

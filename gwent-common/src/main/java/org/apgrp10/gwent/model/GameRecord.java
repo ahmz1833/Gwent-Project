@@ -1,6 +1,7 @@
 package org.apgrp10.gwent.model;
 
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.utils.MGson;
 
@@ -36,7 +37,7 @@ public record GameRecord(long player1ID,
 				"user2", infoProvider.apply(player2ID),
 				"deck1", getDeck1().toJson(),
 				"deck2", getDeck2().toJson(),
-				"cmds", commands
+				"cmds", MGson.toJsonElement(commands, TypeToken.getParameterized(List.class, Command.class).getType())
 		);
 		return new Request("replay", body);
 	}
