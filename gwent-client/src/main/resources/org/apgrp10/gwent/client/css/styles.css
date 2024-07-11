@@ -115,3 +115,45 @@ Label, MFXButton, MFXTextField, MFXTableView {
     -fx-font-weight: bold;
     -fx-font-size: 19px;
 }
+
+.list {
+    -fx-background-color: rgba(255, 255, 255, 0.4);
+    -fx-background-radius: 10;
+    -fx-border-color: #80420f;
+    -fx-font-weight: Bolder;
+    -fx-border-radius: 10;
+    -fx-border-width: 4;
+    -fx-padding: 10;
+}
+
+.list .virtual-flow {
+    -fx-background-color: transparent;
+}
+
+.list:focused {
+    -fx-border-color: rgba(248, 166, 78, 0.87);
+}
+
+.list .virtual-flow .mfx-list-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+.list .virtual-flow .mfx-list-cell .data-label {
+    -fx-text-fill: #5c1e01;
+}
+
+.list .virtual-flow .mfx-list-cell:hover,
+.list .virtual-flow .mfx-list-cell:selected {
+    -fx-background-color: rgba(223, 168, 120, 0.74);
+}
+
+.list .virtual-flow .mfx-list-cell .mfx-ripple-generator {
+    -mfx-auto-clip: true;
+}
+
+.list .virtual-flow .mfx-list-cell:selected .mfx-ripple-generator {
+    -mfx-paused: true;
+}

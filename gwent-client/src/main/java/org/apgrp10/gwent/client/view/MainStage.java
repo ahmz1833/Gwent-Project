@@ -1,7 +1,15 @@
 package org.apgrp10.gwent.client.view;
 
+import io.github.palexdev.materialfx.controls.MFXListView;
+import io.github.palexdev.materialfx.dialogs.MFXDialogs;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.layout.StackPane;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.Server;
 import org.apgrp10.gwent.client.controller.PreGameController;
@@ -13,9 +21,14 @@ import org.apgrp10.gwent.model.GameRecord;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
+import org.apgrp10.gwent.utils.Random;
 import org.apgrp10.gwent.utils.Utils;
 
 import java.util.concurrent.atomic.AtomicInteger;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 
 
 public class MainStage extends AbstractStage {
@@ -51,6 +64,8 @@ public class MainStage extends AbstractStage {
 		setOnPressListener("#friendsBtn", event -> FriendshipStage.getInstance().start());
 
 		setOnPressListener("#historyBtn", event -> {
+			ObservableList<String> names = FXCollections.observableArrayList("Engineering", "MCA", "MBA", "Graduation", "MTECH", "Mphil", "Phd", "a", "b", "c", "d", "e", "f", "h", "k");
+			showListView(names);
 			// TODO: show dialog
 		});
 
@@ -79,6 +94,21 @@ public class MainStage extends AbstractStage {
 		return true;
 	}
 
+	public void showListView(ObservableList<String> list){
+		MFXListView<String > listView = new MFXListView<>(list);
+		listView.setPrefWidth(600);
+		listView.setPrefHeight(400);
+		listView.getStyleClass().add("list");
+		StackPane container = new StackPane(listView);
+		container.setPrefWidth(650);
+		container.setPrefHeight(450);
+		container.setAlignment(Pos.CENTER);
+		Dialogs.showDialogAndWait(this, MFXDialogs.info(), "game history", container, Orientation.HORIZONTAL, Map.entry("cancel", k -> {})
+				, Map.entry("select", k -> {
+					if(!listView.getSelectionModel().getSelection().isEmpty())
+						System.out.println(listView.getSelectionModel().getSelection());
+				}));
+	}
 	public boolean isWaitingForAuth() {
 		return waitingForAuth;
 	}
