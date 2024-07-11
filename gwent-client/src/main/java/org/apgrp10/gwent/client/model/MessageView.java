@@ -38,22 +38,30 @@ public class MessageView extends HBox {
 
 	public MessageView(Message message, User.PublicInfo user, Message replyOn) {
 		UserController.getUserInfo(message.getUserId(), false, messageOwner -> {
-			this.replyOn = replyOn;
-			this.message = message;
-			this.user = user;
-			this.setPrefWidth(ChatPane.width - 30);
-			addImage(messageOwner);
-			addMessage();
-			addUserName(messageOwner);
-			addReply(messageOwner);
-			addText();
-			fillReactions();
-			updateReactions();
-			messageBox.getChildren().add(allReactions);
-			setupTime();
+			if(replyOn == null)
+				setup(message, user, null, messageOwner, null);
+			else
+				UserController.getUserInfo(replyOn.getUserId(), false, replyOwner->{
+					setup(message, user, replyOn, messageOwner, replyOwner);
+				});
 		});
 	}
 
+	private void setup(Message message, User.PublicInfo user, Message replyOn, User.PublicInfo messageOwner, User.PublicInfo replyOwner){
+		this.replyOn = replyOn;
+		this.message = message;
+		this.user = user;
+		this.setPrefWidth(ChatPane.width - 30);
+		addImage(messageOwner);
+		addMessage();
+		addUserName(messageOwner);
+		addReply(replyOwner);
+		addText();
+		fillReactions();
+		updateReactions();
+		messageBox.getChildren().add(allReactions);
+		setupTime();
+	}
 	private void setupTime() {
 		try {
 			StackPane pane = new StackPane();
