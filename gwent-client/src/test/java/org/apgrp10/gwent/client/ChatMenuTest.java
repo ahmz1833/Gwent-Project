@@ -12,15 +12,15 @@ public class ChatMenuTest {
 	public void instanceCheck(){
 		ChatMenuController ins = null, ins2 = null;
 		try{
-				ins = ChatMenuController.cleanInstance();
+				ins = ChatMenuController.getInstance();
 		}
 		catch (Error ignored){}
 		try{
-			ChatMenuController.cleanInstance();
+			ChatMenuController.getInstance();
 		}
 		catch (Error ignored){}
 		try{
-			ins2 = ChatMenuController.cleanInstance();
+			ins2 = ChatMenuController.getInstance();
 		}
 		catch (Error ignored){}
 		Assertions.assertEquals(ins2, ins);

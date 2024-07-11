@@ -95,7 +95,7 @@ public class Utils {
 	// Use LevenshteinDistance to find the closest objects to the query
 	public static <T> List<T> search(List<T> list, Function<T, String> stringFunction, String query, int limit) {
 		PriorityQueue<ObjSimilarity<T>> top = new PriorityQueue<>(limit, Comparator.comparingDouble(us -> -us.similarity));
-		list.parallelStream().forEach(element -> {
+		list.stream().forEach(element -> {
 			double similarity = Utils.calculateSimilarityPercentage(query, stringFunction.apply(element));
 			if (similarity >= 50.0) {  // Only consider users with at least 50% similarity
 				if (top.size() < limit) {
