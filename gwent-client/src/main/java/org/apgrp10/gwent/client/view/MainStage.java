@@ -117,13 +117,10 @@ public class MainStage extends AbstractStage {
 				ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, zoneId);
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 				String time = zonedDateTime.format(formatter);
-//				var time = Instant.ofEpochMilli(entry.getKey()).atOffset(ZoneOffset.of("+03:30")).toLocalDateTime();
 				StringBuilder sb = new StringBuilder();
 				sb.append(p1Info.nickname()).append(" (").append(p1Info.username()).append(") vs ");
 				sb.append(p2Info.nickname()).append(" (").append(p2Info.username()).append(")  Time: (");
 				sb.append(time).append(") ");
-				// TODO: handle multiline
-//				sb.append("\n").append("Winner: ").append(entry.getValue().gameWinner() == 0 ? p1Info.nickname() : p2Info.nickname());
 				return sb.toString();
 			}, entry -> {
 				GameRecord gr = entry.getValue();

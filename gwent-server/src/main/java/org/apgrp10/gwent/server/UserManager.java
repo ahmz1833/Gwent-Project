@@ -104,7 +104,8 @@ public class UserManager {
 	}
 
 	public static synchronized List<FriendshipRequest> getIncomingRequests(long userId) {
-		return friendshipRequests.stream().filter(r -> r.to() == userId).collect(Collectors.toList());
+		return friendshipRequests.stream().filter(r -> r.to() == userId && r.state() == FriendshipRequest.RequestState.PENDING)
+				.collect(Collectors.toList());
 	}
 
 	public static synchronized List<FriendshipRequest> getOutgoingRequests(long userId) {

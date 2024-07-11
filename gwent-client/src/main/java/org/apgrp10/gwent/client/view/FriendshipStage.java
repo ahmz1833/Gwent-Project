@@ -1,7 +1,12 @@
 package org.apgrp10.gwent.client.view;
 
 import io.github.palexdev.materialfx.controls.MFXListView;
+import io.github.palexdev.materialfx.controls.MFXTextField;
+import io.github.palexdev.materialfx.enums.FloatMode;
 import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.UserController;
@@ -10,7 +15,7 @@ import org.apgrp10.gwent.model.FriendshipRequest;
 import org.apgrp10.gwent.utils.WaitExec;
 
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 
 public class FriendshipStage extends AbstractStage {
 	private static FriendshipStage INSTANCE;
@@ -39,12 +44,51 @@ public class FriendshipStage extends AbstractStage {
 		friends.getStyleClass().add("list");
 		incoming.getStyleClass().add("list");
 		outgoing.getStyleClass().add("list");
-		friends.setCellFactory(param -> new PersonListFactory(friends, param));
-		incoming.setCellFactory(param -> new PersonListFactory(incoming, param));
+		friends.setCellFactory(param -> {
+			var cell = new PersonListFactory(friends, param);
+			cell.setOnDoubleClick(friendId -> {
+				boolean remove = showConfirmDialog(Dialogs.WARN(), "Remove Friend",
+						"Are you sure you want to remove this friend?", "Yes", "No");
+				if (remove) {
+					UserController.removeFriendship(friendId, res -> {
+						if (res.isOk())
+							showAlert(Dialogs.INFO(), "Friend Removed", "Friend removed successfully.");
+						else
+							showAlert(Dialogs.ERROR(), "Error", "Failed to remove friend.");
+					});
+				}
+			});
+			return cell;
+		});
+		incoming.setCellFactory(param -> {
+			var cell = new PersonListFactory(incoming, param);
+			cell.setOnDoubleClick(request -> {
+				showDialogAndWait(Dialogs.WARN(), "Accept Friend Request",
+						"Do you want to accept this friend request?",
+						Map.entry("Accept", e->{
+							UserController.acceptFriendshipRequest(request, res -> {
+								if (res.isOk())
+									showAlert(Dialogs.INFO(), "Friend Request Accepted", "Friend request accepted successfully.");
+								else
+									showAlert(Dialogs.ERROR(), "Error", "Failed to accept friend request.");
+							});
+						}),
+						Map.entry("Reject", e->{
+							UserController.rejectFriendshipRequest(request, res -> {
+								if (res.isOk())
+									showAlert(Dialogs.INFO(), "Friend Request Rejected", "Friend request rejected successfully.");
+								else
+									showAlert(Dialogs.ERROR(), "Error", "Failed to reject friend request.");
+							});
+						}),
+						Map.entry("Cancel", e->{}));
+			});
+			return cell;
+		});
 		outgoing.setCellFactory(param -> new PersonListFactory(outgoing, param, map));
 
 		setOnPressListener("#addFriend", e -> {
-
+			showSearchForUserDialog();
 		});
 
 		updateInformation();
@@ -57,6 +101,49 @@ public class FriendshipStage extends AbstractStage {
 			}
 		});
 		return true;
+	}
+
+	private void showSearchForUserDialog() {
+		var content = new VBox();
+		content.setSpacing(5);
+		content.setPadding(new Insets(10, 10, 10, 10));
+
+		var query = new MFXTextField();
+		query.setFloatMode(FloatMode.BORDER);
+		query.setFloatingText("Query");
+		query.setPrefWidth(400);
+		content.getChildren().add(query);
+
+		var list = new MFXListView<Long>();
+		list.getStyleClass().add("list");
+		list.setPrefWidth(400);
+		list.setCellFactory(param -> {
+			var cell = new PersonListFactory(list, param);
+			cell.setOnDoubleClick(userId -> {
+				boolean request = showConfirmDialog(Dialogs.INFO(), "Send Friend Request",
+						"Do you want to send a friend request to " + UserController.getCachedInfo(userId).nickname() + "?",
+						"Yes", "No");
+				if(!request) return;
+				UserController.addFriendshipRequest(userId, res -> {
+					if (res.isOk())
+						showAlert(Dialogs.INFO(), "Friend Request Sent", "Friend request sent successfully.");
+					else
+						showAlert(Dialogs.ERROR(), "Error", "Failed to send friend request.");
+				});
+			});
+			return cell;
+		});
+		content.getChildren().add(list);
+
+		query.setOnKeyReleased(e1 -> {
+			if (query.getText().isBlank()) return;
+			UserController.searchUsername(query.getText(), 10, users -> {
+				list.setItems(FXCollections.observableArrayList(users));
+			});
+		});
+
+		Dialogs.showDialogAndWait(this, Dialogs.INFO(), "Search for user", content, Orientation.HORIZONTAL,
+				Map.entry("*Close", e1 -> {}));
 	}
 
 	@Override
