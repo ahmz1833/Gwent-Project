@@ -23,11 +23,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class MessageView extends HBox {
-	private final Message message;
-	private final User.PublicInfo user;
+	private Message message;
+	private User.PublicInfo user;
 	private final HBox[] reactions = new HBox[4];
 	private final HBox allReactions = new HBox();
 	private final Text messageText = new Text();
@@ -38,19 +37,21 @@ public class MessageView extends HBox {
 	private Message replyOn;
 
 	public MessageView(Message message, User.PublicInfo user, Message replyOn) {
-		this.replyOn = replyOn;
-		this.message = message;
-		this.user = user;
-		this.setPrefWidth(ChatPane.width - 30);
-		addImage();
-		addMessage();
-		addUserName();
-		addReply();
-		addText();
-		fillReactions();
-		updateReactions();
-		messageBox.getChildren().add(allReactions);
-		setupTime();
+		UserController.getUserInfo(message.getUserId(), false, messageOwner -> {
+			this.replyOn = replyOn;
+			this.message = message;
+			this.user = user;
+			this.setPrefWidth(ChatPane.width - 30);
+			addImage(messageOwner);
+			addMessage();
+			addUserName(messageOwner);
+			addReply(messageOwner);
+			addText();
+			fillReactions();
+			updateReactions();
+			messageBox.getChildren().add(allReactions);
+			setupTime();
+		});
 	}
 
 	private void setupTime() {
@@ -88,9 +89,9 @@ public class MessageView extends HBox {
 		}
 	}
 
-	private void addReply() {
+	private void addReply(User.PublicInfo messageOwner) {
 		if (replyOn != null) {
-			messageBox.getChildren().add(ChatPane.getMessageReplyView(replyOn, user, true));
+			messageBox.getChildren().add(ChatPane.getMessageReplyView(replyOn, user, true, messageOwner));
 		}
 	}
 
@@ -141,16 +142,16 @@ public class MessageView extends HBox {
 		return message;
 	}
 
-	private Node getImage() {
-		AvatarView avatarView = new AvatarView(user.avatar());
+	private Node getImage(User.PublicInfo messageOwner) {
+		AvatarView avatarView = new AvatarView(messageOwner.avatar());
 		avatarView.setPrefWidth(30);
 		return avatarView;
 	}
 
-	private void addImage() {
+	private void addImage(User.PublicInfo messageOwner) {
 		StackPane stackPane = new StackPane();
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
-		stackPane.getChildren().add(getImage());
+		stackPane.getChildren().add(getImage(messageOwner));
 		this.getChildren().add(stackPane);
 		this.setSpacing(5);
 	}
@@ -178,21 +179,19 @@ public class MessageView extends HBox {
 		background.setEffect(dropShadow);
 	}
 
-	private void addUserName() {
-		AtomicReference<Text> username = new AtomicReference<>();
+	private void addUserName(User.PublicInfo messageOwner) {
+		Text username;
 		if (user.id() == (message.getUserId())) {
-			username.set(new Text("you:"));
-			username.get().setFill(Color.RED);
+			username = (new Text("you:"));
+			username.setFill(Color.RED);
 
 		} else {
-			UserController.getUserInfo(message.getUserId(), false, publicInfo -> {
-				username.set(new Text(publicInfo.nickname() + ":"));
-			});
-			username.get().setFill(Color.GREEN);
+			username = (new Text(messageOwner.nickname() + ":"));
+			username.setFill(Color.GREEN);
 		}
-		username.get().setWrappingWidth(150);
-		username.get().setStyle("-fx-font-size: 14px");
-		messageBox.getChildren().add(username.get());
+		username.setWrappingWidth(150);
+		username.setStyle("-fx-font-size: 14px");
+		messageBox.getChildren().add(username);
 	}
 
 	private void addText() {

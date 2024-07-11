@@ -7,7 +7,7 @@ import org.apgrp10.gwent.utils.WaitExec;
 
 public class MessageStage extends AbstractStage {
 	private static MessageStage instance;
-	private ChatMenuController controller;
+	private final ChatMenuController controller;
 
 	private MessageStage() {
 		super("chat", R.getImage("ic_chat.png"));
@@ -22,12 +22,8 @@ public class MessageStage extends AbstractStage {
 
 	@Override
 	protected boolean onCreate() {
-		GameStage.getInstance().xProperty().addListener((obs, oldVal, newVal) -> {
-			this.setX(newVal.doubleValue() + GameStage.getInstance().getWidth() + 5);
-		});
-		GameStage.getInstance().yProperty().addListener((obs, oldVal, newVal) -> {
-			this.setY(newVal.doubleValue());
-		});
+		GameStage.getInstance().xProperty().addListener((obs, oldVal, newVal) -> this.setX(newVal.doubleValue() + GameStage.getInstance().getWidth() + 5));
+		GameStage.getInstance().yProperty().addListener((obs, oldVal, newVal) -> this.setY(newVal.doubleValue()));
 		GameStage.getInstance().setOnCloseRequest(e -> this.close());
 		setOnCloseRequest(e -> setPlaceGameWithoutChat());
 		setPlaceGameWithChat();
