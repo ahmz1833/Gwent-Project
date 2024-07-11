@@ -7,6 +7,7 @@ import org.apgrp10.gwent.client.Server;
 import org.apgrp10.gwent.client.view.Dialogs;
 import org.apgrp10.gwent.client.view.GameStage;
 import org.apgrp10.gwent.client.view.MainStage;
+import org.apgrp10.gwent.client.view.MessageStage;
 import org.apgrp10.gwent.client.view.PreGameStage;
 import org.apgrp10.gwent.model.Command;
 import org.apgrp10.gwent.model.Deck;
@@ -62,14 +63,16 @@ public class PreGameController {
 		switch (request.getAction()) {
 			case "start" -> GameStage.setOnline(localPlayer);
 			case "continueGame" -> {
+				MessageStage.setInitialMessages(MGson.fromJson(request.getBody().get("msgs"),
+						TypeToken.getParameterized(ArrayList.class, String.class).getType()));
 				GameStage.setContinue(localPlayer, MGson.fromJson(request.getBody().get("cmds"),
 						TypeToken.getParameterized(ArrayList.class, Command.class).getType()));
-				// TODO: Handle Messages
 			}
 			case "live" -> {
+				MessageStage.setInitialMessages(MGson.fromJson(request.getBody().get("msgs"),
+						TypeToken.getParameterized(ArrayList.class, String.class).getType()));
 				GameStage.setLive(0, MGson.fromJson(request.getBody().get("cmds"),
 						TypeToken.getParameterized(ArrayList.class, Command.class).getType()));
-				// TODO: Handle Massages
 			}
 			case "replay" -> GameStage.setReplay(0, MGson.fromJson(request.getBody().get("cmds"),
 					TypeToken.getParameterized(ArrayList.class, Command.class).getType()));

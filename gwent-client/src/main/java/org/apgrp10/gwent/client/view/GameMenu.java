@@ -191,7 +191,7 @@ public class GameMenu implements GameMenuInterface {
 	}
 
 	private void start(Stage stage) {
-		MessageStage.deleteInstance();
+		MessageStage.setup();
 		this.stage = stage;
 		realRoot.getChildren().add(rootPane);
 		realRoot.getChildren().add(buttonPane);

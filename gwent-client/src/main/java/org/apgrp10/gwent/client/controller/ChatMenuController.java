@@ -19,8 +19,7 @@ public class ChatMenuController {
 
 	private ChatMenuController() {}
 
-	private void reset() {
-		// TODO: move these to the onCreate method in MessageStage
+	public void setup() {
 		this.chatMenu = new ChatPane(this);
 		scene = new Scene(chatMenu);
 		scene.getStylesheets().add(R.get("css/chat.css").toExternalForm());
@@ -35,8 +34,7 @@ public class ChatMenuController {
 		Server.setListener("chatMessage", null);
 	}
 
-	public static ChatMenuController cleanInstance() {
-		instance.reset();
+	public static ChatMenuController getInstance() {
 		return instance;
 	}
 

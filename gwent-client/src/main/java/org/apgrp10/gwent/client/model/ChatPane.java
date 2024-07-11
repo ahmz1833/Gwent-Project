@@ -25,6 +25,7 @@ import org.apgrp10.gwent.utils.ANSI;
 
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ChatPane extends Pane {
 	public final static int width = 250, height = 700;
@@ -34,10 +35,10 @@ public class ChatPane extends Pane {
 	private final int screenWidth;
 	private final ChatMenuController controller;
 	private final HashMap<Long, Integer> reactionList = new HashMap<>();
-	//this is a map from each message id to reaction number
 	private User.PublicInfo user;
 	private final ImageView deleteReply = new ImageView(R.getImage("chat/clear.png"));
 	private ScrollPane messagesScroll;
+	//this is a map from each message id to reaction number
 	private long replyId = 0;
 	private long editID = 0;
 	private StackPane massageReplyViw = new StackPane();
@@ -53,10 +54,8 @@ public class ChatPane extends Pane {
 	}
 
 	private void updateUser(){
-		try {
-			user = UserController.getCurrentUser().publicInfo();
-			System.out.println("your id" + user.id());
-		} catch (NullPointerException ignored){}
+		User tmp = UserController.getCurrentUser();
+		user = tmp != null? tmp.publicInfo(): new User.PublicInfo(666, "lucifer", "The Fallen Angel", Avatar.random());
 	}
 
 	public static StackPane getMessageReplyView(Message replyOn, User.PublicInfo user, boolean isReply, User.PublicInfo messageOwner) {
@@ -210,7 +209,7 @@ public class ChatPane extends Pane {
 	public void addMessage(String  messageS) {
 		Message message = Message.fromString(messageS);
 		try {
-			if (Objects.requireNonNull(message).getType() == (byte) 0) {
+			if (message.getType() == (byte) 0) {
 				MessageView messageView;
 				try {
 					messageView = new MessageView(message, user, Objects.requireNonNull(getMessageById(message.getReplyOn())).getMessage());
@@ -220,7 +219,7 @@ public class ChatPane extends Pane {
 				MessageView finalMessageView = messageView;
 				messageView.setOnMouseClicked(k -> {
 					if (k.getButton() == MouseButton.SECONDARY)
-						openNewWindow(k.getSceneX(), k.getSceneY(), finalMessageView.getMessage().getUserId(), finalMessageView.getMessage().getId());
+						openNewWindow(k.getSceneX(), k.getSceneY(), finalMessageView.getMessage().getId());
 				});
 				reactionList.put(message.getId(), -1);
 				messagesBox.getChildren().add(messageView);
@@ -267,9 +266,8 @@ public class ChatPane extends Pane {
 		return null;
 	}
 
-	private void openNewWindow(double X, double Y, long idUser, long idMessage) {
-		System.out.println(user.id() + " # " + idUser);
-		new ReactionChat((int) (X - screenWidth + width), (int) Y, idMessage, this, user.id() == (idUser), reactionList.get(idMessage));
+	private void openNewWindow(double X, double Y, long id) {
+		new ReactionChat((int) (X - screenWidth + width), (int) Y, id, this, user.id() == (id), reactionList.get(id));
 	}
 
 	public void sendDeleteReaction(long id, int index) {
@@ -285,29 +283,23 @@ public class ChatPane extends Pane {
 	public void changeReplyNumber(long id) {
 		this.replyId = id;
 		this.editID = 0;
-		if(id == 0)
-			addInfoTopInput(true, id, null);
-		else
-			UserController.getUserInfo(Objects.requireNonNull(getMessageById(id)).getMessage().getUserId(), false, publicInfo -> addInfoTopInput(true, id, publicInfo));
+		addInfoTopInput(true, id);
 	}
 
 	public void changeEditNumber(long id) {
 		this.editID = id;
 		this.replyId = 0;
-		if(id == 0)
-			addInfoTopInput(false, id, null);
-		else
-			UserController.getUserInfo(Objects.requireNonNull(getMessageById(id)).getMessage().getUserId(), false, publicInfo -> addInfoTopInput(false, id, publicInfo));
+		addInfoTopInput(false, id);
 	}
 
-	private void addInfoTopInput(boolean isReply, long id, User.PublicInfo messageOwner) {
+	private void addInfoTopInput(boolean isReply, long id) {
 		try {
 			this.getChildren().remove(massageReplyViw);
 			this.getChildren().remove(deleteReply);
 			if (id == 0) return;
 			textInput.requestFocus();
 			Message editOn = Objects.requireNonNull(getMessageById(id)).getMessage();
-			massageReplyViw = getMessageReplyView(editOn, user, isReply, messageOwner);
+			massageReplyViw = getMessageReplyView(editOn, user, isReply);
 			massageReplyViw.setLayoutX(5);
 			massageReplyViw.setLayoutY(height - 60 - 32 - 25);
 			this.getChildren().add(massageReplyViw);

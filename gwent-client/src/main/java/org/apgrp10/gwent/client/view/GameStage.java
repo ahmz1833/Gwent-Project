@@ -106,7 +106,7 @@ public class GameStage extends AbstractStage {
 	private void createLocal() {
 		InputController c1 = new MouseInputController();
 		InputController c2 = new MouseInputController();
-		GameMenu gm = new GameMenu(this, true);
+		GameMenu gm = new GameMenu(this, false);
 
 		// TODO: better way to save recording
 		new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> {
