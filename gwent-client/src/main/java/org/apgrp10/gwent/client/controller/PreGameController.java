@@ -59,7 +59,7 @@ public class PreGameController {
 	public static void getMyDoneGameList(Consumer<HashMap<Long, GameRecord>> callback) {
 		Server.send(new Request("getMyDoneGameList"), res -> {
 			if (res.isOk()) {
-				HashMap<Long, GameRecord> records = MGson.fromJson(res.getBody().get("results"),
+				HashMap<Long, GameRecord> records = MGson.fromJson(res.getBody(),
 						TypeToken.getParameterized(HashMap.class, Long.class, GameRecord.class).getType());
 				callback.accept(records);
 			} else {
@@ -133,7 +133,7 @@ public class PreGameController {
 		Deck deck1 = Deck.fromJson(request.getBody().get("deck1"));
 		Deck deck2 = Deck.fromJson(request.getBody().get("deck2"));
 		int localPlayer = (user1.id() == UserController.getCurrentUser().id()) ? 0 : 1;
-		ANSI.log("Game Start Request Received : " + request);
+		ANSI.log("Game Stage Request '%s' Received / User1: %s / User2: %s".formatted(request.getAction(), user1.username(), user2.username()));
 		GameStage.setCommonData(user1, user2, deck1, deck2, seed);
 		switch (request.getAction()) {
 			case "start" -> GameStage.setOnline(localPlayer);
@@ -203,5 +203,5 @@ public class PreGameController {
 		return lastRequestStatus;
 	}
 
-	record GameInCurrent(long p1, long p2, boolean isPublic) {}
+	public record GameInCurrent(long p1, long p2, boolean isPublic) {}
 }

@@ -1,14 +1,13 @@
 package org.apgrp10.gwent.client.view;
 
 import io.github.palexdev.materialfx.controls.MFXListView;
-import io.github.palexdev.materialfx.dialogs.MFXDialogs;
+import io.github.palexdev.materialfx.controls.cell.MFXListCell;
+import io.github.palexdev.materialfx.utils.others.FunctionalStringConverter;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.layout.StackPane;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.Server;
@@ -16,19 +15,18 @@ import org.apgrp10.gwent.client.controller.PreGameController;
 import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.client.model.AvatarView;
 import org.apgrp10.gwent.model.Avatar;
-import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.GameRecord;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
-import org.apgrp10.gwent.utils.Random;
 import org.apgrp10.gwent.utils.Utils;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 
 public class MainStage extends AbstractStage {
@@ -63,11 +61,7 @@ public class MainStage extends AbstractStage {
 
 		setOnPressListener("#friendsBtn", event -> FriendshipStage.getInstance().start());
 
-		setOnPressListener("#historyBtn", event -> {
-			ObservableList<String> names = FXCollections.observableArrayList("Engineering", "MCA", "MBA", "Graduation", "MTECH", "Mphil", "Phd", "a", "b", "c", "d", "e", "f", "h", "k");
-			showListView(names);
-			// TODO: show dialog
-		});
+		setOnPressListener("#historyBtn", event -> showGameHistory());
 
 		setOnPressListener("#gameBtn", event -> {
 			Platform.runLater(this::close);
@@ -85,30 +79,97 @@ public class MainStage extends AbstractStage {
 					new User.PublicInfo(2, "player2", "Player 2", Avatar.random())));
 		});
 
-		setOnPressListener("#liveBtn", event -> {
-			// TODO: implement Dialog
-		});
+		setOnPressListener("#liveBtn", event -> showCurrentGames());
 
 		setOnPressListener("#rankingsBtn", event -> ScoreboardStage.getInstance().start());
 
 		return true;
 	}
 
-	public void showListView(ObservableList<String> list){
-		MFXListView<String > listView = new MFXListView<>(list);
+	private void showGameHistory() {
+		PreGameController.getMyDoneGameList(gameRecords -> {
+			if (gameRecords.isEmpty()) {
+				showAlert(Dialogs.INFO(), "Game History", "You have no games yet");
+				return;
+			}
+			var l1 = gameRecords.values().stream().map(GameRecord::player1ID).toList();
+			var l2 = gameRecords.values().stream().map(GameRecord::player2ID).toList();
+			var l = new ArrayList<>(l1);
+			l.addAll(l2);
+
+			for (var entry : gameRecords.entrySet()) {
+				ANSI.log("Game: " + entry.getKey());
+				ANSI.log("Player1: " + entry.getValue().player1ID());
+				ANSI.log("Player2: " + entry.getValue().player2ID());
+				ANSI.log("");
+			}
+			UserController.cacheUserInfo(() -> showListDialog(gameRecords.entrySet().stream().toList(), entry -> {
+				var p1Info = UserController.getCachedInfo(entry.getValue().player1ID());
+				var p2Info = UserController.getCachedInfo(entry.getValue().player2ID());
+				// TODO : time is milis in entry.getKey()
+//				var time = Instant.ofEpochMilli(entry.getKey()).atOffset(ZoneOffset.of("+03:30")).toLocalDateTime();
+				StringBuilder sb = new StringBuilder();
+				sb.append(p1Info.nickname()).append(" (").append(p1Info.username()).append(") vs ");
+				sb.append(p2Info.nickname()).append(" (").append(p2Info.username()).append(")");
+				// TODO: handle multiline
+//				sb.append("\n").append("Winner: ").append(entry.getValue().gameWinner() == 0 ? p1Info.nickname() : p2Info.nickname());
+				return sb.toString();
+			}, entry -> {
+				boolean replay = showConfirmDialog(Dialogs.INFO(), "Game replay",
+						"Do you want to replay this game?", "Yes", "No");
+				if (!replay) return;
+				PreGameController.replayGame(entry.getKey(), response -> {
+					if (!response.isOk())
+						showAlert(Dialogs.ERROR(), "Error", "Failed to replay the game");
+				});
+			}, "Game History"), false, l.toArray(new Long[0]));
+		});
+	}
+
+	private void showCurrentGames() {
+		PreGameController.getCurrentGames(gameInCurrents -> {
+			if (gameInCurrents.isEmpty()) {
+				showAlert(Dialogs.INFO(), "Game History", "No games found");
+				return;
+			}
+			// cache all p1 and p2 s in gameInCurrents
+			var l1 = gameInCurrents.stream().map(PreGameController.GameInCurrent::p1).toList();
+			var l2 = gameInCurrents.stream().map(PreGameController.GameInCurrent::p2).toList();
+			var l = new ArrayList<>(l1);
+			l.addAll(l2);
+			UserController.cacheUserInfo(() -> showListDialog(gameInCurrents, g -> {
+				var p1 = UserController.getCachedInfo(g.p1());
+				var p2 = UserController.getCachedInfo(g.p2());
+				return "%s (%s)  vs  %s (%s)".formatted(p1.nickname(), p1.username(), p2.nickname(), p2.username());
+			}, g -> PreGameController.attendLiveWatching(g, res -> {
+				if (!res.isOk())
+					showAlert(Dialogs.ERROR(), "Error", "Failed to attend the game");
+			}), "Current Games"), false, l.toArray(new Long[0]));
+		});
+	}
+
+	public <T> void showListDialog(List<T> list, Function<T, String> factory, Consumer<T> onItemClick, String title) {
+		MFXListView<T> listView = new MFXListView<>();
 		listView.setPrefWidth(600);
 		listView.setPrefHeight(400);
+		listView.setCellFactory(param -> {
+			var cell = new MFXListCell<>(listView, param);
+			cell.setOnMouseClicked(event -> {
+				if (event.getClickCount() == 2) onItemClick.accept(cell.getData());
+			});
+			return cell;
+		});
+		listView.setConverter(FunctionalStringConverter.to(factory));
+		listView.setItems(FXCollections.observableList(list));
 		listView.getStyleClass().add("list");
 		StackPane container = new StackPane(listView);
 		container.setPrefWidth(650);
 		container.setPrefHeight(450);
 		container.setAlignment(Pos.CENTER);
-		Dialogs.showDialogAndWait(this, MFXDialogs.info(), "game history", container, Orientation.HORIZONTAL, Map.entry("cancel", k -> {})
-				, Map.entry("select", k -> {
-					if(!listView.getSelectionModel().getSelection().isEmpty())
-						System.out.println(listView.getSelectionModel().getSelection());
-				}));
+		Dialogs.showDialogAndWait(this, Dialogs.INFO(), title, container,
+				Orientation.HORIZONTAL, Map.entry("*Close", k -> {}));
 	}
+
 	public boolean isWaitingForAuth() {
 		return waitingForAuth;
 	}

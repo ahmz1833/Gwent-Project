@@ -310,7 +310,8 @@ public class UserController {
 	}
 
 	public static User.PublicInfo getCachedInfo(long userId) {
-		return userInfoCache.get(userId);
+		return userInfoCache.getOrDefault(userId,
+				new User.PublicInfo(0, "Unknown", "Unknown", Avatar.random()));
 	}
 
 	public static boolean getCachedOnlineState(long userId) {
@@ -335,6 +336,7 @@ public class UserController {
 				if (cnt[0] != -1) {
 					cnt[0] = -1;
 					onFailure.run();
+					onFinish.run();
 				}
 			});
 		}

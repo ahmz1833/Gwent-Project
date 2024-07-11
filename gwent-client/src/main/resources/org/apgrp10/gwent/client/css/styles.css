@@ -135,7 +135,7 @@ Label, MFXButton, MFXTextField, MFXTableView {
 }
 
 .list .virtual-flow .mfx-list-cell {
-    -fx-background-color: transparent;
+    -fx-background-color: rgba(220, 157, 119, 0.13);
     -fx-border-color: transparent;
     -fx-background-radius: 10;
     -fx-border-radius: 10;

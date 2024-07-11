@@ -489,7 +489,7 @@ public class Requests {
 	public static Response getCurrentGames(Client client, Request req) {
 		List<GamesManager.CurrentGame> currentGames = GamesManager.getVisibleCurrentGames(client.loggedInUser().id());
 		List<JsonObject> result = currentGames.stream().map(game -> {
-			JsonObject gameJson = MGson.toJsonElement(game.game()).getAsJsonObject();
+			JsonObject gameJson = new JsonObject();
 			gameJson.addProperty("p1", game.p1());
 			gameJson.addProperty("p2", game.p2());
 			gameJson.addProperty("isPublic", game.isPublic());
