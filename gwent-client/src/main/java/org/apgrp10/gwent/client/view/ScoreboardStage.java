@@ -12,7 +12,6 @@ import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.model.UserExperience;
 import org.apgrp10.gwent.utils.WaitExec;
 
-
 import java.util.Comparator;
 import java.util.function.Function;
 

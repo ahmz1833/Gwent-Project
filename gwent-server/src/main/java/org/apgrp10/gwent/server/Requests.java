@@ -433,14 +433,14 @@ public class Requests {
 	/**
 	 * Handles the 'removeFriendship' request. Removes a friendship.
 	 *
-	 * @jsonParam id (long) : The user ID of the friend
+	 * @jsonParam userId (long) : The user ID of the friend
 	 * @statusCode 204 - No Content (Friendship removed)
 	 * @statusCode 404 - Not Found (User is not a friend)
 	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
 	 */
 	@Authorizations(LOGGED_IN)
 	public static Response removeFriendship(Client client, Request req) throws Exception {
-		long id = req.getBody().get("id").getAsLong();
+		long id = req.getBody().get("userId").getAsLong();
 		if (!UserManager.isIdExist(id) || !UserManager.haveFriendship(client.loggedInUser().id(), id))
 			return req.response(Response.NOT_FOUND);
 		UserManager.removeFriendship(client.loggedInUser().id(), id);

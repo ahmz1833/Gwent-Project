@@ -18,7 +18,7 @@ import java.util.Map;
 public class R {
 	// getImage is used for loading cards each time a new card is made which is sloooow!
 	// so we cache the results
-	private static Map<String, Image> imageCache = new HashMap<>();
+	private static final Map<String, Image> imageCache = new HashMap<>();
 
 	static {
 		loadFont("Comfortaa", "Regular", "Light", "Medium", "SemiBold", "Bold");
@@ -48,14 +48,6 @@ public class R {
 		return ans;
 	}
 
-	public static AudioClip getAudio(String name) {
-		return new AudioClip(get("sound/" + name).toExternalForm());
-	}
-
-	public static Media getMedia(String name) {
-		return new Media(get("sound/" + name).toExternalForm());
-	}
-
 	public static URL get(String path) {
 		return R.class.getResource(path);
 	}
@@ -83,6 +75,7 @@ public class R {
 		public static final Scene profile = getFXML("profile.fxml");
 		public static final Scene avatar = getFXML("avatar.fxml");
 		public static final Scene scores = getFXML("scoreboard.fxml");
+		public static final Scene friends = getFXML("friends.fxml");
 	}
 
 	public static class image {
@@ -94,15 +87,14 @@ public class R {
 		public static final Image gem_on = getImage("icons/icon_gem_on.png");
 
 		public static final Image reactions[] = {
-			getImage("reacts/1.png"),
-			getImage("reacts/2.png"),
-			getImage("reacts/3.png"),
-			getImage("reacts/4.png"),
-			getImage("reacts/5.png"),
-			getImage("reacts/6.png"),
-			getImage("reacts/7.png"),
-			getImage("reacts/8.png"),
-
+				getImage("reacts/1.png"),
+				getImage("reacts/2.png"),
+				getImage("reacts/3.png"),
+				getImage("reacts/4.png"),
+				getImage("reacts/5.png"),
+				getImage("reacts/6.png"),
+				getImage("reacts/7.png"),
+				getImage("reacts/8.png"),
 		};
 	}
 
@@ -113,9 +105,5 @@ public class R {
 		public static final Image chat = getImage("ic_chat.png");
 		public static final Image scores = getImage("ic_scoreboard.png");
 
-	}
-
-	public static class sound {
-//		public static AudioClip nuclear_explosion = R.getAudio("nuclear_explosion.wav");
 	}
 }

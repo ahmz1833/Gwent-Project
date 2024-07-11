@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import io.github.palexdev.materialfx.controls.MFXButton?>
+<?import io.github.palexdev.materialfx.controls.MFXListView?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Scene?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.paint.LinearGradient?>
+<?import javafx.scene.paint.Stop?>
+<?import javafx.scene.shape.Rectangle?>
+
+<Scene stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1">
+    <AnchorPane maxHeight="600.0" maxWidth="700.0">
+        <Rectangle height="600.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="700.0">
+            <fill>
+                <LinearGradient endX="1.0" endY="1.0">
+                    <stops>
+                        <Stop>
+                            <color>
+                                <Color red="0.357699990272522" green="0.4591115713119507" blue="0.7300000190734863"
+                                       opacity="0.7699999809265137"/>
+                            </color>
+                        </Stop>
+                        <Stop offset="0.006729475100942127">
+                            <color>
+                                <Color red="0.8799999952316284" green="0.6166717410087585" blue="0.4575999975204468"
+                                       opacity="0.7699999809265137"/>
+                            </color>
+                        </Stop>
+                        <Stop offset="0.4037685060565276">
+                            <color>
+                                <Color red="0.8500000238418579" green="0.746441662311554" blue="0.484499990940094"
+                                       opacity="0.6513761281967163"/>
+                            </color>
+                        </Stop>
+                        <Stop offset="0.7072153103765222">
+                            <color>
+                                <Color red="0.6800000071525574" green="0.5667012929916382" blue="0.40799999237060547"
+                                       opacity="0.7699999809265137"/>
+                            </color>
+                        </Stop>
+                        <Stop offset="1.0">
+                            <color>
+                                <Color red="0.7894737124443054" green="0.6359649300575256" blue="0.42105263471603394"/>
+                            </color>
+                        </Stop>
+                    </stops>
+                </LinearGradient>
+            </fill>
+        </Rectangle>
+        <HBox AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="25.0" AnchorPane.rightAnchor="25.0"
+              AnchorPane.topAnchor="25.0">
+            <VBox alignment="CENTER" styleClass="frame">
+                <Label styleClass="header" text="Incoming Requests"/>
+                <MFXListView fx:id="incoming" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+                             prefHeight="200.0" prefWidth="280.0">
+                    <VBox.margin>
+                        <Insets top="10.0"/>
+                    </VBox.margin>
+                </MFXListView>
+                <Label styleClass="header" text="Outgoing Requests">
+                    <VBox.margin>
+                        <Insets top="25.0"/>
+                    </VBox.margin>
+                </Label>
+                <MFXListView fx:id="outgoing" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+                             prefHeight="200.0" prefWidth="280.0">
+                    <VBox.margin>
+                        <Insets top="10.0"/>
+                    </VBox.margin>
+                </MFXListView>
+            </VBox>
+            <VBox alignment="CENTER" styleClass="frame">
+                <Label styleClass="header" text="Friend List"/>
+                <MFXListView fx:id="friends" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+                             prefHeight="400.0" prefWidth="280.0">
+                    <VBox.margin>
+                        <Insets top="10.0"/>
+                    </VBox.margin>
+                </MFXListView>
+                <MFXButton fx:id="addFriend" buttonType="RAISED" depthLevel="LEVEL3" mnemonicParsing="false"
+                           prefHeight="30.0" prefWidth="300.0" styleClass="light-button" text="Add A Friend">
+                    <VBox.margin>
+                        <Insets top="10.0"/>
+                    </VBox.margin>
+                </MFXButton>
+            </VBox>
+        </HBox>
+    </AnchorPane>
+</Scene>

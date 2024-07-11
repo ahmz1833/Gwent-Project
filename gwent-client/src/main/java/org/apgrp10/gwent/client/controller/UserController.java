@@ -4,13 +4,13 @@ package org.apgrp10.gwent.client.controller;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import org.apgrp10.gwent.client.Gwent;
 import org.apgrp10.gwent.client.Server;
 import org.apgrp10.gwent.client.view.AbstractStage;
 import org.apgrp10.gwent.client.view.LoginStage;
 import org.apgrp10.gwent.client.view.MainStage;
 import org.apgrp10.gwent.model.Avatar;
+import org.apgrp10.gwent.model.FriendshipRequest;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.UserExperience;
 import org.apgrp10.gwent.model.net.Request;
@@ -86,14 +86,15 @@ public class UserController {
 		if (Server.isConnected()) {
 			authenticate(response -> {
 				if (response.isOk()) {
-					if(verbose) ANSI.log("Authenticated; Username: " + UserController.getCurrentUser().username(), ANSI.LGREEN, false);
+					if (verbose)
+						ANSI.log("Authenticated; Username: " + UserController.getCurrentUser().username(), ANSI.LGREEN, false);
 					Gwent.forEachAbstractStage(AbstractStage::connectionEstablished);
 					if (MainStage.getInstance().isWaitingForAuth()) MainStage.getInstance().start();
 					Server.setListener("continueGame", PreGameController::startGame); // set listener for continueGame
 					Server.setListener("requestPlay", PreGameController::handlePlayRequest); // set listener for playReplay
 					Server.setListener("declinePlayRequest", PreGameController::handlePlayRequestDecline); // set listener for declinePlayRequest
 				} else {
-					if(verbose) ANSI.log("No Acceptable JWT, going to login page", ANSI.LRED, false);
+					if (verbose) ANSI.log("No Acceptable JWT, going to login page", ANSI.LRED, false);
 					Gwent.forEachStage(Stage::close);
 					if (!LoginStage.getInstance().isShowing()) LoginStage.getInstance().start();
 				}
@@ -268,13 +269,12 @@ public class UserController {
 		if (!refresh && optInfo.isPresent())
 			callback.accept(optInfo.get());
 		else Server.send(new Request("getUserInfo", MGson.makeJsonObject("username", username)), res -> {
-			if(res.isOk()) {
+			if (res.isOk()) {
 				User.PublicInfo info = MGson.fromJson(res.getBody(), User.PublicInfo.class);
 				isUserOnline(info.id(), online -> onlineStatusCache.put(info.id(), online)); // Check User Online status and put in cache
 				userInfoCache.put(info.id(), info);
 				callback.accept(info);
-			}
-			else {
+			} else {
 				ANSI.log("Failed to get user info, error code " + res.getStatus());
 				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
 					ANSI.printErrorResponse(null, res);
@@ -286,15 +286,13 @@ public class UserController {
 		isUserOnline(id, online -> onlineStatusCache.put(id, online)); // Check User Online status and put in cache
 		if (!refresh && userInfoCache.containsKey(id))
 			callback.accept(userInfoCache.get(id));
-		else{
-//			ANSI.log("Getting user info for id " + id);
+		else {
 			Server.send(new Request("getUserInfo", MGson.makeJsonObject("userId", id)), res -> {
-				if(res.isOk()) {
+				if (res.isOk()) {
 					User.PublicInfo info = MGson.fromJson(res.getBody(), User.PublicInfo.class);
 					userInfoCache.put(info.id(), info);
 					callback.accept(info);
-				}
-				else {
+				} else {
 					onFailure.accept(res);
 				}
 			});
@@ -346,13 +344,9 @@ public class UserController {
 		cacheUserInfo(onFinish, () -> ANSI.log("Failed to cache user infos"), refresh, ids);
 	}
 
-	public static void clearUserInfoCache() {
-		userInfoCache.clear();
-	}
-
 	public static void isUserOnline(long id, Consumer<Boolean> callback) {
 		Server.send(new Request("isUserOnline", MGson.makeJsonObject("userId", id)), res -> {
-			if(res.isOk())
+			if (res.isOk())
 				callback.accept(res.getBody().get("online").getAsBoolean());
 			else {
 				ANSI.log("Failed to check user online status, error code " + res.getStatus());
@@ -364,12 +358,11 @@ public class UserController {
 
 	public static void searchUsername(String query, int limit, Consumer<ArrayList<Long>> callback) {
 		Server.send(new Request("searchUsername", MGson.makeJsonObject("query", query, "limit", limit)), res -> {
-			if(res.isOk()) {
+			if (res.isOk()) {
 				ArrayList<Long> result = MGson.fromJson(res.getBody().get("results"),
 						TypeToken.getParameterized(ArrayList.class, Long.class).getType());
 				callback.accept(result);
-			}
-			else {
+			} else {
 				ANSI.log("Failed to search for username, error code " + res.getStatus());
 				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
 					ANSI.printErrorResponse(null, res);
@@ -377,12 +370,94 @@ public class UserController {
 		});
 	}
 
-	public static void sendFriendRequest(long id, Consumer<Response> callback) {
-		Server.send(new Request("sendFriendRequest", MGson.makeJsonObject("userId", id)), res -> {
-			if(res.isOk())
-				ANSI.log("Friend request sent successfully");
+	public static void getFriendList(Consumer<List<Long>> callback) {
+		Server.send(new Request("getFriendList"), res -> {
+			if (res.isOk()) {
+				List<Long> friends = MGson.fromJson(res.getBody().get("results"),
+						TypeToken.getParameterized(ArrayList.class, Long.class).getType());
+				callback.accept(friends);
+			} else {
+				ANSI.log("Failed to get friend list, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+		});
+	}
+
+	public static void addFriendshipRequest(long to, Consumer<Response> callback) {
+		Server.send(new Request("addFriendshipRequest",
+				MGson.makeJsonObject("from", currentUser.id(), "to", to)), res -> {
+			if (res.isOk())
+				ANSI.log("Friendship request sent successfully");
 			else {
-				ANSI.log("Failed to send friend request, error code " + res.getStatus());
+				ANSI.log("Failed to send friendship request, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+			callback.accept(res);
+		});
+	}
+
+	public static void getIncomingFriendshipRequests(Consumer<List<FriendshipRequest>> callback) {
+		Server.send(new Request("getIncomingFriendshipRequests"), res -> {
+			if (res.isOk()) {
+				List<FriendshipRequest> requests = MGson.fromJson(res.getBody().get("results"),
+						TypeToken.getParameterized(ArrayList.class, FriendshipRequest.class).getType());
+				callback.accept(requests);
+			} else {
+				ANSI.log("Failed to get incoming friendship requests, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+		});
+	}
+
+	public static void getOutgoingFriendshipRequests(Consumer<List<FriendshipRequest>> callback) {
+		Server.send(new Request("getOutgoingFriendshipRequests"), res -> {
+			if (res.isOk()) {
+				List<FriendshipRequest> requests = MGson.fromJson(res.getBody().get("results"),
+						TypeToken.getParameterized(ArrayList.class, FriendshipRequest.class).getType());
+				callback.accept(requests);
+			} else {
+				ANSI.log("Failed to get outgoing friendship requests, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+		});
+	}
+
+	public static void acceptFriendshipRequest(long from, Consumer<Response> callback) {
+		Server.send(new Request("acceptFriendshipRequest", MGson.makeJsonObject("from", from)), res -> {
+			if (res.isOk())
+				ANSI.log("Friendship request accepted successfully");
+			else {
+				ANSI.log("Failed to accept friendship request, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+			callback.accept(res);
+		});
+	}
+
+	public static void rejectFriendshipRequest(long from, Consumer<Response> callback) {
+		Server.send(new Request("rejectFriendshipRequest", MGson.makeJsonObject("from", from)), res -> {
+			if (res.isOk())
+				ANSI.log("Friendship request rejected successfully");
+			else {
+				ANSI.log("Failed to reject friendship request, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+			callback.accept(res);
+		});
+	}
+
+	public static void removeFriendship(long id, Consumer<Response> callback) {
+		Server.send(new Request("removeFriendship", MGson.makeJsonObject("userId", id)), res -> {
+			if (res.isOk())
+				ANSI.log("Friendship removed successfully");
+			else {
+				ANSI.log("Failed to remove friendship, error code " + res.getStatus());
 				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
 					ANSI.printErrorResponse(null, res);
 			}
@@ -392,11 +467,10 @@ public class UserController {
 
 	public static void getUserExperience(long userId, Consumer<UserExperience> callback) {
 		Server.send(new Request("getUserExperience", MGson.makeJsonObject("userId", userId)), res -> {
-			if(res.isOk()) {
+			if (res.isOk()) {
 				UserExperience experience = MGson.fromJson(res.getBody(), UserExperience.class);
 				callback.accept(experience);
-			}
-			else {
+			} else {
 				ANSI.log("Failed to get user experience, error code " + res.getStatus());
 				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
 					ANSI.printErrorResponse(null, res);
@@ -420,7 +494,7 @@ public class UserController {
 
 	public static void deleteAccount(Consumer<Response> callback) {
 		Server.send(new Request("deleteAccount"), res -> {
-			if(res.isOk())
+			if (res.isOk())
 				ANSI.log("Account deleted successfully");
 			else {
 				ANSI.log("Failed to get user experience, error code " + res.getStatus());
