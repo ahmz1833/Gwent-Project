@@ -21,9 +21,13 @@ import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
 import org.apgrp10.gwent.utils.Utils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -107,16 +111,31 @@ public class MainStage extends AbstractStage {
 				var p1Info = UserController.getCachedInfo(entry.getValue().player1ID());
 				var p2Info = UserController.getCachedInfo(entry.getValue().player2ID());
 				// TODO : time is milis in entry.getKey()
+				Date date = new Date(entry.getKey());
+				Instant instant = Instant.ofEpochMilli(entry.getKey());
+				ZoneId zoneId = ZoneId.of("Asia/Tehran");
+				ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, zoneId);
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+				String time = zonedDateTime.format(formatter);
 //				var time = Instant.ofEpochMilli(entry.getKey()).atOffset(ZoneOffset.of("+03:30")).toLocalDateTime();
 				StringBuilder sb = new StringBuilder();
 				sb.append(p1Info.nickname()).append(" (").append(p1Info.username()).append(") vs ");
-				sb.append(p2Info.nickname()).append(" (").append(p2Info.username()).append(")");
+				sb.append(p2Info.nickname()).append(" (").append(p2Info.username()).append(")  Time: (");
+				sb.append(time).append(") ");
 				// TODO: handle multiline
 //				sb.append("\n").append("Winner: ").append(entry.getValue().gameWinner() == 0 ? p1Info.nickname() : p2Info.nickname());
 				return sb.toString();
 			}, entry -> {
+				GameRecord gr = entry.getValue();
+				var p1Info = UserController.getCachedInfo(gr.player1ID());
+				var p2Info = UserController.getCachedInfo(gr.player2ID());
+				String  text = gr.gameWinner() == -1? "draw!": gr.gameWinner() == 0?  p1Info.nickname() + " won!" : p2Info.nickname() + " won!";
+				StringBuilder content = new StringBuilder("");
+				for(int i = 0; i < gr.p1Sc().size(); i++)
+					content.append("Round ").append(i).append(" : ").append(gr.p1Sc().get(i)).append(" - ").append(gr.p2Sc().get(i)).append("\n");
+				text = text + "\n" + content;
 				boolean replay = showConfirmDialog(Dialogs.INFO(), "Game replay",
-						"Do you want to replay this game?", "Yes", "No");
+						text + "\nDo you want to replay this game?\n", "Yes", "No");
 				if (!replay) return;
 				PreGameController.replayGame(entry.getKey(), response -> {
 					if (!response.isOk())
