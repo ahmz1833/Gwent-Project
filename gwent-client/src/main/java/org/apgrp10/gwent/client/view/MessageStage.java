@@ -43,10 +43,9 @@ public class MessageStage extends AbstractStage {
 	protected boolean onCreate() {
 		GameStage.getInstance().xProperty().addListener((obs, oldVal, newVal) -> this.setX(newVal.doubleValue() + GameStage.getInstance().getWidth() + 5));
 		GameStage.getInstance().yProperty().addListener((obs, oldVal, newVal) -> this.setY(newVal.doubleValue()));
-		GameStage.getInstance().setOnCloseRequest(e -> this.close());
 		setOnCloseRequest(e -> setPlaceGameWithoutChat());
 		setPlaceGameWithChat();
-		new WaitExec(false).run(50, () -> {
+		new WaitExec(false).run(100, () -> {
 			MessageStage.instance.setX(GameStage.getInstance().getX() + GameStage.getInstance().getWidth() + 5);
 			MessageStage.instance.setY(GameStage.getInstance().getY());
 		});

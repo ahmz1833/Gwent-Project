@@ -14,7 +14,7 @@ import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.User;
-import org.apgrp10.gwent.utils.ANSI;
+import org.apgrp10.gwent.utils.Random;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -60,7 +60,7 @@ public class MessageView extends HBox {
 			pane.setPrefWidth(140);
 			pane.setPrefHeight(20);
 			pane.setAlignment(Pos.BOTTOM_RIGHT);
-			time.setFill(Color.GRAY);
+			time.setFill(Color.rgb(45,45,45));
 			time.setStyle("-fx-font-size: 8px");
 			DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
 					.withLocale(Locale.UK).withZone(ZoneId.systemDefault());
@@ -68,8 +68,7 @@ public class MessageView extends HBox {
 			time.setText(formattedInstant);
 			pane.getChildren().add(time);
 			messageBox.getChildren().add(pane);
-		} catch (Exception e) {
-			ANSI.logError(System.err, "", e);
+		} catch (Exception ignored) {
 		}
 	}
 
@@ -113,8 +112,7 @@ public class MessageView extends HBox {
 					if (string.length() > 30) string = string.substring(0, 30) + "...";
 					reply.setText(string);
 				}
-			} catch (Exception e) {
-				ANSI.logError(System.err, "", e);
+			} catch (Exception ignored) {
 			}
 		}
 	}
@@ -159,8 +157,10 @@ public class MessageView extends HBox {
 	private void addMessage() {
 		messageBox = new VBox();
 		Rectangle background = new Rectangle();
-		if (user.id() != (message.getUserId())) background.setFill(Color.rgb(238, 180, 114));
-		else background.setFill(Color.rgb(141, 227, 118));
+		if (user.id() != (message.getUserId()))
+			background.setFill(Color.rgb(160, 134, 121));
+		else
+			background.setFill(Color.rgb(216, 203, 196));
 		background.setArcWidth(20);
 		background.setArcHeight(20);
 		background.setWidth(160);
@@ -172,7 +172,7 @@ public class MessageView extends HBox {
 		mainPain.getChildren().add(backPane);
 		this.getChildren().add(mainPain);
 		DropShadow dropShadow = new DropShadow();
-		dropShadow.setColor(Color.BLUE);
+		dropShadow.setColor(Color.rgb(192, 58, 20));
 		dropShadow.setRadius(10);
 		dropShadow.setOffsetX(5);
 		dropShadow.setOffsetY(5);
@@ -198,7 +198,7 @@ public class MessageView extends HBox {
 		messageText.setText(message.getText().trim() + "\n");
 		messageText.setWrappingWidth(150);
 		messageText.setFill(Color.BLACK);
-		messageText.setStyle("-fx-font-size: 12px");
+		messageText.setStyle("-fx-font-size: 12px; -fx-font-family: 'Vazirmatn SemiBold';");
 		messageBox.getChildren().add(messageText);
 	}
 

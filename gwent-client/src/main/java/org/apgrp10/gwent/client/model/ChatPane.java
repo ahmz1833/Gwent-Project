@@ -22,7 +22,6 @@ import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.User;
-import org.apgrp10.gwent.utils.ANSI;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -56,7 +55,6 @@ public class ChatPane extends Pane {
 	private void updateUser(){
 		try {
 			user = UserController.getCurrentUser().publicInfo();
-			System.out.println("your id" + user.id());
 		} catch (NullPointerException ignored){}
 	}
 
@@ -68,10 +66,10 @@ public class ChatPane extends Pane {
 		if (reply.length() > 30) reply = (reply.substring(0, 30) + "...");
 		Text text = new Text(reply);
 		text.setWrappingWidth(140);
-		text.setStyle("-fx-font-size: 10px");
+		text.setStyle("-fx-font-size: 10px; -fx-font-family: 'Vazirmatn SemiBold';");
 		text.setTextAlignment(TextAlignment.CENTER);
 		text.setFill(Color.BLACK);
-		Rectangle background = new Rectangle(140, 35, Color.LIGHTBLUE);
+		Rectangle background = new Rectangle(140, 35, Color.LIGHTPINK);
 		background.setArcWidth(10);
 		background.setArcHeight(10);
 		StackPane container = new StackPane();
@@ -115,7 +113,7 @@ public class ChatPane extends Pane {
 		img.setY(0);
 		getChildren().add(img);
 		this.setStyle("-fx-border-width: 2px;" +
-		              "-fx-border-color: #0d17d7;");
+		              "-fx-border-color: #f12411;");
 		this.setOnMouseClicked(k -> this.requestFocus());
 	}
 
@@ -128,6 +126,7 @@ public class ChatPane extends Pane {
 
 	private void addTextInput() {
 		textInput.setPromptText("send message");
+		textInput.setStyle("-fx-font-family: 'Vazirmatn SemiBold'");
 		VBox container = new VBox();
 		container.getChildren().add(setupText(replyBox));
 		HBox hBox = new HBox();
@@ -170,7 +169,11 @@ public class ChatPane extends Pane {
 		textField.setWrapText(true);
 		textField.setOnKeyPressed(event -> {
 			if (event.getCode() == KeyCode.ENTER) {
-				if (event.isShiftDown()) sendMessage();
+				if (!event.isShiftDown()) sendMessage();
+				else {
+					int place = textInput.getCaretPosition();
+					textInput.insertText(place, "\n");
+				}
 			}
 		});
 		textField.getStyleClass().add("input");
@@ -254,7 +257,6 @@ public class ChatPane extends Pane {
 				}
 			}
 		} catch (Exception e) {
-			ANSI.logError(System.err, null, e);
 		}
 	}
 
@@ -269,7 +271,6 @@ public class ChatPane extends Pane {
 	}
 
 	private void openNewWindow(double X, double Y, long idUser, long idMessage) {
-		System.out.println(user.id() + " # " + idUser);
 		new ReactionChat((int) (X - screenWidth + width), (int) Y, idMessage, this, user.id() == (idUser), reactionList.get(idMessage));
 	}
 
@@ -317,8 +318,7 @@ public class ChatPane extends Pane {
 			if (!isReply) {
 				textInput.setText(Objects.requireNonNull(getMessageById(id)).getMessage().getText());
 			}
-		} catch (Exception e) {
-			ANSI.logError(System.err, "", e);
+		} catch (Exception ignored) {
 		}
 	}
 

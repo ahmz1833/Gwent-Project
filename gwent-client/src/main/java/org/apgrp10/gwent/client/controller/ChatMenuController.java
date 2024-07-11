@@ -6,6 +6,7 @@ import org.apgrp10.gwent.client.model.ChatPane;
 import org.apgrp10.gwent.model.Message;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
+import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
 import org.apgrp10.gwent.utils.Random;
 
@@ -52,6 +53,10 @@ public class ChatMenuController {
 	}
 
 	public void getMessage(String str) {
-		chatMenu.addMessage(str);
+		try {
+			chatMenu.addMessage(str);
+		} catch (Exception ignored){
+			ANSI.logError(System.err, "error in getting message");
+		}
 	}
 }
