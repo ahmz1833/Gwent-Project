@@ -81,7 +81,8 @@ public class GameController {
 			Consumer<GameRecord> onEnd,
 			int firstSide,
 			boolean switchableSides,
-			List<Command> previousCmds
+			List<Command> previousCmds,
+			boolean lightSpeed
 	) {
 		this.onEnd = onEnd;
 		this.seed = seed;
@@ -139,26 +140,31 @@ public class GameController {
 		for (Command cmd : previousCmds)
 			sendCommand(cmd);
 
-		this.waitExec.setDummy(gameMenu == null);
+		this.waitExec.setDummy(lightSpeed);
 		this.gameMenu = gameMenu;
 		if (gameMenu != null) {
 			gameMenu.setController(this);
 			gameMenu.start();
 		}
 
-		data0.controller = restoreFF((FFInputController)data0.controller);
-		data1.controller = restoreFF((FFInputController)data1.controller);
+		restoreFF();
 	}
 
-	private InputController restoreFF(FFInputController ff) {
-		InputController c = ff.getActualInputController();
-		switch (ff.state) {
-			case NONE -> {}
-			case PLAY -> c.play();
-			case VETO -> c.veto(ff.vetoI);
-			case PICK -> c.pick(ff.pickList, ff.pickWhat);
+	private void restoreFF() {
+		FFInputController tmp[] = {null, null};
+		for (int i = 0; i < 2; i++) {
+			tmp[i] = (FFInputController)playerData[i].controller;
+			playerData[i].controller = tmp[i].getActualInputController();
 		}
-		return c;
+
+		for (int i = 0; i < 2; i++) {
+			switch (tmp[i].state) {
+				case NONE -> {}
+				case PLAY -> playerData[i].controller.play();
+				case VETO -> playerData[i].controller.veto(tmp[i].vetoI);
+				case PICK -> playerData[i].controller.pick(tmp[i].pickList, tmp[i].pickWhat);
+			}
+		}
 	}
 
 	public boolean hasSwitchableSides() { return switchableSides; }

@@ -112,7 +112,7 @@ public class GameStage extends AbstractStage {
 		new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> {
 			showWinnerDialog(gr, true);
 			this.exit();
-		}, 0, false, null);
+		}, 0, false, null, false);
 	}
 
 	private void createOnline() {
@@ -123,7 +123,7 @@ public class GameStage extends AbstractStage {
 				new WaitExec(false).run(3000, () -> {
 					showWinnerDialog(gr, false);
 					exit();
-				}), player, false, cmds);
+				}), player, false, cmds, false);
 		setupServer(gc);
 	}
 
@@ -132,7 +132,7 @@ public class GameStage extends AbstractStage {
 		InputController c2 = new DummyInputController();
 		GameMenu gm = new GameMenu(this, true);
 		GameController gc = new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr ->
-				new WaitExec(false).run(3000, this::exit), player, true, cmds);
+				new WaitExec(false).run(3000, this::exit), player, true, cmds, false);
 		setupServer(gc);
 	}
 
@@ -141,7 +141,7 @@ public class GameStage extends AbstractStage {
 		InputController c2 = new ReplayInputController(cmds);
 		GameMenu gm = new GameMenu(this, false);
 		new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr ->
-				new WaitExec(false).run(3000, this::exit), player, true, null);
+				new WaitExec(false).run(3000, this::exit), player, true, null, false);
 	}
 
 	@Override

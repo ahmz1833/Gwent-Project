@@ -65,7 +65,8 @@ public class GameTask extends Task {
 				},
 				0,
 				false,
-				null
+				null,
+				true
 		);
 
 		data[0].client.setListener("command", this::handleCommand);

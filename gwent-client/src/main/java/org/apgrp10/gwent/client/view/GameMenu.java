@@ -59,7 +59,6 @@ public class GameMenu implements GameMenuInterface {
 
 	public static GameMenu currentMenu;
 	private static final int WIDTH = 1280, HEIGHT = 720;
-	private final WaitExec waitExec = new WaitExec(false);
 
 	protected static class Position {
 		public record RectPos(double posX, double posY, double posX2, double posY2) {
@@ -192,8 +191,10 @@ public class GameMenu implements GameMenuInterface {
 	}
 
 	private void start(Stage stage) {
-		MessageStage.setup();
-		this.stage = stage;
+		if (stage != null) {
+			MessageStage.setup();
+			this.stage = stage;
+		}
 		realRoot.getChildren().add(rootPane);
 		realRoot.getChildren().add(buttonPane);
 		realRoot.getChildren().add(messagePane);
@@ -203,12 +204,14 @@ public class GameMenu implements GameMenuInterface {
 		messagePane.setPickOnBounds(false);
 		overlayRedrawingPane.setPickOnBounds(false);
 		overlayNonredrawingPane.setPickOnBounds(false);
-		Scene scene = new Scene(realRoot);
-		stage.setScene(scene);
-		stage.setResizable(false);
-		stage.setWidth(WIDTH);
-		stage.setHeight(HEIGHT);
-		stage.centerOnScreen();
+		if (stage != null) {
+			Scene scene = new Scene(realRoot);
+			stage.setScene(scene);
+			stage.setResizable(false);
+			stage.setWidth(WIDTH);
+			stage.setHeight(HEIGHT);
+			stage.centerOnScreen();
+		}
 		addTerminalListener();
 		addNonredrawingButtons();
 		redraw();
@@ -247,6 +250,8 @@ public class GameMenu implements GameMenuInterface {
 	}
 
 	private void addTraditionalButton(Pane parent, String str, String cmd, Position.RectPos pos) {
+		if (stage == null)
+			return;
 		Button btn = new Button(str);
 		btn.setOnMouseClicked(e -> notifyListeners(buttonListeners, cmd));
 		if (pos != null)
@@ -255,6 +260,8 @@ public class GameMenu implements GameMenuInterface {
 	}
 
 	private void addButton(Pane parent, String str, String cmd, Position.RectPos pos) {
+		if (stage == null)
+			return;
 		MFXButton btn = new MFXButton(str);
 		btn.setOnMouseClicked(e -> notifyListeners(buttonListeners, cmd));
 		if (pos != null)
@@ -265,6 +272,8 @@ public class GameMenu implements GameMenuInterface {
 		parent.getChildren().add(btn);
 	}
 	private void addReactButton(){
+		if (stage == null)
+			return;
 		for(int i = 1; i < 9; i++) {
 			MFXButton btn = new MFXButton(String.valueOf(i));
 			int finalI = i;
@@ -482,7 +491,7 @@ public class GameMenu implements GameMenuInterface {
 	}
 
 	private void tryShowAllMessages() {
-		if (!isMessageShowing) {
+		if (!isMessageShowing && stage != null) {
 			isMessageShowing = true;
 			messageAnimationCount++;
 			Platform.runLater(() -> showAllMessages());
@@ -861,12 +870,12 @@ public class GameMenu implements GameMenuInterface {
 		animationView.setFitWidth(Position.react[side].w());
 		animationView.setFitHeight(Position.react[side].h());
 
-		new MoveAnimation(1500, animationView, from, to);
+		if (stage != null) new MoveAnimation(1500, animationView, from, to);
 	}
 
 	private void animationTo(Card card, Point2D from, Point2D to) {
 		CardView animationView = CardView.newHand(card.pathAddress, Position.card.w(), Position.card.h());
-		new CardMoveAnimation(card, animationView, from, to);
+		if (stage != null) new CardMoveAnimation(card, animationView, from, to);
 	}
 
 	private void animationToHBox(Card card, Position.RectPos pos, List<Card> others) {
@@ -912,7 +921,7 @@ public class GameMenu implements GameMenuInterface {
 	}
 
 	public boolean isAnimationPlaying() {
-		return !animationNodes.isEmpty() || !scorchCards.isEmpty() || isMessageShowing || messageAnimationCount > 0;
+		return stage != null && (!animationNodes.isEmpty() || !scorchCards.isEmpty() || isMessageShowing || messageAnimationCount > 0);
 	}
 
 	private List<Card> scorchCards = new ArrayList<>();
@@ -1043,10 +1052,9 @@ public class GameMenu implements GameMenuInterface {
 		}
 	}
 
-	public static class MessageGame extends Pane {
+	private class MessageGame extends Pane {
 		private final Pane gamePane;
 		private final Pane self = this;
-		private final WaitExec waitExec = new WaitExec(false);
 
 		MessageGame(Pane gamePane, Image image, String txt) {
 			this.gamePane = gamePane;
@@ -1061,8 +1069,8 @@ public class GameMenu implements GameMenuInterface {
 		}
 
 		public void show(int firstTime) {
-			waitExec.run(firstTime, () -> gamePane.getChildren().add(self));
-			waitExec.run(firstTime + 1000, () -> gamePane.getChildren().remove(self));
+			controller.waitExec.run(firstTime, () -> gamePane.getChildren().add(self));
+			controller.waitExec.run(firstTime + 1000, () -> gamePane.getChildren().remove(self));
 		}
 
 		private void addImageView(Image image, int width, int height, int x, int y) {

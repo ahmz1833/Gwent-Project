@@ -1,19 +1,16 @@
-package org.apgrp10.gwent;
+package org.apgrp10.gwent.client;
 
-import org.apgrp10.gwent.controller.DummyInputController;
+import org.apgrp10.gwent.client.controller.ReplayInputController;
+import org.apgrp10.gwent.client.view.GameMenu;
 import org.apgrp10.gwent.controller.GameController;
 import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.GameRecord;
 import org.apgrp10.gwent.model.User;
-import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
-import org.apgrp10.gwent.utils.Random;
-import org.apgrp10.gwent.utils.Utils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class GameControllerTest {
+public class GameMenuTest {
 
 	private void testSample(String name) throws Exception {
 		GameRecord gr = MGson.fromJson(new String(R.getAsStream(name).readAllBytes()), GameRecord.class);
@@ -24,18 +21,18 @@ public class GameControllerTest {
 		long seed = gr.seed();
 
 		GameController gameController = new GameController(
-				new DummyInputController(),
-				new DummyInputController(),
+				new ReplayInputController(gr.commands()),
+				new ReplayInputController(gr.commands()),
 				publicInfo1,
 				publicInfo2,
 				deck1,
 				deck2,
 				seed,
-				null,
+				new GameMenu(null, false),
 				gr2 -> { assert gr.equals(gr2); },
 				0,
 				false,
-				gr.commands(),
+				null,
 				true
 		);
 	}
