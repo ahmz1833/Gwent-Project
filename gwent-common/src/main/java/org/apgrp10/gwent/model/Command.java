@@ -74,5 +74,7 @@ public interface Command {
 
 	record React(int player, int reactId) implements Command, Serializable {}
 
+	record ReactGeneral(int player, int reactId) implements Command, Serializable {}
+
 	record Connection(int player, boolean connection) implements Command, Serializable, Informational {}
 }

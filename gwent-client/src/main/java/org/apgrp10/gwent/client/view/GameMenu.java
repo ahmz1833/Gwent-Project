@@ -31,6 +31,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -268,7 +269,10 @@ public class GameMenu implements GameMenuInterface {
 			MFXButton btn = new MFXButton(String.valueOf(i));
 			int finalI = i;
 			btn.setOnMouseClicked(e -> {
-				notifyListeners(buttonListeners, "react" + (e.getClickCount() < 2? "": "S") + "_" + (finalI - 1));
+				if (e.getButton() == MouseButton.PRIMARY)
+					notifyListeners(buttonListeners, "reactgeneral_" + (finalI - 1));
+				else if (e.getButton() == MouseButton.SECONDARY)
+					notifyListeners(buttonListeners, "react_" + (finalI - 1));
 			});
 			new Position.RectPos(0.9725, 0.1900 + 0.033 * i, 0.999, 0.2200 + 0.033 * i)
 					.setBounds(btn);
