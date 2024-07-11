@@ -53,7 +53,7 @@ public class UserControllerTest {
 
 	@Test
 	public void authenticate() {
-		UserController.performAuthentication();
+		UserController.performAuthentication(false);
 		String newFilePath = (Gwent.APP_DATA + "jwt.txt");
 		File f = new File(newFilePath);
 		if (f.exists() && !f.isDirectory()) {

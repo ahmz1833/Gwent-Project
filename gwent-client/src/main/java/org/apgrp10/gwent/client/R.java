@@ -80,6 +80,9 @@ public class R {
 	public static class scene {
 		public static final Scene login = getFXML("login.fxml");
 		public static final Scene main = getFXML("main.fxml");
+		public static final Scene profile = getFXML("profile.fxml");
+		public static final Scene avatar = getFXML("avatar.fxml");
+
 	}
 
 	public static class image {

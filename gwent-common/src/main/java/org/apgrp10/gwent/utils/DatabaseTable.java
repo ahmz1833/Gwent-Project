@@ -122,6 +122,10 @@ public class DatabaseTable {
 		return syntax.substring(0, syntax.length() - 1);
 	}
 
+	public void deleteRow(long id) throws Exception {
+		stmt.execute("DELETE FROM " + tableName + " WHERE id = " + id);
+	}
+
 	public interface DBColumn {
 		String name();
 

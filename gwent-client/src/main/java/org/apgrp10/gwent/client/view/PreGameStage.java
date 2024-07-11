@@ -66,7 +66,7 @@ public class PreGameStage extends AbstractStage {
 		switch (gameMode) {
 			case CHOICE -> {
 				lastDeck = deck;
-				Dialogs.showDialogAndWait(this, MFXDialogs.warn(), "choose", "How you want to play?\n", Orientation.VERTICAL,
+				Dialogs.showDialogAndWait(this, Dialogs.WARN(), "choose", "How you want to play?\n", Orientation.VERTICAL,
 						Map.entry("Make an Offline play", e -> {
 							gameMode = GameMode.LOCAL;
 							new PreGameMenu(pane, false, new User.PublicInfo(0, "anonymous", "anonymous", Avatar.random()));

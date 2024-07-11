@@ -1,0 +1,37 @@
+@import 'styles.css';
+
+AnchorPane {
+    -fx-background-color: #ffffff;
+}
+
+#avatarGridScrollPane {
+    -fx-border-color: #1620aa;
+    -fx-border-width: 2px;
+    -fx-border-radius: 10px;
+}
+
+.avatar-view.mfx-button:hover {
+    -fx-background-color: rgba(209, 206, 206, 0.89);
+    -fx-background-radius: 10px;
+}
+
+.avatar-view:selected {
+    -fx-background-color: rgba(209, 206, 206, 0.89);
+    -fx-background-radius: 10px;
+}
+
+#browseBtn {
+    -fx-background-color: #1634aa;
+    -fx-text-fill: white;
+    -fx-background-radius: 10px;
+}
+
+#browseBtn:hover {
+    -fx-background-color: #1620aa;
+}
+
+#dragLbl {
+    -fx-background-color: #1634aa;
+    -fx-text-fill: white;
+    -fx-background-radius: 10px;
+}

@@ -6,6 +6,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelReader;
+import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import org.apgrp10.gwent.R;
@@ -14,9 +15,7 @@ import org.apgrp10.gwent.utils.Random;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -52,7 +51,7 @@ public class Avatar {
 		try {
 			number = Integer.parseInt(value);
 		} catch (Exception ignored) {}
-		if (number > 0 && number < R.DEFAULT_AVATARS.size()) return R.DEFAULT_AVATARS.get(number);
+		if (number >= 0 && number < R.DEFAULT_AVATARS.size()) return R.DEFAULT_AVATARS.get(number);
 		else {
 			byte[] decoded = Base64.getDecoder().decode(value);
 			return Avatar.fromImage(imageFromBytes(decoded));
@@ -60,47 +59,27 @@ public class Avatar {
 	}
 
 	private static Image imageFromBytes(byte[] bytes) {
-		// Read the byte array into a BufferedImage
-		ByteArrayInputStream input = new ByteArrayInputStream(bytes);
-		BufferedImage bufferedImage = null;
 		try {
-			bufferedImage = ImageIO.read(input);
-		} catch (IOException e) {
-			ANSI.logError(System.err, "Failed to read image from byte array", e);
+			ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+			ObjectInputStream ois = new ObjectInputStream(bais);
+			SerializableImage si = (SerializableImage) ois.readObject();
+			return si.getImage();
+		} catch (Exception e) {
 			return null;
 		}
-
-		// Convert the BufferedImage to a JavaFX Image
-		int width = bufferedImage.getWidth();
-		int height = bufferedImage.getHeight();
-		ByteBuffer byteBuffer = ByteBuffer.allocate(width * height * 4);
-		return new Image(new ByteArrayInputStream(byteBuffer.array()), width, height, true, true);
 	}
 
 	private static byte[] imageToBytes(Image image) {
-		int width = (int) image.getWidth();
-		int height = (int) image.getHeight();
-		PixelReader pixelReader = image.getPixelReader();
-
-		// Create a BufferedImage and get its pixel data
-		BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x++) {
-				Color color = pixelReader.getColor(x, y);
-				int argb = ((int) (color.getOpacity() * 255) << 24) | ((int) (color.getRed() * 255) << 16)
-				           | ((int) (color.getGreen() * 255) << 8) | ((int) (color.getBlue() * 255));
-				bufferedImage.setRGB(x, y, argb);
-			}
-		}
-
-		// Write the BufferedImage to a byte array
-		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		try {
-			ImageIO.write(bufferedImage, "png", output);
-		} catch (IOException e) {
-			ANSI.logError(System.err, "Failed to write image to byte array", e);
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ObjectOutputStream ous = new ObjectOutputStream(baos);
+			SerializableImage si = new SerializableImage();
+			si.setImage(image);
+			ous.writeObject(si);
+			return baos.toByteArray();
+		} catch (Exception e) {
+			return null;
 		}
-		return output.toByteArray();
 	}
 
 	public Image getViewableImage() {
@@ -124,8 +103,44 @@ public class Avatar {
 	}
 
 	public String toBase64() {
-		if (allAvatars.contains(this)) return String.valueOf(allAvatars.indexOf(this));
+		if (R.DEFAULT_AVATARS.contains(this)) return String.valueOf(R.DEFAULT_AVATARS.indexOf(this));
 		return Base64.getEncoder().encodeToString(imageToBytes(image));
+	}
+
+
+	private static class SerializableImage implements Serializable {
+		private int width, height;
+		private int[][] data;
+
+		public SerializableImage() {
+		}
+
+		public void setImage(Image image) {
+			width = ((int) image.getWidth());
+			height = ((int) image.getHeight());
+			data = new int[width][height];
+
+			PixelReader r = image.getPixelReader();
+			for (int i = 0; i < width; i++) {
+				for (int j = 0; j < height; j++) {
+					data[i][j] = r.getArgb(i, j);
+				}
+			}
+		}
+
+		public Image getImage() {
+			WritableImage img = new WritableImage(width, height);
+
+			PixelWriter w = img.getPixelWriter();
+			for (int i = 0; i < width; i++) {
+				for (int j = 0; j < height; j++) {
+					w.setArgb(i, j, data[i][j]);
+				}
+			}
+
+			return img;
+		}
+
 	}
 
 	static class AvatarAdapter extends TypeAdapter<Avatar> {

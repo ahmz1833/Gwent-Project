@@ -212,7 +212,8 @@ public class Requests {
 		User.PublicInfo updateInfo = MGson.fromJson(req.getBody(), User.PublicInfo.class);
 		if (client.loggedInUser().id() != updateInfo.id())
 			return req.response(Response.UNAUTHORIZED);
-		if (UserManager.isUsernameTaken(updateInfo.username()))
+		if (UserManager.isUsernameTaken(updateInfo.username()) &&
+		    !updateInfo.username().equals(client.loggedInUser().username()))
 			return req.response(Response.CONFLICT); // Username taken
 		UserManager.updateUserInfo(updateInfo);
 		return req.response(Response.OK_NO_CONTENT);
@@ -284,6 +285,20 @@ public class Requests {
 		}
 		if (user == null) return req.response(Response.NOT_FOUND);
 		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(user.publicInfo()));
+	}
+
+	/**
+	 * Handles the 'deleteAccount' request. Deletes the account of the user.
+	 *
+	 * @statusCode 204 - No Content (Account deleted)
+	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
+	 */
+	@Authorizations(LOGGED_IN)
+	public static Response deleteAccount(Client client, Request req) throws Exception {
+		User user = client.loggedInUser();
+		UserManager.removeUser(user.id());
+		client.setLoggedInUser(null);
+		return req.response(Response.OK_NO_CONTENT);
 	}
 
 	/**

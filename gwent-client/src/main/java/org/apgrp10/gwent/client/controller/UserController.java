@@ -80,18 +80,18 @@ public class UserController {
 		});
 	}
 
-	public static void performAuthentication() {
+	public static void performAuthentication(boolean verbose) {
 		if (Server.isConnected()) {
 			authenticate(response -> {
 				if (response.isOk()) {
-					ANSI.log("Authenticated; Username: " + UserController.getCurrentUser().username(), ANSI.LGREEN, false);
+					if(verbose) ANSI.log("Authenticated; Username: " + UserController.getCurrentUser().username(), ANSI.LGREEN, false);
 					Gwent.forEachAbstractStage(AbstractStage::connectionEstablished);
 					if (MainStage.getInstance().isWaitingForAuth()) MainStage.getInstance().start();
 					Server.setListener("continueGame", PreGameController::startGame); // set listener for continueGame
 					Server.setListener("requestPlay", PreGameController::handlePlayRequest); // set listener for playReplay
 					Server.setListener("declinePlayRequest", PreGameController::handlePlayRequestDecline); // set listener for declinePlayRequest
 				} else {
-					ANSI.log("No Acceptable JWT, going to login page", ANSI.LRED, false);
+					if(verbose) ANSI.log("No Acceptable JWT, going to login page", ANSI.LRED, false);
 					Gwent.forEachStage(Stage::close);
 					if (!LoginStage.getInstance().isShowing()) LoginStage.getInstance().start();
 				}
@@ -141,7 +141,7 @@ public class UserController {
 				// Print the JWT received from the server
 				jwt = res.getBody().get("jwt").getAsString();
 				if (saveJWT) saveJWTToFile();
-				performAuthentication(); // Perform authentication (send jwt back to server)
+				performAuthentication(true); // Perform authentication (send jwt back to server)
 			} else {
 				ANSI.log("Failed to verify, error code " + res.getStatus());
 				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
@@ -207,7 +207,7 @@ public class UserController {
 				} catch (IOException ignored) {}
 				Gwent.forEachStage(Stage::close);
 				ANSI.log("Logged out successfully, JWT removed.");
-				performAuthentication();   // for reset client state and go login page
+				updateLocal();
 			} else
 				ANSI.log("Failed to logout, error code " + res.getStatus());
 		});
@@ -224,7 +224,7 @@ public class UserController {
 				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
 					ANSI.printErrorResponse(null, res);
 			}
-			performAuthentication(); // for the changes to take effect to local user
+			updateLocal();
 			callback.accept(res);
 		});
 	}
@@ -245,8 +245,8 @@ public class UserController {
 
 	public static void changePassword(User user, String newPassword, Consumer<Response> callback) {
 		JsonObject json = MGson.makeJsonObject("userId", user.id(),
-				"oldHash", user.passwordHash(),
-				"newHash", User.hashPassword(newPassword));
+				"oldPassHash", user.passwordHash(),
+				"newPassHash", User.hashPassword(newPassword));
 		Server.send(new Request("changePassword", json), res -> {
 			if (res.isOk()) {
 				ANSI.log("Password changed successfully");
@@ -255,7 +255,7 @@ public class UserController {
 				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
 					ANSI.printErrorResponse(null, res);
 			}
-			performAuthentication(); // for the changes to take effect to local user
+			updateLocal();
 			callback.accept(res);
 		});
 	}
@@ -356,5 +356,21 @@ public class UserController {
 			}
 		});
 	}
-//	public static void updateUser() {authenticate();}
+
+	public static void deleteAccount(Consumer<Response> callback) {
+		Server.send(new Request("deleteAccount"), res -> {
+			if(res.isOk())
+				ANSI.log("Account deleted successfully");
+			else {
+				ANSI.log("Failed to get user experience, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+			callback.accept(res);
+		});
+	}
+
+	public static void updateLocal() {
+		performAuthentication(false);
+	}
 }

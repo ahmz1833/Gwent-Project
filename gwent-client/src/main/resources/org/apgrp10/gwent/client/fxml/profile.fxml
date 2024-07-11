@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import io.github.palexdev.materialfx.controls.MFXButton?>
+<?import io.github.palexdev.materialfx.controls.MFXPasswordField?>
+<?import io.github.palexdev.materialfx.controls.MFXTextField?>
+<?import io.github.palexdev.mfxcore.controls.Label?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Scene?>
+<?import javafx.scene.effect.GaussianBlur?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.paint.LinearGradient?>
+<?import javafx.scene.paint.Stop?>
+<?import javafx.scene.shape.Rectangle?>
+
+<?import org.apgrp10.gwent.client.model.AvatarView?>
+<Scene stylesheets="@../css/profile.css" xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1">
+    <AnchorPane>
+        <Rectangle height="500.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="600.0">
+            <fill>
+                <LinearGradient endX="1.0" endY="1.0">
+                    <stops>
+                        <Stop>
+                            <color>
+                                <Color red="0.357699990272522" green="0.4591115713119507" blue="0.7300000190734863"
+                                       opacity="0.7699999809265137"/>
+                            </color>
+                        </Stop>
+                        <Stop offset="0.006729475100942127">
+                            <color>
+                                <Color red="0.8799999952316284" green="0.6166717410087585" blue="0.4575999975204468"
+                                       opacity="0.7699999809265137"/>
+                            </color>
+                        </Stop>
+                        <Stop offset="0.4037685060565276">
+                            <color>
+                                <Color red="0.8500000238418579" green="0.746441662311554" blue="0.484499990940094"
+                                       opacity="0.6513761281967163"/>
+                            </color>
+                        </Stop>
+                        <Stop offset="0.7072153103765222">
+                            <color>
+                                <Color red="0.6800000071525574" green="0.5667012929916382" blue="0.40799999237060547"
+                                       opacity="0.7699999809265137"/>
+                            </color>
+                        </Stop>
+                        <Stop offset="1.0">
+                            <color>
+                                <Color red="0.7894737124443054" green="0.6359649300575256" blue="0.42105263471603394"/>
+                            </color>
+                        </Stop>
+                    </stops>
+                </LinearGradient>
+            </fill>
+        </Rectangle>
+        <!--        <ImageView fitHeight="190.0" fitWidth="190.0" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="80.0">-->
+        <!--            <Image url="@../image/ic_profile.png" />-->
+        <!--        </ImageView>-->
+        <AvatarView fx:id="avatar" prefWidth="190.0" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="80.0"/>
+        <MFXButton fx:id="change_avatar" prefHeight="46.0" prefWidth="190.0" text="Change Avatar"
+                   AnchorPane.bottomAnchor="150.0" AnchorPane.leftAnchor="20.0"/>
+        <MFXButton fx:id="delete_acc" alignment="CENTER" prefHeight="70.0" prefWidth="190.0" styleClass="boldText"
+                   text="Delete Account" textAlignment="CENTER" wrapText="true" AnchorPane.bottomAnchor="30.0"
+                   AnchorPane.leftAnchor="20.0">
+            <graphic>
+                <ImageView fitHeight="40.0" fitWidth="40.0" opacity="0.73" pickOnBounds="true" preserveRatio="true">
+                    <effect>
+                        <GaussianBlur radius="1.0"/>
+                    </effect>
+                    <Image url="@../image/ic_delete.png"/>
+                </ImageView>
+            </graphic>
+        </MFXButton>
+        <Label prefHeight="33.0" prefWidth="269.0" styleClass="header" text="Update Your Profile" textAlignment="CENTER"
+               AnchorPane.rightAnchor="65.0" AnchorPane.topAnchor="30.0"/>
+        <VBox spacing="10.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="100.0">
+            <HBox alignment="CENTER" spacing="10.0">
+                <MFXTextField fx:id="username" editable="false" floatMode="BORDER" floatingText="Username"
+                              prefHeight="50.0" prefWidth="250.0" text="Username"/>
+                <MFXButton fx:id="edit_usern" alignment="CENTER" buttonType="RAISED" contentDisplay="GRAPHIC_ONLY"
+                           depthLevel="LEVEL1" graphicTextGap="0.0" prefHeight="43.0" prefWidth="70.0">
+                    <graphic>
+                        <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                            <Image url="@../image/ic_edit.png"/>
+                        </ImageView>
+                    </graphic>
+                </MFXButton>
+            </HBox>
+            <Label fx:id="username_v" maxWidth="400" styleClass="validation-label" visible="false" wrapText="true">
+                <VBox.margin>
+                    <Insets top="-12.0"/>
+                </VBox.margin>
+                <padding>
+                    <Insets left="10.0"/>
+                </padding>
+            </Label>
+            <HBox alignment="CENTER" spacing="10.0">
+                <MFXTextField fx:id="nickname" editable="false" floatMode="BORDER" floatingText="Nickname"
+                              prefColumnCount="15" prefHeight="50.0" prefWidth="250.0" text="Nickname"/>
+                <MFXButton fx:id="edit_nickn" alignment="CENTER" buttonType="RAISED" contentDisplay="GRAPHIC_ONLY"
+                           depthLevel="LEVEL1" prefHeight="43.0" prefWidth="70.0">
+                    <graphic>
+                        <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                            <Image url="@../image/ic_edit.png"/>
+                        </ImageView>
+                    </graphic>
+                </MFXButton>
+                <padding>
+                    <Insets top="10.0"/>
+                </padding>
+            </HBox>
+            <Label fx:id="nickname_v" maxWidth="400" styleClass="validation-label" visible="false" wrapText="true">
+                <VBox.margin>
+                    <Insets top="-12.0"/>
+                </VBox.margin>
+                <padding>
+                    <Insets left="10.0"/>
+                </padding>
+            </Label>
+            <HBox alignment="CENTER" spacing="10.0">
+                <MFXPasswordField fx:id="password" editable="false" floatMode="BORDER" floatingText="Password"
+                                  prefHeight="50.0" prefWidth="250.0" text="●●●●●●●●"/>
+                <MFXButton fx:id="edit_pass" alignment="CENTER" buttonType="RAISED" contentDisplay="GRAPHIC_ONLY"
+                           depthLevel="LEVEL1" prefHeight="43.0" prefWidth="70.0">
+                    <graphic>
+                        <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                            <Image url="@../image/ic_edit.png"/>
+                        </ImageView>
+                    </graphic>
+                </MFXButton>
+                <padding>
+                    <Insets top="10.0"/>
+                </padding>
+            </HBox>
+            <Label fx:id="password_v" maxWidth="400" styleClass="validation-label" visible="false" wrapText="true">
+                <VBox.margin>
+                    <Insets top="-12.0"/>
+                </VBox.margin>
+                <padding>
+                    <Insets left="10.0"/>
+                </padding>
+            </Label>
+            <HBox alignment="CENTER" spacing="10.0">
+                <MFXTextField fx:id="email" editable="false" floatMode="BORDER" floatingText="Email"
+                              prefColumnCount="15" prefHeight="50.0" prefWidth="250.0" text="Email"/>
+                <MFXButton fx:id="edit_email" alignment="CENTER" buttonType="RAISED" contentDisplay="GRAPHIC_ONLY"
+                           depthLevel="LEVEL1" prefHeight="43.0" prefWidth="70.0">
+                    <graphic>
+                        <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                            <Image url="@../image/ic_edit.png"/>
+                        </ImageView>
+                    </graphic>
+                </MFXButton>
+                <padding>
+                    <Insets top="10.0"/>
+                </padding>
+            </HBox>
+            <Label fx:id="email_v" maxWidth="400" styleClass="validation-label" visible="false" wrapText="true">
+                <VBox.margin>
+                    <Insets top="-15.0"/>
+                </VBox.margin>
+                <padding>
+                    <Insets left="10.0"/>
+                </padding>
+            </Label>
+        </VBox>
+        <MFXButton fx:id="save" buttonType="RAISED" disable="true" prefHeight="40.0" prefWidth="150.0" text="Save"
+                   AnchorPane.bottomAnchor="25.0" AnchorPane.rightAnchor="200.0">
+            <graphic>
+                <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                    <Image url="@../image/ic_ok.png"/>
+                </ImageView>
+            </graphic>
+        </MFXButton>
+        <MFXButton fx:id="cancel" buttonType="RAISED" prefHeight="40.0" prefWidth="150.0" text="Cancel"
+                   AnchorPane.bottomAnchor="25.0" AnchorPane.rightAnchor="30.0">
+            <graphic>
+                <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                    <effect>
+                        <GaussianBlur radius="1.0"/>
+                    </effect>
+                    <Image url="@../image/ic_reject.png"/>
+                </ImageView>
+            </graphic>
+        </MFXButton>
+    </AnchorPane>
+</Scene>

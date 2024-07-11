@@ -1,0 +1,17 @@
+@import "styles.css";
+
+.mfx-text-field {
+    -fx-background-color: #DDDDDDA0;
+}
+
+.mfx-text-field:editable {
+    -fx-background-color: #FFFFFFFF;
+}
+
+#delete_acc {
+    -fx-background-color: #f79595;
+}
+
+#delete_acc:hover {
+    -fx-background-color: #f08080;
+}

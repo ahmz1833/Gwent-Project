@@ -129,6 +129,10 @@ public class UserManager {
 		return database.getAllIds();
 	}
 
+	public static void removeUser(long id) throws Exception {
+		database.deleteRow(id);
+	}
+
 	private static class UserDatabase extends DatabaseTable {
 		private UserDatabase() throws Exception {
 			super(ServerMain.SERVER_FOLDER + "users.db", "users", Random::nextId, UserDBColumns.values());

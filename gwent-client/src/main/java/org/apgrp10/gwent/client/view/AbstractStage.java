@@ -59,6 +59,10 @@ public abstract class AbstractStage extends Stage {
 		});
 	}
 
+	public void setOnPressListener(String id, EventHandler<Event> handler) {
+		setOnPressListener(this.<Node>lookup(id), handler);
+	}
+
 	public void connectionLost() {
 		Platform.runLater(() -> {
 			if (!isShowing()) return;
@@ -77,13 +81,12 @@ public abstract class AbstractStage extends Stage {
 		Platform.runLater(() -> {
 			if (!isShowing()) return;
 			enable();
+			updateInformation();
 			var showingDialogs = Dialogs.getShowingDialogs(this);
 			if (showingDialogs.isEmpty() ||
 			    !showingDialogs.getLast().getTitle().equals("Connection Lost")) return;
 			showingDialogs.getLast().close();
 			showingDialogs.remove(showingDialogs.getLast());
-
-			updateInformation();
 		});
 	}
 
@@ -92,7 +95,7 @@ public abstract class AbstractStage extends Stage {
 	}
 
 	public boolean showExitDialog() {
-		if (this instanceof PreGameStage || this instanceof GameStage) {
+		if (this instanceof PreGameStage) {
 			AtomicBoolean returnValue = new AtomicBoolean(true);
 			showDialogAndWait(Dialogs.WARN(), "Confirmation",
 					"Are you sure you want to exit? ",
@@ -103,7 +106,7 @@ public abstract class AbstractStage extends Stage {
 					}),
 					Map.entry("*Cancel", e -> returnValue.set(false)));
 			return returnValue.get();
-		} else if ((this instanceof LoginStage || this instanceof MainStage) &&
+		} else if ((this instanceof LoginStage || this instanceof MainStage || this instanceof GameStage) &&
 		           showConfirmDialog(Dialogs.WARN(), "Exit Confirmation",
 				           "Are you sure you want to exit?", "Yes", "No"))
 			Gwent.exit();

@@ -34,7 +34,7 @@ public class MainStage extends AbstractStage {
 		setScene(R.scene.main);
 		updateInformation();
 
-		setOnPressListener(lookup("#loggedInText"), event -> {
+		setOnPressListener("#loggedInText", event -> {
 			boolean logout = showConfirmDialog(Dialogs.WARN(), "Logout", "Are you sure you want to logout?", "Logout", "Cancel");
 			if (logout) {
 				UserController.logout();
@@ -43,22 +43,23 @@ public class MainStage extends AbstractStage {
 			}
 		});
 
-		setOnPressListener(lookup("#gameBtn"), event -> {
+		setOnPressListener("#profileBtn", event -> ProfileStage.getInstance().start());
+
+		setOnPressListener("#friendsBtn", event -> FriendshipStage.getInstance().start());
+
+		setOnPressListener("#historyBtn", event -> {
+			// TODO: show dialog
+		});
+
+		setOnPressListener("#gameBtn", event -> {
 			Platform.runLater(this::close);
 			PreGameStage.getInstance().setupChoice();
 			PreGameStage.getInstance().start();
 		});
 
-		setOnPressListener(lookup("#replayBtn"), event -> {
-			//TODO: show a dialog , User specifies whether he wants to review a file record or a recording on server
-
-			// TODO: if user chooses to review a file record, check if the file is valid and then start the replay
-
-			// TODO: this is a temporary implementation. see previous TODOs
-
+		setOnPressListener("#replayBtn", event -> {
 			String path = Utils.chooseFileToUpload("Choose recording", getInstance());
-			if (path == null)
-				return;
+			if (path == null) {return;}
 
 			GameRecord gr = MGson.fromJson(Utils.loadFile(path), GameRecord.class);
 			Deck deck1 = gr.getDeck1();
@@ -72,18 +73,11 @@ public class MainStage extends AbstractStage {
 			GameStage.getInstance().start();
 		});
 
-		setOnPressListener(lookup("#playingBtn"), event -> {
-			// TODO: implement
+		setOnPressListener("#liveBtn", event -> {
+			// TODO: implement Dialog
 		});
 
-		setOnPressListener(lookup("#profileBtn"), event -> ProfileStage.getInstance().start());
-
-		setOnPressListener(lookup("#friendsBtn"), event -> {
-			// TODO: show a dialog , User specifies whether he wants to add a friend or view friends list
-		});
-
-		setOnPressListener(lookup("#rankingsBtn"), event -> ScoreboardStage.getInstance().start());
-
+		setOnPressListener("#rankingsBtn", event -> ScoreboardStage.getInstance().start());
 
 		return true;
 	}
@@ -113,8 +107,8 @@ public class MainStage extends AbstractStage {
 		UserController.getUserExperience(UserController.getCurrentUser().id(), experience -> {
 			ANSI.log("Experience: " + experience);
 			this.<Label>lookup("#info").setText("Rank: " + experience.rankByWins() + "\n" +
-			                                    "Wins: " + experience.losses() + "\n" +
-			                                    "Total: " + experience.draws());
+			                                    "Wins: " + experience.wins() + "\n" +
+			                                    "Total: " + (experience.wins() + experience.losses() + experience.draws()));
 		});
 
 		// Set LoggedInText to "Logged in as: " + username

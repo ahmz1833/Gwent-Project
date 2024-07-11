@@ -25,7 +25,7 @@ public class ClientMain {
 	private static void onConnect() {
 		ANSI.log("Connected to server", ANSI.LGREEN, false);
 		LoginStage.getInstance().connectionEstablished();
-		UserController.performAuthentication();
+		UserController.performAuthentication(true);
 	}
 
 	private static void onDisconnect() {
