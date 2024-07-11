@@ -1,19 +1,27 @@
 package org.apgrp10.gwent.client.view;
 
+import io.github.palexdev.materialfx.controls.MFXListView;
+import io.github.palexdev.materialfx.controls.MFXTextField;
 import io.github.palexdev.materialfx.dialogs.MFXDialogs;
+import io.github.palexdev.materialfx.enums.FloatMode;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.stage.WindowEvent;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.controller.PreGameController;
 import org.apgrp10.gwent.client.controller.UserController;
+import org.apgrp10.gwent.client.model.PersonListFactory;
 import org.apgrp10.gwent.model.Avatar;
 import org.apgrp10.gwent.model.Deck;
 import org.apgrp10.gwent.model.User;
 import org.apgrp10.gwent.model.net.Response;
 import org.apgrp10.gwent.utils.ANSI;
+import org.apgrp10.gwent.utils.Utils;
 import org.apgrp10.gwent.utils.WaitExec;
 
 import java.util.Map;
@@ -109,11 +117,45 @@ public class PreGameStage extends AbstractStage {
 	}
 
 	private void chooseFriendForPlaying() {
-		// TODO: show a dialog listing and searching friends and send a request to the selected friend
+		var content = new VBox();
+		content.setSpacing(5);
+		content.setPadding(new Insets(10, 10, 10, 10));
 
+		var query = new MFXTextField();
+		query.setFloatMode(FloatMode.BORDER);
+		query.setFloatingText("Query");
+		query.setPrefWidth(400);
+		content.getChildren().add(query);
 
-		long testTarget = 184837367028312630L;
-		requestForPlay(testTarget, "'online2'");
+		var list = new MFXListView<Long>();
+		list.getStyleClass().add("list");
+		list.setPrefWidth(400);
+		list.setCellFactory(param -> {
+			var cell = new PersonListFactory(list, param);
+			cell.setOnDoubleClick(userId -> {
+				boolean request = showConfirmDialog(Dialogs.INFO(), "Send Play Request",
+						"Do you want to send a play request to " + UserController.getCachedInfo(userId).nickname() + "?",
+						"Yes", "No");
+				if(!request) return;
+				Dialogs.getShowingDialogs(this).getLast().close();
+				requestForPlay(userId, UserController.getCachedInfo(userId).username());
+			});
+			return cell;
+		});
+		content.getChildren().add(list);
+
+		query.setOnKeyReleased(e1 -> {
+			if (query.getText().isBlank()) return;
+			UserController.getFriendList(friends -> {
+				var res = Utils.search(friends, id-> UserController.getCachedInfo(id).username(), query.getText(), 20);
+				list.setItems(FXCollections.observableArrayList(res));
+			});
+		});
+
+		UserController.getFriendList(friends -> list.setItems(FXCollections.observableArrayList(friends)));
+
+		Dialogs.showDialogAndWait(this, Dialogs.INFO(), "Search for Friend", content, Orientation.HORIZONTAL,
+				Map.entry("*Close", e1 -> {}));
 	}
 
 	private void requestForPlay(long target, String showingName) {

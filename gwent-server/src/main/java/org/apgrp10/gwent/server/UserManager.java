@@ -79,7 +79,7 @@ public class UserManager {
 	}
 
 	public static synchronized boolean haveFriendshipRequest(long from, long to) {
-		return friendshipRequests.stream().anyMatch(r -> r.from() == from && r.to() == to);
+		return friendshipRequests.stream().anyMatch(r -> r.from() == from && r.to() == to && r.state() == FriendshipRequest.RequestState.PENDING);
 	}
 
 	public static synchronized void acceptFriendshipRequest(long from, long to) throws Exception {

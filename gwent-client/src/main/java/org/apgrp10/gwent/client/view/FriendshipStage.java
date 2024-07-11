@@ -129,6 +129,7 @@ public class FriendshipStage extends AbstractStage {
 						showAlert(Dialogs.INFO(), "Friend Request Sent", "Friend request sent successfully.");
 					else
 						showAlert(Dialogs.ERROR(), "Error", "Failed to send friend request.");
+					Dialogs.getShowingDialogs(this).getLast().close();
 				});
 			});
 			return cell;
