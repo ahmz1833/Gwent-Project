@@ -82,7 +82,7 @@ public class R {
 		public static final Scene main = getFXML("main.fxml");
 		public static final Scene profile = getFXML("profile.fxml");
 		public static final Scene avatar = getFXML("avatar.fxml");
-
+		public static final Scene scores = getFXML("scoreboard.fxml");
 	}
 
 	public static class image {
@@ -111,6 +111,8 @@ public class R {
 		public static final Image profile = getImage("ic_profile.png");
 		public static final Image login = getImage("ic_login.png");
 		public static final Image chat = getImage("ic_chat.png");
+		public static final Image scores = getImage("ic_scoreboard.png");
+
 	}
 
 	public static class sound {

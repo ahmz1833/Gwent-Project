@@ -10,7 +10,7 @@
 
 Label {
     -fx-background-radius: 15px;
-    -fx-background-color: rgba(221, 151, 116, 0.66);
+    -fx-background-color: rgba(248, 166, 78, 0.87);
 }
 
 .mfx-table-view {
@@ -21,7 +21,7 @@ Label {
 .mfx-table-column {
     -fx-font-family: "Visby Round CF Bold";
     -fx-font-size: 19px;
-    -fx-background-color: rgba(137, 50, 231, 0.62);
+    -fx-background-color: rgba(221, 136, 65, 0.74);
     -fx-text-fill: #000000;
     -fx-border-color: #22222280;
 }
@@ -31,11 +31,11 @@ Label {
 }
 
 .mfx-table-row:selected {
-    -fx-background-color: rgba(135, 65, 210, 0.67);
+    -fx-background-color: rgba(227, 163, 106, 0.74)
 }
 
 .mfx-table-row:hover {
-    -fx-background-color: rgba(137, 50, 231, 0.31);
+    -fx-background-color: rgba(245, 194, 149, 0.74)
 }
 
 .mfx-table-row.rank-row {

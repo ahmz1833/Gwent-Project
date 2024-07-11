@@ -161,6 +161,11 @@ public class GameStage extends AbstractStage {
 	}
 
 	@Override
+	public void connectionLost() {
+		exit();
+	}
+
+	@Override
 	protected void onCloseRequest(WindowEvent event) {
 		event.consume();
 		if (showExitDialog()) exit();

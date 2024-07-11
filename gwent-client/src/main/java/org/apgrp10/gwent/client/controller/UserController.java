@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -351,6 +352,20 @@ public class UserController {
 			}
 			else {
 				ANSI.log("Failed to get user experience, error code " + res.getStatus());
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+		});
+	}
+
+	public static void getTopUsers(int limit, boolean sortByMaxScore, Consumer<List<UserExperience>> callback) {
+		Server.send(new Request("getTopUsers", MGson.makeJsonObject("count", limit, "sortByMaxScore", sortByMaxScore)), res -> {
+			if (res.isOk()) {
+				List<UserExperience> leaderboard = MGson.fromJson(res.getBody(),
+						TypeToken.getParameterized(ArrayList.class, UserExperience.class).getType());
+				callback.accept(leaderboard);
+			} else {
+				ANSI.log("Failed to get Leaderboard");
 				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
 					ANSI.printErrorResponse(null, res);
 			}

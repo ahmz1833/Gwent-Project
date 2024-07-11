@@ -9,35 +9,110 @@ import org.apgrp10.gwent.client.view.GameStage;
 import org.apgrp10.gwent.client.view.MainStage;
 import org.apgrp10.gwent.client.view.MessageStage;
 import org.apgrp10.gwent.client.view.PreGameStage;
-import org.apgrp10.gwent.model.Command;
-import org.apgrp10.gwent.model.Deck;
-import org.apgrp10.gwent.model.User;
+import org.apgrp10.gwent.model.*;
 import org.apgrp10.gwent.model.net.Request;
 import org.apgrp10.gwent.model.net.Response;
 import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.MGson;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class PreGameController {
-
 	public static final int NONE = 0, WAITING = 1, DECLINED = 2, CANCELED = 3;   // Accepted is also none
 	public static int lastRequestStatus = NONE;
+
 	private PreGameController() {}
+
+	public static void getCurrentGames(Consumer<List<GameInCurrent>> callback) {
+		Server.send(new Request("getCurrentGames"), res -> {
+			if (res.isOk()) {
+				List<GameInCurrent> currentGames = MGson.fromJson(res.getBody(),
+						TypeToken.getParameterized(ArrayList.class, GameInCurrent.class).getType());
+				callback.accept(currentGames);
+			} else {
+				ANSI.log("Failed to get Current Games");
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+		});
+	}
+
+	public static void attendLiveWatching(GameInCurrent game, Consumer<Response> callback) {
+		Server.send(new Request("attendLiveWatching", MGson.makeJsonObject("player", game.p1)), res -> {
+			if (res.isOk()) {
+				ANSI.log("Attending Live Watching");
+				Server.setListener("live", PreGameController::startGame);
+				lastRequestStatus = WAITING;
+			} else {
+				lastRequestStatus = NONE;
+				ANSI.log("Failed to attend Live Watching");
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+			callback.accept(res);
+		});
+	}
+
+	public static void getMyDoneGameList(Consumer<HashMap<Long, GameRecord>> callback) {
+		Server.send(new Request("getMyDoneGameList"), res -> {
+			if (res.isOk()) {
+				HashMap<Long, GameRecord> records = MGson.fromJson(res.getBody(),
+						TypeToken.getParameterized(HashMap.class, Long.class, GameRecord.class).getType());
+				callback.accept(records);
+			} else {
+				ANSI.log("Failed to get Game Records");
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+		});
+	}
+
+	public static void getLastGame(long userId, Consumer<GameRecord> callback) {
+		Server.send(new Request("getLastGame", MGson.makeJsonObject("userId", userId)), res -> {
+			if (res.isOk()) {
+				GameRecord record = MGson.fromJson(res.getBody(), GameRecord.class);
+				callback.accept(record);
+			} else if (res.getStatus() == Response.NOT_FOUND)
+				callback.accept(null);
+			else {
+				ANSI.log("Failed to get Last Game");
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+		});
+	}
+
+	public static void replayGame(long recordedGameId, Consumer<Response> callback) {
+		Server.send(new Request("replayGame", MGson.makeJsonObject("recordedGameId", recordedGameId)), res -> {
+			if (res.isOk()) {
+				ANSI.log("Replay Game Requested.");
+				Server.setListener("replay", PreGameController::startGame);
+				lastRequestStatus = WAITING;
+			} else {
+				lastRequestStatus = NONE;
+				ANSI.log("Failed to replay Game");
+				if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+					ANSI.printErrorResponse(null, res);
+			}
+			callback.accept(res);
+		});
+	}
 
 	public static Response handlePlayRequest(Request request) {
 		long from = request.getBody().get("from").getAsLong();
 		boolean isPublic = request.getBody().get("isPublic").getAsBoolean();
 		UserController.getUserInfo(from, false, publicInfo -> {
 			ANSI.log("Play Request Received From: " + publicInfo.username());
-			if(MainStage.getInstance().isShowing()){
+			if (MainStage.getInstance().isShowing()) {
 				boolean result = MainStage.getInstance().showConfirmDialog(Dialogs.INFO(), "Play Request",
 						"You have a play request from " + publicInfo.username() + "\n" +
 						"The Game Will be " + (isPublic ? "Public" : "Private") + "\n" +
 						"Do you want to play?",
 						"Select Deck", "Cancel");
-				if(result) {
+				if (result) {
 					Gwent.forEachStage(Stage::close);
 					PreGameStage.getInstance().setupFriendMode(isPublic);
 					PreGameStage.getInstance().start();
@@ -85,8 +160,7 @@ public class PreGameController {
 		return request.response(Response.OK_NO_CONTENT);
 	}
 
-	public static void requestPlay(Deck deck, long target, boolean isPublic, Consumer<Response> callback)
-	{
+	public static void requestPlay(Deck deck, long target, boolean isPublic, Consumer<Response> callback) {
 		Server.send(new Request("requestPlay", MGson.makeJsonObject(
 				"deck", deck.toJson(), "target", target, "isPublic", isPublic)), res -> {
 			if (res.isOk()) {
@@ -128,4 +202,6 @@ public class PreGameController {
 	public static int getLastRequestState() {
 		return lastRequestStatus;
 	}
+
+	record GameInCurrent(long p1, long p2, boolean isPublic) {}
 }

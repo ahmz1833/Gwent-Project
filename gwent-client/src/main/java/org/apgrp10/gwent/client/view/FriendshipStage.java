@@ -1,6 +1,5 @@
 package org.apgrp10.gwent.client.view;
 
-import javafx.scene.image.Image;
 import org.apgrp10.gwent.client.R;
 
 public class FriendshipStage extends AbstractStage {

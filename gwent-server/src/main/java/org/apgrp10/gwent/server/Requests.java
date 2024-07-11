@@ -482,7 +482,7 @@ public class Requests {
 	/**
 	 * Handles the 'getCurrentGames' request. Returns the list of current games that the user can see.
 	 *
-	 * @statusCode 200 - OK -> body:[ {p1:long, p2:long, isPublic:boolean} ] : The list of current games visible for the user
+	 * @statusCode 200 - OK -> body [{p1:long, p2:long, isPublic:boolean} , ..]
 	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
 	 */
 	@Authorizations(LOGGED_IN)
@@ -506,6 +506,7 @@ public class Requests {
 	 * @statusCode 404 - Not Found (Game not found)
 	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
 	 */
+	@Authorizations(LOGGED_IN)
 	public static Response attendLiveWatching(Client client, Request req) {
 		long gameId = req.getBody().get("player").getAsLong();
 		if (GamesManager.attendLiveWatching(client, gameId))
@@ -520,6 +521,7 @@ public class Requests {
 	 * @statusCode 200 - OK -> body:{long:GameRecord} : The list of game records (not playable - without commands)
 	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
 	 */
+	@Authorizations(LOGGED_IN)
 	public static Response getMyDoneGameList(Client client, Request req) {
 		HashMap<Long, GameRecord> doneGames = GamesManager.getGamesByPlayer(client.loggedInUser().id());
 		// remove Command List in each record (because of its large size)
@@ -535,6 +537,7 @@ public class Requests {
 	 * @statusCode 404 - Not Found (No games found)
 	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
 	 */
+	@Authorizations(LOGGED_IN)
 	public static Response getLastGame(Client client, Request req) {
 		long userId = req.getBody().get("userId").getAsLong();
 		// get the last game of the user (greatest key in the map)
@@ -553,6 +556,7 @@ public class Requests {
 	 * @statusCode 204 - No Content (Game replayed) -> Server will send 'replay' request soon
 	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
 	 */
+	@Authorizations(LOGGED_IN)
 	public static Response replayGame(Client client, Request req) {
 		long recordedGameId = req.getBody().get("recordedGameId").getAsLong();
 		GamesManager.replayGame(client, recordedGameId);

@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.scene.control.Label;
 import org.apgrp10.gwent.client.R;
 import org.apgrp10.gwent.client.Server;
+import org.apgrp10.gwent.client.controller.PreGameController;
 import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.client.model.AvatarView;
 import org.apgrp10.gwent.model.Avatar;
