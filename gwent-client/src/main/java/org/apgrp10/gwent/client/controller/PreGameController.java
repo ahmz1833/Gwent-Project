@@ -29,7 +29,7 @@ public class PreGameController {
 	public static void getCurrentGames(Consumer<List<GameInCurrent>> callback) {
 		Server.send(new Request("getCurrentGames"), res -> {
 			if (res.isOk()) {
-				List<GameInCurrent> currentGames = MGson.fromJson(res.getBody(),
+				List<GameInCurrent> currentGames = MGson.fromJson(res.getBody().get("results"),
 						TypeToken.getParameterized(ArrayList.class, GameInCurrent.class).getType());
 				callback.accept(currentGames);
 			} else {
@@ -59,7 +59,7 @@ public class PreGameController {
 	public static void getMyDoneGameList(Consumer<HashMap<Long, GameRecord>> callback) {
 		Server.send(new Request("getMyDoneGameList"), res -> {
 			if (res.isOk()) {
-				HashMap<Long, GameRecord> records = MGson.fromJson(res.getBody(),
+				HashMap<Long, GameRecord> records = MGson.fromJson(res.getBody().get("results"),
 						TypeToken.getParameterized(HashMap.class, Long.class, GameRecord.class).getType());
 				callback.accept(records);
 			} else {

@@ -322,7 +322,7 @@ public class Requests {
 	 *
 	 * @jsonParam query (String) : The query to search for
 	 * @jsonParam limit (int) : The maximum number of results to return
-	 * @statusCode 200 - OK -> body:[User.PublicInfo] : The list of public information of the users
+	 * @statusCode 200 - OK -> body {"results":[long]} : The list of user IDs
 	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
 	 */
 	@Authorizations(LOGGED_IN)
@@ -331,7 +331,7 @@ public class Requests {
 		int limit = req.getBody().get("limit").getAsInt();
 		List<User> result = UserManager.searchUsername(query, limit);
 		List<Long> responseResult = result.stream().map(User::id).collect(Collectors.toList());
-		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(responseResult));
+		return req.response(Response.OK, MGson.makeJsonObject("results", responseResult));
 	}
 
 	/**
@@ -343,7 +343,7 @@ public class Requests {
 	@Authorizations(LOGGED_IN)
 	public static Response getFriendList(Client client, Request req) throws Exception {
 		List<Long> friendList = UserManager.getUserById(client.loggedInUser().id()).getFriends();
-		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(friendList));
+		return req.response(Response.OK, MGson.makeJsonObject("results", friendList));
 	}
 
 	/**
@@ -375,25 +375,25 @@ public class Requests {
 	/**
 	 * Handles the 'getIncomingFriendshipRequests' request. Returns the list of incoming friendship requests.
 	 *
-	 * @statusCode 200 - OK -> body:[FriendshipRequest] : The list of friendship requests
+	 * @statusCode 200 - OK -> body:{result:[FriendshipRequest] : The list of friendship requests}
 	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
 	 */
 	@Authorizations(LOGGED_IN)
 	public static Response getIncomingFriendshipRequests(Client client, Request req) throws Exception {
 		List<FriendshipRequest> incomingRequests = UserManager.getIncomingRequests(client.loggedInUser().id());
-		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(incomingRequests));
+		return req.response(Response.OK, MGson.makeJsonObject("results", incomingRequests));
 	}
 
 	/**
 	 * Handles the 'getOutgoingFriendshipRequests' request. Returns the list of outgoing friendship requests.
 	 *
-	 * @statusCode 200 - OK -> body:[FriendshipRequest] : The list of friendship requests
+	 * @statusCode 200 - OK -> body:{result:[FriendshipRequest] : The list of friendship requests}
 	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
 	 */
 	@Authorizations(LOGGED_IN)
 	public static Response getOutgoingFriendshipRequests(Client client, Request req) throws Exception {
 		List<FriendshipRequest> outgoingRequests = UserManager.getOutgoingRequests(client.loggedInUser().id());
-		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(outgoingRequests));
+		return req.response(Response.OK, MGson.makeJsonObject("results", outgoingRequests));
 	}
 
 	/**
@@ -468,7 +468,7 @@ public class Requests {
 	 *
 	 * @jsonParam count (int) : The number of users to return
 	 * @jsonParam sortByMaxScore (boolean) : Whether to sort by max score or wins
-	 * @statusCode 200 - OK -> body:[UserExperience] : The list of user experiences
+	 * @statusCode 200 - OK -> body:{result:[UserExperience] : The list of user experiences}
 	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
 	 */
 	@Authorizations(LOGGED_IN)
@@ -476,13 +476,13 @@ public class Requests {
 		int count = req.getBody().get("count").getAsInt();
 		boolean sortByMaxScore = req.getBody().get("sortByMaxScore").getAsBoolean(); // false: sort by wins
 		List<UserExperience> scoreboard = GamesManager.getTopPlayers(count, sortByMaxScore);
-		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(scoreboard));
+		return req.response(Response.OK, MGson.makeJsonObject("results", scoreboard));
 	}
 
 	/**
 	 * Handles the 'getCurrentGames' request. Returns the list of current games that the user can see.
 	 *
-	 * @statusCode 200 - OK -> body [{p1:long, p2:long, isPublic:boolean} , ..]
+	 * @statusCode 200 - OK -> body {"results":[{p1:long, p2:long, isPublic:boolean}]}
 	 * @Authorizations LOGGED_IN - Only clients that are logged in can perform this request
 	 */
 	@Authorizations(LOGGED_IN)
@@ -495,7 +495,7 @@ public class Requests {
 			gameJson.addProperty("isPublic", game.isPublic());
 			return gameJson;
 		}).toList();
-		return req.response(Response.OK, (JsonObject) MGson.toJsonElement(result));
+		return req.response(Response.OK, MGson.makeJsonObject("results", result));
 	}
 
 	/**

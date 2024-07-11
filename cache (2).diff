@@ -1,0 +1,66 @@
+diff --git a/gwent-client/src/main/java/org/apgrp10/gwent/client/controller/UserController.java b/gwent-client/src/main/java/org/apgrp10/gwent/client/controller/UserController.java
+index e4957da..3303eee 100644
+--- a/gwent-client/src/main/java/org/apgrp10/gwent/client/controller/UserController.java
++++ b/gwent-client/src/main/java/org/apgrp10/gwent/client/controller/UserController.java
+@@ -280,7 +280,7 @@ public class UserController {
+ 		});
+ 	}
+ 
+-	public static void getUserInfo(long id, boolean refresh, Consumer<User.PublicInfo> callback) {
++	public static void getUserInfo(long id, boolean refresh, Consumer<User.PublicInfo> callback, Consumer<Response> onFailure) {
+ 		if (!refresh && userInfoCache.containsKey(id))
+ 			callback.accept(userInfoCache.get(id));
+ 
+@@ -293,14 +293,49 @@ public class UserController {
+ 					callback.accept(info);
+ 				}
+ 				else {
+-					ANSI.log("Failed to get user info, error code " + res.getStatus());
+-					if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+-						ANSI.printErrorResponse(null, res);
++					onFailure.accept(res);
++				}
++			});
++		}
++	}
++
++	public static void getUserInfo(long id, boolean refresh, Consumer<User.PublicInfo> callback) {
++		getUserInfo(id, refresh, callback, res -> {
++			ANSI.log("Failed to get user info, error code " + res.getStatus());
++			if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
++				ANSI.printErrorResponse(null, res);
++		});
++	}
++
++	public static void cacheUserInfo(Runnable onFinish, Runnable onFailure, boolean refresh, long... ids) {
++		if (ids.length == 0) {
++			onFinish.run();
++			return;
++		}
++
++		int cnt[] = {0};
++		for (long id : ids) {
++			getUserInfo(id, refresh, info -> {
++				if (cnt[0] == -1)
++					return;
++				cnt[0]++;
++				if (cnt[0] == ids.length)
++					onFinish.run();
++			}, res -> {
++				if (cnt[0] != -1) {
++					cnt[0] = -1;
++					onFailure.run();
+ 				}
+ 			});
+ 		}
+ 	}
+ 
++	public static void cacheUserInfo(Runnable onFinish, boolean refresh, long... ids) {
++		cacheUserInfo(onFinish, () -> {
++			ANSI.log("Failed to cache user infos");
++		}, refresh, ids);
++	}
++
+ 	public static void clearUserInfoCache() {
+ 		userInfoCache.clear();
+ 	}

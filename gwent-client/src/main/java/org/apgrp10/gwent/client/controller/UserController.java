@@ -32,6 +32,7 @@ import java.util.function.Consumer;
 public class UserController {
 	private static final String JWT_FILE_PATH = Gwent.APP_DATA + "jwt.txt";
 	private static final HashMap<Long, User.PublicInfo> userInfoCache = new HashMap<>();
+	private static final HashMap<Long, Boolean> onlineStatusCache = new HashMap<>();
 	private static User currentUser;
 	private static long toVerifyUser;
 	private static String jwt;
@@ -269,6 +270,7 @@ public class UserController {
 		else Server.send(new Request("getUserInfo", MGson.makeJsonObject("username", username)), res -> {
 			if(res.isOk()) {
 				User.PublicInfo info = MGson.fromJson(res.getBody(), User.PublicInfo.class);
+				isUserOnline(info.id(), online -> onlineStatusCache.put(info.id(), online)); // Check User Online status and put in cache
 				userInfoCache.put(info.id(), info);
 				callback.accept(info);
 			}
@@ -280,12 +282,12 @@ public class UserController {
 		});
 	}
 
-	public static void getUserInfo(long id, boolean refresh, Consumer<User.PublicInfo> callback) {
+	public static void getUserInfo(long id, boolean refresh, Consumer<User.PublicInfo> callback, Consumer<Response> onFailure) {
+		isUserOnline(id, online -> onlineStatusCache.put(id, online)); // Check User Online status and put in cache
 		if (!refresh && userInfoCache.containsKey(id))
 			callback.accept(userInfoCache.get(id));
-
 		else{
-			ANSI.log("Getting user info for id " + id);
+//			ANSI.log("Getting user info for id " + id);
 			Server.send(new Request("getUserInfo", MGson.makeJsonObject("userId", id)), res -> {
 				if(res.isOk()) {
 					User.PublicInfo info = MGson.fromJson(res.getBody(), User.PublicInfo.class);
@@ -293,12 +295,53 @@ public class UserController {
 					callback.accept(info);
 				}
 				else {
-					ANSI.log("Failed to get user info, error code " + res.getStatus());
-					if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
-						ANSI.printErrorResponse(null, res);
+					onFailure.accept(res);
 				}
 			});
 		}
+	}
+
+	public static void getUserInfo(long id, boolean refresh, Consumer<User.PublicInfo> callback) {
+		getUserInfo(id, refresh, callback, res -> {
+			ANSI.log("Failed to get user info, error code " + res.getStatus());
+			if (res.getStatus() == Response.INTERNAL_SERVER_ERROR)
+				ANSI.printErrorResponse(null, res);
+		});
+	}
+
+	public static User.PublicInfo getCachedInfo(long userId) {
+		return userInfoCache.get(userId);
+	}
+
+	public static boolean getCachedOnlineState(long userId) {
+		return onlineStatusCache.getOrDefault(userId, false);
+	}
+
+	public static void cacheUserInfo(Runnable onFinish, Runnable onFailure, boolean refresh, Long[] ids) {
+		if (ids.length == 0) {
+			onFinish.run();
+			return;
+		}
+
+		int[] cnt = {0};
+		for (long id : ids) {
+			getUserInfo(id, refresh, info -> {
+				if (cnt[0] == -1)
+					return;
+				cnt[0]++;
+				if (cnt[0] == ids.length)
+					onFinish.run();
+			}, res -> {
+				if (cnt[0] != -1) {
+					cnt[0] = -1;
+					onFailure.run();
+				}
+			});
+		}
+	}
+
+	public static void cacheUserInfo(Runnable onFinish, boolean refresh, Long[] ids) {
+		cacheUserInfo(onFinish, () -> ANSI.log("Failed to cache user infos"), refresh, ids);
 	}
 
 	public static void clearUserInfoCache() {
@@ -320,7 +363,8 @@ public class UserController {
 	public static void searchUsername(String query, int limit, Consumer<ArrayList<Long>> callback) {
 		Server.send(new Request("searchUsername", MGson.makeJsonObject("query", query, "limit", limit)), res -> {
 			if(res.isOk()) {
-				ArrayList<Long> result = MGson.fromJson(res.getBody(), TypeToken.getParameterized(ArrayList.class, Long.class).getType());
+				ArrayList<Long> result = MGson.fromJson(res.getBody().get("results"),
+						TypeToken.getParameterized(ArrayList.class, Long.class).getType());
 				callback.accept(result);
 			}
 			else {
@@ -361,7 +405,7 @@ public class UserController {
 	public static void getTopUsers(int limit, boolean sortByMaxScore, Consumer<List<UserExperience>> callback) {
 		Server.send(new Request("getTopUsers", MGson.makeJsonObject("count", limit, "sortByMaxScore", sortByMaxScore)), res -> {
 			if (res.isOk()) {
-				List<UserExperience> leaderboard = MGson.fromJson(res.getBody(),
+				List<UserExperience> leaderboard = MGson.fromJson(res.getBody().get("results"),
 						TypeToken.getParameterized(ArrayList.class, UserExperience.class).getType());
 				callback.accept(leaderboard);
 			} else {

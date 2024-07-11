@@ -1,9 +1,9 @@
 @import "styles.css";
 
 .frame {
-    -fx-background-color: #FFFFFF80;
+    -fx-background-color: rgba(255, 255, 255, 0.4);
     -fx-border-color: #80420f;
-    -fx-border-radius: 10px;
+    -fx-border-radius: 12px;
     -fx-border-width: 5px;
     -fx-background-radius: 10px;
 }
@@ -35,7 +35,7 @@ Label {
 }
 
 .mfx-table-row:hover {
-    -fx-background-color: rgba(245, 194, 149, 0.74)
+    -fx-background-color: rgba(198, 136, 83, 0.5)
 }
 
 .mfx-table-row.rank-row {

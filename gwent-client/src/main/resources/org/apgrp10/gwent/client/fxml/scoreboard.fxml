@@ -2,26 +2,23 @@
 
 <?import io.github.palexdev.materialfx.controls.MFXTableView?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.Scene?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.Scene?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
 
 <Scene stylesheets="@../css/score.css" xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1">
-    <AnchorPane maxHeight="650.0" maxWidth="700">
-        <ImageView fitHeight="650.0" fitWidth="700.0" pickOnBounds="true">
-            <Image url="@../image/scores_bkg.png"/>
+    <AnchorPane maxHeight="750.0" maxWidth="860.0">
+        <ImageView fitHeight="750.0" fitWidth="860.0" pickOnBounds="true">
+            <Image url="@../image/scores_bkg.png" />
         </ImageView>
-        <VBox alignment="CENTER" styleClass="frame" AnchorPane.bottomAnchor="15" AnchorPane.leftAnchor="15"
-              AnchorPane.rightAnchor="15"
-              AnchorPane.topAnchor="15">
-            <Label styleClass="header" text=" Top 10 Users scores "/>
-            <MFXTableView fx:id="scoreTable" footerVisible="false" maxWidth="-Infinity" minHeight="-Infinity"
-                          minWidth="-Infinity"
-                          prefHeight="500.0" prefWidth="620.0">
+        <VBox alignment="CENTER" styleClass="frame" AnchorPane.bottomAnchor="50" AnchorPane.leftAnchor="25.0" AnchorPane.rightAnchor="25.0" AnchorPane.topAnchor="50">
+            <Label styleClass="header" text=" Top 10 Users scores " />
+            <MFXTableView fx:id="scoreTable" footerVisible="false" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="750.0">
                 <VBox.margin>
-                    <Insets top="10.0"/>
+                    <Insets top="10.0" />
                 </VBox.margin>
             </MFXTableView>
         </VBox>
