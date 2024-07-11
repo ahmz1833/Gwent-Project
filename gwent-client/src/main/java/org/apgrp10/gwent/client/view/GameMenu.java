@@ -598,7 +598,7 @@ public class GameMenu implements GameMenuInterface {
 
 	private void addProfile(boolean up) {
 		addNameProfile(up);
-		addAvatar(controller.getPlayer(up? controller.getActivePlayer() : 1 - controller.getActivePlayer()).user.avatar(),
+		addAvatar(controller.getPlayer(up? 1 - controller.getActivePlayer() : controller.getActivePlayer()).user.avatar(),
 				Position.profAvatar[up ? 0 : 1]);
 		addImage(R.getImage("icons/icon_player_border.png"), Position.profAvatarBorder[up ? 0 : 1]);
 
