@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Server {
-	public static final String SERVER_IP = "37.152.178.57";
+	public static final String SERVER_IP = "127.0.0.1";
 	public static final int SERVER_PORT = 12345;
 	private static final List<Runnable> onClose = new ArrayList<>();
 	private static final ArrayList<ChangeListener<? super Boolean>> changeListeners = new ArrayList<>();
