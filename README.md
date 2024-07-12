@@ -1,5 +1,6 @@
-# Online Gwent Game
-- Gwent online is a game with live-watching and replaying and some extra options !
+# Local-Version of Online Gwent Game
+- Please copy users.db to ~/gwent-data 
+- and Copy jwt.txt to ~/.gwentdata
 
 # Authors
 - Amirmahdi Tahmasebi: 402106178
