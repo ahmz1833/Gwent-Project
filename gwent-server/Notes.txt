@@ -1,0 +1,20 @@
+Purchase a Server from arvancloud
+
+A domain with TXT record and A record from ydns.org
+v=spf1 mx a ?all
+
+https://postmaster.google.com/u/0/managedomains
+
+Set PTR record of server to the domain (in arvancloud panel)
+
+Set a 4GB swap file in server
+
+Setup postfix and mailutils in server
+
+Request support ticket for opening ((Outgoing port 25 connectivity))
+
+Setup JDK 21 in server
+
+....
+
+:)
