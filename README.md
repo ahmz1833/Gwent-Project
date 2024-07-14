@@ -1,5 +1,6 @@
 # Network-based Gwent Game
 
+- You can download jars from: [Client Jars](https://s32.picofile.com/file/8477617226/gwent_client_jars.zip.html)  /  [Server Jars](https://s32.picofile.com/file/8477617450/gwent_server_jars.zip.html)
 - You must run the server jar as:
  
     ```
