@@ -108,12 +108,12 @@ public final class ANSI {
 		if (res.getStatus() != Response.INTERNAL_SERVER_ERROR)
 			return;
 		JsonObject errObj = res.getBody();
-		String message = errObj.get("message").getAsString();
-		String error = errObj.get("error").getAsString();
+		var message = errObj.get("message");
+		var error = errObj.get("error");
 		List<String> stackTrace = MGson.get(false, false)
 				.fromJson(errObj.get("stackTrace"), TypeToken.getParameterized(List.class, String.class).getType());
-		log(message, ANSI.RED, false);
-		log(error, ANSI.RED, false);
+		if(message != null) log(message.getAsString(), ANSI.RED, false);
+		if(error != null) log(error.getAsString(), ANSI.RED, false);
 		stackTrace.forEach(e -> log(System.currentTimeMillis(), System.err, e, ANSI.RED));
 	}
 

@@ -1,7 +1,7 @@
 # Network-based Gwent Game
 
 - You can download jars from: [Client Jars](https://s32.picofile.com/file/8477617226/gwent_client_jars.zip.html)  /  [Server Jars](https://s32.picofile.com/file/8477617450/gwent_server_jars.zip.html)
-- You must run the server jar as:
+- You must run the server jar (at least jre 21) as:
  
     ```
     java -jar gwent-server.jar <server-ip>:<port> <email-server>:<port>
@@ -11,7 +11,7 @@
     (Note: your http port for links will be <server-port> + 1)
 
 
-- You must run the client jar as:
+- You must run the client jar (at least jre 21) as:
     ```
     java -jar gwent-client.jar <server-ip>:<port>
     ```

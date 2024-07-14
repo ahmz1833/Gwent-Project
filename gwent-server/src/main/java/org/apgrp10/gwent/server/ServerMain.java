@@ -16,24 +16,19 @@ import java.nio.file.Paths;
 import java.util.Locale;
 
 public class ServerMain {
+	public static String SERVER_ADDR = "localhost";
+	public static int SERVER_PORT = 12345;
 	public static final String SERVER_FOLDER = System.getProperty("user.home") + "/gwent-data/";
 	protected static final String SECRET_KEY = "AP_server@apgrp10/2024";
-	public static int PORT = 12345;
 
 	public static void main(String[] args) {
 		Locale.setDefault(Locale.ENGLISH);
-		try{
-			Email2FAManager.HTTP_SERVER_ADDR = args[0].split(":")[0];
-			PORT = Integer.parseInt(args[0].split(":")[1]);
-			Email2FAManager.HTTP_SERVER_PORT = PORT + 1;
-			Email2FAManager.EMAIL_SERVER_ADDR = args[1].split(":")[0];
+		try {
+			SERVER_PORT = Integer.parseInt(args[0].split(":")[1]);
+			SERVER_ADDR = args[0].split(":")[0];
 			Email2FAManager.EMAIL_SERVER_PORT = Integer.parseInt(args[1].split(":")[1]);
-		} catch (Exception e)
-		{
-			Email2FAManager.HTTP_SERVER_ADDR = "localhost";
-			Email2FAManager.HTTP_SERVER_PORT = PORT + 1;
-			Email2FAManager.EMAIL_SERVER_ADDR = "localhost";
-		}
+			Email2FAManager.EMAIL_SERVER_ADDR = args[1].split(":")[0];
+		} catch (Exception e) {}
 
 		// Create the server folder if it doesn't exist
 		Path path = Paths.get(SERVER_FOLDER);
@@ -49,10 +44,10 @@ public class ServerMain {
 		// Start the server
 		ServerSocket serverSocket = null;
 		try {
-			serverSocket = new ServerSocket(PORT);
-			ANSI.log("Server started on port " + PORT, ANSI.LYELLOW.bd(), false);
+			serverSocket = new ServerSocket(SERVER_PORT);
+			ANSI.log("Server started on port " + SERVER_PORT, ANSI.LYELLOW.bd(), false);
 		} catch (IOException e) {
-			ANSI.logError(System.err, "Failed to start server on port " + PORT, e);
+			ANSI.logError(System.err, "Failed to start server on port " + SERVER_PORT, e);
 			System.exit(1);
 		}
 
@@ -75,7 +70,7 @@ public class ServerMain {
 			}
 		});
 
-		ANSI.log("Listening at port: " + PORT, ANSI.CYAN, false);
+		ANSI.log("Listening at port: " + SERVER_PORT, ANSI.CYAN, false);
 		while (true) {
 			try {
 				Socket socket = serverSocket.accept();

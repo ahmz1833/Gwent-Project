@@ -23,11 +23,12 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class Email2FAManager {
+	private static final int HTTP_SERVER_PORT = ServerMain.SERVER_PORT + 1;
 	private static final Map<String, User.RegisterInfo> registerQueue = new HashMap<>();
 	private static final List<LoginInfo> loginQueue = new ArrayList<>();
-	static String HTTP_SERVER_ADDR = "localhost", EMAIL_SERVER_ADDR = "localhost";
-	static int HTTP_SERVER_PORT = 2222, EMAIL_SERVER_PORT = 41567;
 	private static final int LOGIN_CODE_LENGTH = 6, LOGIN_CODE_EXPIRY = 300_000;
+	public static String EMAIL_SERVER_ADDR = "localhost";
+	public static int EMAIL_SERVER_PORT = 41567;
 	private static Consumer<User.RegisterInfo> registerCallback;
 
 	static {
@@ -99,7 +100,7 @@ public class Email2FAManager {
 
 	public static void sendRegMailAndAddToQueue(User.RegisterInfo userInfo) throws Exception {
 		String uuid = java.util.UUID.randomUUID().toString();
-		String verificationLink = "http://" + HTTP_SERVER_ADDR + ":" + HTTP_SERVER_PORT + "/verify/" + uuid;
+		String verificationLink = "http://" + ServerMain.SERVER_ADDR + ":" + HTTP_SERVER_PORT + "/verify/" + uuid;
 		String emailContent = EMAIL_HTML("Email Verification", """
 				<p>Hello %s (%s),</p>
 				<p>Please click on the following link to verify your email:</p>
