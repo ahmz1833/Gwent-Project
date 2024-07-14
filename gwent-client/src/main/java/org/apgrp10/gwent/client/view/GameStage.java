@@ -2,6 +2,7 @@ package org.apgrp10.gwent.client.view;
 
 import java.util.*;
 
+import javafx.application.Platform;
 import javafx.stage.Stage;
 import org.apgrp10.gwent.client.Gwent;
 import org.apgrp10.gwent.client.R;
@@ -100,6 +101,13 @@ public class GameStage extends AbstractStage {
 
 	private void exit() {
 		Server.setListener("command", null);
+		if(mode == GameMode.LIVE || mode == GameMode.REPLAY || mode == GameMode.LOCAL){
+			Platform.runLater(()->{
+				Gwent.forEachStage(Stage::close);
+				MainStage.getInstance().start();
+			});
+			return;
+		}
 		Gwent.exit();
 	}
 
@@ -107,8 +115,6 @@ public class GameStage extends AbstractStage {
 		InputController c1 = new MouseInputController();
 		InputController c2 = new MouseInputController();
 		GameMenu gm = new GameMenu(this, false);
-
-		// TODO: better way to save recording
 		new GameController(c1, c2, user1, user2, deck1, deck2, seed, gm, gr -> {
 			showWinnerDialog(gr, true);
 			this.exit();
@@ -162,7 +168,10 @@ public class GameStage extends AbstractStage {
 
 	@Override
 	public void connectionLost() {
-		exit();
+		if(isShowing()) {
+			showAlert(Dialogs.ERROR(), "Connection Lost", "Your Connection to server lost. Exiting the Game...");
+			new WaitExec(false).run(1000, this::exit);
+		}
 	}
 
 	@Override

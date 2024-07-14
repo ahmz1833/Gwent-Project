@@ -62,34 +62,26 @@ public class FriendshipStage extends AbstractStage {
 		});
 		incoming.setCellFactory(param -> {
 			var cell = new PersonListFactory(incoming, param);
-			cell.setOnDoubleClick(request -> {
-				showDialogAndWait(Dialogs.WARN(), "Accept Friend Request",
-						"Do you want to accept this friend request?",
-						Map.entry("Accept", e->{
-							UserController.acceptFriendshipRequest(request, res -> {
-								if (res.isOk())
-									showAlert(Dialogs.INFO(), "Friend Request Accepted", "Friend request accepted successfully.");
-								else
-									showAlert(Dialogs.ERROR(), "Error", "Failed to accept friend request.");
-							});
-						}),
-						Map.entry("Reject", e->{
-							UserController.rejectFriendshipRequest(request, res -> {
-								if (res.isOk())
-									showAlert(Dialogs.INFO(), "Friend Request Rejected", "Friend request rejected successfully.");
-								else
-									showAlert(Dialogs.ERROR(), "Error", "Failed to reject friend request.");
-							});
-						}),
-						Map.entry("Cancel", e->{}));
-			});
+			cell.setOnDoubleClick(request -> showDialogAndWait(Dialogs.WARN(), "Accept Friend Request",
+					"Do you want to accept this friend request?",
+					Map.entry("Accept", e -> UserController.acceptFriendshipRequest(request, res -> {
+						if (res.isOk())
+							showAlert(Dialogs.INFO(), "Friend Request Accepted", "Friend request accepted successfully.");
+						else
+							showAlert(Dialogs.ERROR(), "Error", "Failed to accept friend request.");
+					})),
+					Map.entry("Reject", e -> UserController.rejectFriendshipRequest(request, res -> {
+						if (res.isOk())
+							showAlert(Dialogs.INFO(), "Friend Request Rejected", "Friend request rejected successfully.");
+						else
+							showAlert(Dialogs.ERROR(), "Error", "Failed to reject friend request.");
+					})),
+					Map.entry("Cancel", e->{})));
 			return cell;
 		});
 		outgoing.setCellFactory(param -> new PersonListFactory(outgoing, param, map));
 
-		setOnPressListener("#addFriend", e -> {
-			showSearchForUserDialog();
-		});
+		setOnPressListener("#addFriend", e -> showSearchForUserDialog());
 
 		updateInformation();
 		updater.run(5000, new Runnable() {
@@ -138,9 +130,7 @@ public class FriendshipStage extends AbstractStage {
 
 		query.setOnKeyReleased(e1 -> {
 			if (query.getText().isBlank()) return;
-			UserController.searchUsername(query.getText(), 10, users -> {
-				list.setItems(FXCollections.observableArrayList(users));
-			});
+			UserController.searchUsername(query.getText(), 10, users -> list.setItems(FXCollections.observableArrayList(users)));
 		});
 
 		Dialogs.showDialogAndWait(this, Dialogs.INFO(), "Search for user", content, Orientation.HORIZONTAL,
@@ -154,6 +144,7 @@ public class FriendshipStage extends AbstractStage {
 				this.incoming.setItems(FXCollections.observableArrayList(incoming.stream().map(FriendshipRequest::from).toList())));
 		UserController.getOutgoingFriendshipRequests((outgoing) -> {
 			outgoing.forEach(request -> map.put(request.to(), request.state()));
+			this.outgoing.getItems().clear();
 			this.outgoing.setItems(FXCollections.observableArrayList(outgoing.stream().map(FriendshipRequest::to).toList()));
 		});
 	}

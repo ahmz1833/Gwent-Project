@@ -22,8 +22,13 @@ import org.apgrp10.gwent.model.card.Card;
 import org.apgrp10.gwent.model.card.CardInfo;
 import org.apgrp10.gwent.model.card.Faction;
 import org.apgrp10.gwent.model.card.Row;
+import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.Utils;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -53,7 +58,7 @@ public class PreGameMenu {
 		addUserInfo();
 		addGridPane();
 		setSpoiler();
-		uploadDeck(R.getAbsPath("primaryDeck.gwent"));
+		uploadDeck(R.getAsStream("primaryDeck.gwent"));
 		addLinkTexts();
 	}
 
@@ -434,10 +439,30 @@ public class PreGameMenu {
 		}
 	}
 
-	private void uploadDeck(String path) {
-		if (path == null)
-			return;
-		Deck deck = Deck.loadDeckFromFile(path);
+	private void uploadDeck(String fileAddress)
+	{
+		uploadDeck(Deck.loadDeckFromFileContent(Utils.loadFile(fileAddress)));
+	}
+
+	private void uploadDeck(InputStream stream)
+	{
+		try{
+			BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+			StringBuilder text = new StringBuilder();
+			String line;
+			while ((line = br.readLine()) != null) {
+				text.append(line).append("\n");
+			}
+			br.close();
+			uploadDeck(Deck.loadDeckFromFileContent(text.toString()));
+		}
+		catch (Exception e)
+		{
+			ANSI.logError(System.err, "Error in load deck from stream", e);
+		}
+	}
+
+	private void uploadDeck(Deck deck) {
 		if (deck != null) {
 			loadFactionDeck(deck.getFaction());
 			int index = 0;

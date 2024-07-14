@@ -110,7 +110,6 @@ public class MainStage extends AbstractStage {
 			UserController.cacheUserInfo(() -> showListDialog(gameRecords.entrySet().stream().toList(), entry -> {
 				var p1Info = UserController.getCachedInfo(entry.getValue().player1ID());
 				var p2Info = UserController.getCachedInfo(entry.getValue().player2ID());
-				// TODO : time is milis in entry.getKey()
 				Date date = new Date(entry.getKey());
 				Instant instant = Instant.ofEpochMilli(entry.getKey());
 				ZoneId zoneId = ZoneId.of("Asia/Tehran");
@@ -209,7 +208,6 @@ public class MainStage extends AbstractStage {
 
 		// Set information
 		UserController.getUserExperience(UserController.getCurrentUser().id(), experience -> {
-			ANSI.log("Experience: " + experience);
 			this.<Label>lookup("#info").setText("Rank: " + experience.rankByWins() + "\n" +
 			                                    "Wins: " + experience.wins() + "\n" +
 			                                    "Total: " + (experience.wins() + experience.losses() + experience.draws()));

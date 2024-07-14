@@ -1,19 +1,21 @@
 package org.apgrp10.gwent.client;
 
-import javafx.stage.Window;
 import org.apgrp10.gwent.client.controller.UserController;
 import org.apgrp10.gwent.client.view.AbstractStage;
 import org.apgrp10.gwent.client.view.LoginStage;
 import org.apgrp10.gwent.utils.ANSI;
 import org.apgrp10.gwent.utils.WaitExec;
 
-import java.util.ArrayList;
 import java.util.Locale;
 
 public class ClientMain {
 	private static final WaitExec connectionTimer = new WaitExec(false);
 
 	public static void main(String[] args) {
+		try{
+			Server.SERVER_IP = args[0].split(":")[0];
+			Server.SERVER_PORT = Integer.parseInt(args[0].split(":")[1]);
+		} catch (Exception ignored) {}
 		Locale.setDefault(Locale.ENGLISH);
 		Server.connectionProperty.addListener((observable, oldValue, newValue) -> {
 			if (newValue) onConnect();

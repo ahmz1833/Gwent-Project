@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
 public class Email2FAManager {
 	private static final Map<String, User.RegisterInfo> registerQueue = new HashMap<>();
 	private static final List<LoginInfo> loginQueue = new ArrayList<>();
-	private static final String HTTP_SERVER_ADDR = "37.152.178.57", EMAIL_SERVER_ADDR = "localhost";
-	private static final int HTTP_SERVER_PORT = 2222, EMAIL_SERVER_PORT = 41567;
+	static String HTTP_SERVER_ADDR = "localhost", EMAIL_SERVER_ADDR = "localhost";
+	static int HTTP_SERVER_PORT = 2222, EMAIL_SERVER_PORT = 41567;
 	private static final int LOGIN_CODE_LENGTH = 6, LOGIN_CODE_EXPIRY = 300_000;
 	private static Consumer<User.RegisterInfo> registerCallback;
 
