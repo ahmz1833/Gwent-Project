@@ -80,14 +80,13 @@ public class Deck {
 		return count;
 	}
 
-	public static Deck loadDeckFromFile(String fileAddress) {
+	public static Deck loadDeckFromFileContent(String content) {
 		try {
-			String text = Utils.loadFile(fileAddress);
-			Deck deck = fromJsonString(text);
+			Deck deck = fromJsonString(content);
 			assert deck != null;
 			return deck;
 		} catch (Exception e) {
-			ANSI.logError(System.err, "Error in loading deck from " + fileAddress, e);
+			ANSI.logError(System.err, "Error in loading deck", e);
 			return null;
 		}
 	}

@@ -17,12 +17,23 @@ import java.util.Locale;
 
 public class ServerMain {
 	public static final String SERVER_FOLDER = System.getProperty("user.home") + "/gwent-data/";
-	public static final int PORT = 12345;
 	protected static final String SECRET_KEY = "AP_server@apgrp10/2024";
-	private static final Object lock = new Object();
+	public static int PORT = 12345;
 
 	public static void main(String[] args) {
 		Locale.setDefault(Locale.ENGLISH);
+		try{
+			Email2FAManager.HTTP_SERVER_ADDR = args[0].split(":")[0];
+			PORT = Integer.parseInt(args[0].split(":")[1]);
+			Email2FAManager.HTTP_SERVER_PORT = PORT + 1;
+			Email2FAManager.EMAIL_SERVER_ADDR = args[1].split(":")[0];
+			Email2FAManager.EMAIL_SERVER_PORT = Integer.parseInt(args[1].split(":")[1]);
+		} catch (Exception e)
+		{
+			Email2FAManager.HTTP_SERVER_ADDR = "localhost";
+			Email2FAManager.HTTP_SERVER_PORT = PORT + 1;
+			Email2FAManager.EMAIL_SERVER_ADDR = "localhost";
+		}
 
 		// Create the server folder if it doesn't exist
 		Path path = Paths.get(SERVER_FOLDER);
